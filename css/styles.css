@@ -350,7 +350,14 @@ input[type="date"], input[type="time"], select { color-scheme: dark; }
   text-align: center;
 }
 .footer-logo { height: 30px; width: auto; margin: 0 auto 6px; }
-.footer-tag { color: var(--cream-dim); margin: 0 0 18px; font-style: italic; }
+.footer-tag { color: var(--cream-dim); margin: 0 0 14px; font-style: italic; }
+.footer-channel {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--cream-dim); font-size: .9rem;
+  margin: 0 0 18px; transition: color .2s ease;
+}
+.footer-channel svg { width: 18px; height: 18px; flex: none; color: #25d366; }
+.footer-channel:hover { color: var(--cream); }
 .footer-nav { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
 .footer-nav a { color: var(--cream); font-family: var(--font-head); font-size: .92rem; }
 .footer-nav a:hover { color: var(--sun); }
