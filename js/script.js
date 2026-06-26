@@ -5,16 +5,16 @@
    ============================================================ */
 const CONFIG = {
   businessName: "Shine On You",
-  email: "christoph@zeitler.tech",   // <- deine Kontakt-/Empfangsadresse
-  phone: "+49 (0) 000 000 000",      // <- deine Telefonnummer (Anzeige)
-  phoneHref: "+490000000000",        // <- Telefonnummer für tel:-Link (ohne Leerzeichen)
-  instagram: "https://instagram.com/", // <- Instagram-Profil
+  ownerName: "Manuela Zimmert",
+  email: "manuela@shineonyou.de",    // Kontakt-/Empfangsadresse
+  phone: "+49 173 2008319",          // Telefonnummer (Anzeige)
+  phoneHref: "+491732008319",        // Telefonnummer für tel:-Link (ohne Leerzeichen)
 
   /* --- Formularversand (ohne dass sich das Mailprogramm öffnet) ---
-     Formspree: Konto auf https://formspree.io anlegen, Formular erstellen,
-     dann die ID aus der URL  https://formspree.io/f/XXXXXXXX  hier eintragen.
+     Web3Forms: auf https://web3forms.com die Empfänger-E-Mail eintragen,
+     den per Mail erhaltenen Access Key hier einsetzen.
      Leer lassen = Fallback: öffnet vorausgefüllte E-Mail im Mailprogramm. */
-  formspreeId: "",                   // z. B. "xpzgkqyw"
+  web3formsKey: "",                  // Access Key von web3forms.com
 
   /* --- Online-Terminbuchung (Cal.com) ---
      Konto auf https://cal.com anlegen, Apple Kalender verbinden, Event-Typ
@@ -76,14 +76,15 @@ function downloadICS(filename, content) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/* Versand über Formspree (Promise: true = erfolgreich) */
-async function sendViaFormspree(fields) {
-  const res = await fetch(`https://formspree.io/f/${CONFIG.formspreeId}`, {
+/* Versand über Web3Forms (Promise: true = erfolgreich) */
+async function sendViaWeb3Forms(fields) {
+  const res = await fetch("https://api.web3forms.com/submit", {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
-    body: JSON.stringify(fields),
+    body: JSON.stringify({ access_key: CONFIG.web3formsKey, ...fields }),
   });
-  return res.ok;
+  const data = await res.json().catch(() => ({}));
+  return res.ok && data.success;
 }
 
 /* mailto-Fallback öffnen */
@@ -190,15 +191,15 @@ if (bookingForm) {
 
     downloadICS(`Termin-${data.date}-${data.time.replace(":", "")}.ics`, ics);
 
-    // Anfrage an die Inhaber:in: bevorzugt per Formspree, sonst mailto
-    if (CONFIG.formspreeId) {
-      const btn = bookingForm.querySelector("button[type=submit]");
+    // Anfrage an die Inhaberin: bevorzugt per Web3Forms, sonst mailto
+    if (CONFIG.web3formsKey) {
       bookingForm.classList.add("is-loading");
       bookingHint.classList.remove("error");
       bookingHint.textContent = "Kalenderdatei heruntergeladen – Anfrage wird gesendet …";
       try {
-        const ok = await sendViaFormspree({
-          _subject: `Terminanfrage ${data.date} ${data.time} – ${data.name}`,
+        const ok = await sendViaWeb3Forms({
+          subject: `Terminanfrage ${data.date} ${data.time} – ${data.name}`,
+          from_name: data.name,
           Anliegen: "Terminanfrage",
           Datum: data.date, Uhrzeit: data.time, Art: data.mode,
           Name: data.name, email: data.email, Thema: data.note || "—",
@@ -210,7 +211,7 @@ if (bookingForm) {
             "Termin angefragt!",
             "Deine Anfrage ist eingegangen und die Kalenderdatei wurde heruntergeladen. Ich melde mich zur Bestätigung."
           );
-        } else { throw new Error("Formspree"); }
+        } else { throw new Error("Web3Forms"); }
       } catch (_) {
         bookingForm.classList.remove("is-loading");
         bookingHint.classList.add("error");
@@ -219,7 +220,7 @@ if (bookingForm) {
       return;
     }
 
-    // Fallback ohne Formspree: vorausgefüllte E-Mail
+    // Fallback ohne Web3Forms: vorausgefüllte E-Mail
     bookingHint.classList.remove("error");
     bookingHint.textContent =
       "✓ Kalenderdatei heruntergeladen. Dein E-Mail-Programm öffnet sich für die Anfrage …";
@@ -247,13 +248,14 @@ if (contactForm) {
 
     const data = Object.fromEntries(new FormData(contactForm).entries());
 
-    if (CONFIG.formspreeId) {
+    if (CONFIG.web3formsKey) {
       contactForm.classList.add("is-loading");
       contactHint.classList.remove("error");
       contactHint.textContent = "Nachricht wird gesendet …";
       try {
-        const ok = await sendViaFormspree({
-          _subject: `Kontaktanfrage von ${data.name}`,
+        const ok = await sendViaWeb3Forms({
+          subject: `Kontaktanfrage von ${data.name}`,
+          from_name: data.name,
           Name: data.name, email: data.email, Nachricht: data.message,
         });
         contactForm.classList.remove("is-loading");
@@ -263,7 +265,7 @@ if (contactForm) {
             "Nachricht gesendet!",
             "Danke für deine Nachricht – ich melde mich so schnell wie möglich bei dir."
           );
-        } else { throw new Error("Formspree"); }
+        } else { throw new Error("Web3Forms"); }
       } catch (_) {
         contactForm.classList.remove("is-loading");
         contactHint.classList.add("error");
@@ -272,7 +274,7 @@ if (contactForm) {
       return;
     }
 
-    // Fallback ohne Formspree: vorausgefüllte E-Mail
+    // Fallback ohne Web3Forms: vorausgefüllte E-Mail
     contactHint.classList.remove("error");
     contactHint.textContent = "Dein E-Mail-Programm öffnet sich – bitte die Nachricht noch absenden.";
     openMailto(`Kontaktanfrage von ${data.name}`, [
@@ -280,17 +282,3 @@ if (contactForm) {
     ]);
   });
 }
-
-/* ===== Impressum / Datenschutz Platzhalter ===== */
-["impressumLink", "datenschutzLink"].forEach((id) => {
-  const el = document.getElementById(id);
-  if (el) {
-    el.addEventListener("click", (e) => {
-      e.preventDefault();
-      alert(
-        "Hinweis: Impressum und Datenschutzerklärung müssen noch ergänzt werden.\n" +
-        "Für eine geschäftliche Website in Deutschland sind beide gesetzlich verpflichtend."
-      );
-    });
-  }
-});
