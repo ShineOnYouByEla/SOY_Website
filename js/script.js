@@ -284,3 +284,28 @@ if (contactForm) {
     ]);
   });
 }
+
+/* ===== Parallax (testweise) =====
+   Elemente mit data-parallax="0.3" bewegen sich beim Scrollen langsamer als
+   die Seite. Respektiert prefers-reduced-motion und läuft über rAF. */
+(function initParallax() {
+  const els = Array.from(document.querySelectorAll("[data-parallax]"));
+  if (!els.length) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  let ticking = false;
+  function update() {
+    const y = window.scrollY || window.pageYOffset || 0;
+    for (const el of els) {
+      const speed = parseFloat(el.dataset.parallax) || 0;
+      el.style.transform = `translate3d(0, ${(y * speed).toFixed(1)}px, 0)`;
+    }
+    ticking = false;
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  update();
+})();
