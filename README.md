@@ -98,7 +98,7 @@ Die Seite wird per GitHub Actions automatisch auf GitHub Pages veröffentlicht
 2. Unter **Build and deployment → Source** „**GitHub Actions**" auswählen.
 3. Sobald der Branch nach `main` gemergt ist, läuft der Workflow automatisch und
    veröffentlicht die Seite. Die URL erscheint danach unter **Settings → Pages**
-   (Format: `https://w0rkingchr1s.github.io/shineonyou_website/`).
+   (Format: `https://shineonyoubyela.github.io/SOY_Website/`).
 
 Jeder weitere Push auf `main` aktualisiert die Live-Seite automatisch.
 
