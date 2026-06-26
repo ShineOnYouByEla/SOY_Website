@@ -19,9 +19,11 @@ const CONFIG = {
   /* --- Online-Terminbuchung (Cal.com) ---
      Konto auf https://cal.com anlegen, Apple Kalender verbinden, Event-Typ
      erstellen, dann den Link "benutzername/event" hier eintragen.
-     Leer lassen = Fallback: das .ics-Buchungsformular bleibt aktiv. */
-  calLink: "",                       // z. B. "shineonyou/beratung"
-  calOrigin: "https://cal.com",      // bei self-hosted Cal anpassen
+     Leer lassen = Fallback: das .ics-Buchungsformular bleibt aktiv.
+     Hinweis: Hier ist die EU-Region (cal.eu) hinterlegt. */
+  calLink: "zeitlerch",                          // z. B. "shineonyou/beratung"
+  calOrigin: "https://cal.eu",                   // Booking-Origin (EU-Region)
+  calEmbedJs: "https://app.cal.eu/embed/embed.js", // Embed-Loader passend zur Region
 };
 
 /* Kontaktdaten in die Seite schreiben (zentral pflegbar) */
@@ -141,7 +143,7 @@ function initCalEmbed() {
       }
       cal.q.push(ar);
     };
-  })(window, "https://app.cal.com/embed/embed.js");
+  })(window, CONFIG.calEmbedJs);
 
   Cal("init", { origin: CONFIG.calOrigin });
   Cal("inline", { elementOrSelector: "#calEmbed", calLink: CONFIG.calLink, layout: "month_view" });
