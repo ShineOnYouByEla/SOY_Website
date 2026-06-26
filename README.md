@@ -96,8 +96,23 @@ wird automatisch ausgeblendet.
 Die Seite ist statisch und läuft u. a. auf **GitHub Pages**, **Netlify** oder
 **Cloudflare Pages** ohne weitere Konfiguration.
 
-## ⚠️ Noch zu ergänzen (rechtlich)
+## Datenschutz / Recht
 
-Für eine geschäftliche Website in Deutschland sind **Impressum** und
-**Datenschutzerklärung** verpflichtend. Die Links im Footer sind aktuell nur
-Platzhalter.
+- **Schriften** sind **lokal eingebunden** (`assets/fonts/`, `css/fonts.css`) –
+  es gibt keinen externen Aufruf bei Google Fonts.
+- **Einwilligungs-Checkbox** (DSGVO) ist Pflicht vor dem Absenden beider Formulare.
+- **Impressum** (`impressum.html`) und **Datenschutzerklärung** (`datenschutz.html`)
+  sind als Entwurf vorhanden und im Footer verlinkt.
+
+### ⚠️ Vor dem Live-Gang ausfüllen
+
+Beide Rechtsseiten enthalten **Platzhalter** (farbig als `[…]` markiert), die mit den
+echten Angaben ersetzt werden müssen:
+
+- Name, ladungsfähige Anschrift, Telefon, E-Mail
+- USt-IdNr. **oder** Hinweis auf Kleinunternehmer-Regelung (§ 19 UStG)
+- Name und Anschrift des **Webhosters** (in der Datenschutzerklärung)
+
+> Empfehlung: Die Datenschutzerklärung zusätzlich mit einem Generator
+> (z. B. e-Recht24) oder anwaltlich prüfen lassen – die Verantwortung für die
+> Richtigkeit liegt bei der Betreiberin.

@@ -280,17 +280,3 @@ if (contactForm) {
     ]);
   });
 }
-
-/* ===== Impressum / Datenschutz Platzhalter ===== */
-["impressumLink", "datenschutzLink"].forEach((id) => {
-  const el = document.getElementById(id);
-  if (el) {
-    el.addEventListener("click", (e) => {
-      e.preventDefault();
-      alert(
-        "Hinweis: Impressum und Datenschutzerklärung müssen noch ergänzt werden.\n" +
-        "Für eine geschäftliche Website in Deutschland sind beide gesetzlich verpflichtend."
-      );
-    });
-  }
-});
