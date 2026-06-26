@@ -33,31 +33,63 @@ const CONFIG = {
   phone: "+49 (0) 000 000 000",    // Telefon (Anzeige)
   phoneHref: "+490000000000",      // Telefon für tel:-Link
   instagram: "https://instagram.com/",
+  formspreeId: "",                 // Formspree-ID -> echter Formularversand
+  calLink: "",                     // Cal.com-Link -> Online-Terminbuchung
 };
 ```
 
 E-Mail und Telefon werden daraus automatisch in die Seite geschrieben.
+`formspreeId` und `calLink` schalten die erweiterten Funktionen frei (siehe unten).
 
 ## Funktionen
 
-- **Terminbuchung:** erzeugt eine `.ics`-Kalenderdatei (öffnet sich per Doppelklick
-  in Apple Kalender, Google Kalender, Outlook) **und** öffnet eine vorausgefüllte
-  E-Mail-Anfrage an dich.
-- **Kontaktformular & Nachricht senden:** öffnet das E-Mail-Programm mit
-  vorausgefüllter Nachricht (kein Server nötig).
+- **Kontaktformular & Terminbuchung** funktionieren in zwei Stufen:
+  - **Ohne Einrichtung (Fallback):** Kontaktformular öffnet eine vorausgefüllte
+    E-Mail; die Terminbuchung erzeugt zusätzlich eine `.ics`-Kalenderdatei.
+  - **Mit Einrichtung:** echter Versand im Hintergrund (Formspree) und echte
+    Online-Buchung mit Verfügbarkeit + Apple-Kalender-Sync (Cal.com).
 
-### Optional: Formulare ohne E-Mail-Programm versenden
+Die Stufen schalten sich **automatisch** frei, sobald die jeweiligen IDs in
+`js/script.js` (`CONFIG`) eingetragen sind – sonst bleibt der Fallback aktiv.
 
-Für echten Versand im Hintergrund lässt sich z. B. [Formspree](https://formspree.io)
-oder, beim Hosting über [Netlify](https://www.netlify.com), das eingebaute
-Formular-Feature anbinden. Sag Bescheid, dann richte ich das ein.
+### Echter Formularversand mit Formspree (empfohlen)
 
-### Optional: Zwei-Wege-Sync mit Apple Kalender
+Funktioniert auf jedem Hosting (auch GitHub Pages), Gratis-Kontingent reicht für
+den Anfang.
 
-Aktuell wird pro Anfrage eine `.ics`-Datei erzeugt. Für eine echte Online-Buchung
-mit Verfügbarkeitsabgleich direkt in deinem Apple Kalender eignet sich ein Dienst
-wie [Cal.com](https://cal.com) oder Calendly (lässt sich mit Apple Kalender
-verbinden) – kann später als „Termin buchen“-Link integriert werden.
+1. Konto auf [formspree.io](https://formspree.io) anlegen.
+2. Neues Formular erstellen → Empfänger-E-Mail bestätigen.
+3. Die Form-ID aus der Endpoint-URL `https://formspree.io/f/XXXXXXXX` kopieren.
+4. In `js/script.js` eintragen:
+
+   ```js
+   formspreeId: "XXXXXXXX",
+   ```
+
+Danach werden **Kontakt- und Terminanfragen direkt versendet** (kein
+E-Mail-Programm mehr nötig) und es erscheint eine Erfolgsmeldung.
+
+> Alternativen: [Web3Forms](https://web3forms.com) (nur Access-Key) oder, beim
+> Hosting über Netlify, [Netlify Forms](https://docs.netlify.com/forms/setup/).
+> Beide lassen sich analog in `sendViaFormspree()` anbinden – sag Bescheid.
+
+### Online-Terminbuchung mit Apple-Kalender-Sync (Cal.com)
+
+1. Konto auf [cal.com](https://cal.com) anlegen.
+2. Unter **Apps/Calendars** den **Apple Calendar** verbinden
+   (Verfügbarkeit wird abgeglichen, bestätigte Termine landen automatisch dort).
+3. Einen **Event-Typ** anlegen, z. B. „Beratung, 30 Min“.
+4. Den Link `benutzername/event` (steht in der Buchungs-URL
+   `https://cal.com/benutzername/event`) in `js/script.js` eintragen:
+
+   ```js
+   calLink: "benutzername/beratung",
+   ```
+
+Dann erscheint das **Buchungs-Widget direkt auf der Seite**; das `.ics`-Formular
+wird automatisch ausgeblendet.
+
+> Alternative: Calendly-Embed lässt sich genauso einbinden – sag Bescheid.
 
 ## Hosting
 

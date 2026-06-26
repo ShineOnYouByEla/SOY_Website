@@ -185,6 +185,10 @@
         </div>
 
         <div class="two-col-media">
+          <!-- Online-Buchung (Cal.com) – wird angezeigt, sobald CONFIG.calLink gesetzt ist -->
+          <div id="calEmbed" class="cal-embed card" hidden aria-label="Online-Terminbuchung"></div>
+
+          <!-- Fallback: .ics-Formular (aktiv, solange keine Online-Buchung konfiguriert ist) -->
           <form id="bookingForm" class="card form-card" novalidate>
             <div class="field">
               <label for="b-name">Name</label>
