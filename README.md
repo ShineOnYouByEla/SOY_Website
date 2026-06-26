@@ -29,49 +29,47 @@ python3 -m http.server 8000
 
 ```js
 const CONFIG = {
-  email: "christoph@zeitler.tech", // Empfangsadresse
-  phone: "+49 (0) 000 000 000",    // Telefon (Anzeige)
-  phoneHref: "+490000000000",      // Telefon für tel:-Link
-  instagram: "https://instagram.com/",
-  formspreeId: "",                 // Formspree-ID -> echter Formularversand
+  ownerName: "Manuela Zimmert",
+  email: "manuela@shineonyou.de",  // Empfangsadresse
+  phone: "+49 173 2008319",        // Telefon (Anzeige)
+  phoneHref: "+491732008319",      // Telefon für tel:-Link
+  web3formsKey: "",                // Web3Forms Access Key -> echter Formularversand
   calLink: "",                     // Cal.com-Link -> Online-Terminbuchung
 };
 ```
 
 E-Mail und Telefon werden daraus automatisch in die Seite geschrieben.
-`formspreeId` und `calLink` schalten die erweiterten Funktionen frei (siehe unten).
+`web3formsKey` und `calLink` schalten die erweiterten Funktionen frei (siehe unten).
 
 ## Funktionen
 
 - **Kontaktformular & Terminbuchung** funktionieren in zwei Stufen:
   - **Ohne Einrichtung (Fallback):** Kontaktformular öffnet eine vorausgefüllte
     E-Mail; die Terminbuchung erzeugt zusätzlich eine `.ics`-Kalenderdatei.
-  - **Mit Einrichtung:** echter Versand im Hintergrund (Formspree) und echte
+  - **Mit Einrichtung:** echter Versand im Hintergrund (Web3Forms) und echte
     Online-Buchung mit Verfügbarkeit + Apple-Kalender-Sync (Cal.com).
 
-Die Stufen schalten sich **automatisch** frei, sobald die jeweiligen IDs in
+Die Stufen schalten sich **automatisch** frei, sobald die jeweiligen Schlüssel in
 `js/script.js` (`CONFIG`) eingetragen sind – sonst bleibt der Fallback aktiv.
 
-### Echter Formularversand mit Formspree (empfohlen)
+### Echter Formularversand mit Web3Forms
 
-Funktioniert auf jedem Hosting (auch GitHub Pages), Gratis-Kontingent reicht für
-den Anfang.
+Funktioniert auf jedem Hosting, großzügiges Gratis-Kontingent, kein Konto-Login nötig.
 
-1. Konto auf [formspree.io](https://formspree.io) anlegen.
-2. Neues Formular erstellen → Empfänger-E-Mail bestätigen.
-3. Die Form-ID aus der Endpoint-URL `https://formspree.io/f/XXXXXXXX` kopieren.
-4. In `js/script.js` eintragen:
+1. Auf [web3forms.com](https://web3forms.com) die Empfänger-E-Mail
+   (`manuela@shineonyou.de`) eintragen.
+2. Den **Access Key** aus der Bestätigungs-E-Mail kopieren.
+3. In `js/script.js` eintragen:
 
    ```js
-   formspreeId: "XXXXXXXX",
+   web3formsKey: "DEIN-ACCESS-KEY",
    ```
 
 Danach werden **Kontakt- und Terminanfragen direkt versendet** (kein
 E-Mail-Programm mehr nötig) und es erscheint eine Erfolgsmeldung.
 
-> Alternativen: [Web3Forms](https://web3forms.com) (nur Access-Key) oder, beim
-> Hosting über Netlify, [Netlify Forms](https://docs.netlify.com/forms/setup/).
-> Beide lassen sich analog in `sendViaFormspree()` anbinden – sag Bescheid.
+> Alternative: Beim Hosting über Netlify ginge auch
+> [Netlify Forms](https://docs.netlify.com/forms/setup/) – sag Bescheid.
 
 ### Online-Terminbuchung mit Apple-Kalender-Sync (Cal.com)
 
@@ -102,17 +100,14 @@ Die Seite ist statisch und läuft u. a. auf **GitHub Pages**, **Netlify** oder
   es gibt keinen externen Aufruf bei Google Fonts.
 - **Einwilligungs-Checkbox** (DSGVO) ist Pflicht vor dem Absenden beider Formulare.
 - **Impressum** (`impressum.html`) und **Datenschutzerklärung** (`datenschutz.html`)
-  sind als Entwurf vorhanden und im Footer verlinkt.
+  sind mit den echten Angaben befüllt (Inhaberin, Anschrift, Kleinunternehmer-Hinweis,
+  Hoster united-domains, Web3Forms, Cal.com) und im Footer verlinkt.
 
-### ⚠️ Vor dem Live-Gang ausfüllen
+### Noch offen
 
-Beide Rechtsseiten enthalten **Platzhalter** (farbig als `[…]` markiert), die mit den
-echten Angaben ersetzt werden müssen:
+- **Web3Forms Access Key** und **Cal.com-Link** in `js/script.js` eintragen
+  (siehe oben) – bis dahin greift der mailto-/`.ics`-Fallback.
 
-- Name, ladungsfähige Anschrift, Telefon, E-Mail
-- USt-IdNr. **oder** Hinweis auf Kleinunternehmer-Regelung (§ 19 UStG)
-- Name und Anschrift des **Webhosters** (in der Datenschutzerklärung)
-
-> Empfehlung: Die Datenschutzerklärung zusätzlich mit einem Generator
-> (z. B. e-Recht24) oder anwaltlich prüfen lassen – die Verantwortung für die
-> Richtigkeit liegt bei der Betreiberin.
+> Empfehlung: Die Datenschutzerklärung vor dem Live-Gang zusätzlich mit einem
+> Generator (z. B. e-Recht24) oder anwaltlich prüfen lassen – die Verantwortung für
+> die Richtigkeit liegt bei der Betreiberin.
