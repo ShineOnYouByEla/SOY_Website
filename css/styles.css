@@ -94,7 +94,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   height: 68px;
 }
 .brand { display: flex; align-items: center; }
-.brand-logo { height: 46px; width: auto; }
+.brand-logo { height: 68px; width: auto; }
 .nav { display: flex; gap: 26px; margin-left: auto; }
 .nav a {
   color: var(--cream); font-family: var(--font-head); font-weight: 500;
