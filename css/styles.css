@@ -185,7 +185,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 .section-kicker {
   font-family: var(--font-head); font-weight: 600;
   text-transform: uppercase; letter-spacing: .2em;
-  font-size: .78rem; color: var(--sun); margin: 0 0 8px;
+  font-size: .99rem; color: var(--sun); margin: 0 0 8px;
 }
 .section-sub { color: var(--cream-dim); margin-top: 4px; }
 
@@ -196,6 +196,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 }
 .two-col-wide { grid-template-columns: 0.85fr 1.15fr; align-items: start; }
 .two-col-text h2 { margin-top: 6px; }
+.two-col-text h3 {color: var(--sun)}
 .two-col-text p { color: var(--cream-dim); }
 .two-col-media img {
   margin: 0 auto;
@@ -349,7 +350,7 @@ input[type="date"], input[type="time"], select { color-scheme: dark; }
   padding: 54px 0 40px;
   text-align: center;
 }
-.footer-logo { height: 30px; width: auto; margin: 0 auto 6px; }
+.footer-logo { height: 80px; width: auto; margin: 0 auto 6px; }
 .footer-tag { color: var(--cream-dim); margin: 0 0 18px; font-style: italic; }
 .footer-nav { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
 .footer-nav a { color: var(--cream); font-family: var(--font-head); font-size: .92rem; }
