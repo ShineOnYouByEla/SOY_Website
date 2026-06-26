@@ -259,6 +259,24 @@ textarea { resize: vertical; }
 .form-hint { font-size: .9rem; margin: 12px 0 0; min-height: 1.2em; color: var(--wave); }
 .form-hint.error { color: #f0a890; }
 
+/* Erfolgsmeldung nach Versand */
+.form-success {
+  background: var(--petrol-card); border: 1px solid var(--petrol-line);
+  border-radius: var(--radius); padding: 30px; text-align: center;
+}
+.form-success .form-success-ic {
+  width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(142,210,217,.15); color: var(--wave);
+}
+.form-success h3 { color: var(--cream); margin-bottom: 6px; }
+.form-success p { color: var(--cream-dim); margin: 0; }
+
+/* Cal.com Embed-Container */
+.cal-embed { padding: 8px; min-height: 560px; overflow: hidden; }
+.cal-embed iframe { border-radius: 10px; }
+.is-loading { opacity: .6; pointer-events: none; }
+
 /* color scheme hint for native date/time pickers */
 input[type="date"], input[type="time"], select { color-scheme: dark; }
 
