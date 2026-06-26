@@ -400,9 +400,9 @@ input[type="date"], input[type="time"], select { color-scheme: dark; }
 /* ===== Responsive ===== */
 @media (max-width: 860px) {
   .nav, .nav-cta { display: none; }
-  /* WhatsApp-Icon + Menü-Button als Gruppe rechts (nur ein auto-Margin) */
-  .header-channel { margin-left: auto; }
-  .nav-toggle { display: block; margin-left: 0; }
+  /* Burger + WhatsApp-Icon als Gruppe rechts; WhatsApp sitzt rechts vom Burger */
+  .nav-toggle { display: block; margin-left: auto; }
+  .header-channel { margin-left: 0; }
   .two-col, .two-col-wide { grid-template-columns: 1fr; }
   /* nur in der Über-Sektion das Logo zuerst zeigen; Formulare bleiben unter ihrer Überschrift */
   .two-col:not(.two-col-wide) .two-col-media { order: -1; }
