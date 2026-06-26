@@ -138,6 +138,15 @@ h3 { font-size: 1.2rem; font-weight: 600; }
     radial-gradient(120% 90% at 50% -10%, rgba(233,182,144,.16), transparent 55%),
     radial-gradient(90% 70% at 50% 120%, rgba(142,210,217,.12), transparent 60%);
 }
+/* Dekorative Glow-Ebene für den Parallax-Effekt (liegt hinter dem Inhalt) */
+.hero-glow {
+  position: absolute; inset: -12% -8% 16% -8%;
+  z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(closest-side, rgba(233,182,144,.20), transparent 70%) 28% 18% / 60% 60% no-repeat,
+    radial-gradient(closest-side, rgba(142,210,217,.16), transparent 70%) 78% 64% / 52% 52% no-repeat;
+  will-change: transform;
+}
 .hero-inner { position: relative; z-index: 2; max-width: 760px; }
 .hero-logo {
   width: clamp(190px, 32vw, 290px);
@@ -248,9 +257,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   border: 1px solid var(--petrol-line);
   border-radius: var(--radius);
   padding: 28px;
-  transition: transform .18s ease, border-color .2s ease;
 }
-.cards .card:hover { transform: translateY(-4px); border-color: var(--sun); }
 .card h3 { color: var(--cream); }
 .card p { color: var(--cream-dim); margin: 0; font-size: .96rem; }
 .card-icon {
