@@ -21,7 +21,7 @@ const CONFIG = {
      erstellen, dann den Link "benutzername/event" hier eintragen.
      Leer lassen = Fallback: das .ics-Buchungsformular bleibt aktiv.
      Hinweis: Hier ist die EU-Region (cal.eu) hinterlegt. */
-  calLink: "zeitlerch",                          // z. B. "shineonyou/beratung"
+  calLink: "manuelazi",                          // z. B. "shineonyou/beratung"
   calOrigin: "https://cal.eu",                   // Booking-Origin (EU-Region)
   calEmbedJs: "https://app.cal.eu/embed/embed.js", // Embed-Loader passend zur Region
 };
