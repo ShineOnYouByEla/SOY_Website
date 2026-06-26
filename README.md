@@ -89,10 +89,28 @@ wird automatisch ausgeblendet.
 
 > Alternative: Calendly-Embed lässt sich genauso einbinden – sag Bescheid.
 
-## Hosting
+## Hosting über GitHub Pages
 
-Die Seite ist statisch und läuft u. a. auf **GitHub Pages**, **Netlify** oder
-**Cloudflare Pages** ohne weitere Konfiguration.
+Die Seite wird per GitHub Actions automatisch auf GitHub Pages veröffentlicht
+(`.github/workflows/deploy-pages.yml`). **Einmalige Einrichtung im Repo:**
+
+1. **Settings → Pages** öffnen.
+2. Unter **Build and deployment → Source** „**GitHub Actions**" auswählen.
+3. Sobald der Branch nach `main` gemergt ist, läuft der Workflow automatisch und
+   veröffentlicht die Seite. Die URL erscheint danach unter **Settings → Pages**
+   (Format: `https://w0rkingchr1s.github.io/shineonyou_website/`).
+
+Jeder weitere Push auf `main` aktualisiert die Live-Seite automatisch.
+
+### Eigene Domain (später)
+
+Wenn `shineonyou.de` (z. B. bei united-domains) auf GitHub Pages zeigen soll:
+Domain unter **Settings → Pages → Custom domain** eintragen und beim Domain-Anbieter
+die DNS-Einträge setzen. **Wichtig:** Wechselt der Hoster, muss der Abschnitt
+„Hosting" in `datenschutz.html` angepasst werden (aktuell: GitHub Pages).
+
+> Hinweis: Der Datenschutz-Abschnitt „Hosting" nennt derzeit **GitHub, Inc. (USA)**
+> als Hoster, da die Seite zunächst über GitHub Pages läuft.
 
 ## Datenschutz / Recht
 
