@@ -194,6 +194,35 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   border-radius: var(--radius);
 }
 
+/* Portraitfoto im "Über mich"-Bereich – elegant gerahmt */
+.about-photo {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.about-photo::before {
+  content: "";
+  position: absolute;
+  inset: 18px -18px -18px 18px;
+  border-radius: 22px;
+  background: linear-gradient(150deg, rgba(233,182,144,.35), rgba(142,210,217,.22));
+  z-index: 0;
+}
+.about-photo img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  max-width: none;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 22%;
+  border-radius: 22px;
+  border: 1px solid rgba(247,241,232,.14);
+  box-shadow: var(--shadow);
+}
+
 /* checklist */
 .checklist { list-style: none; padding: 0; margin: 22px 0 0; }
 .checklist li {
