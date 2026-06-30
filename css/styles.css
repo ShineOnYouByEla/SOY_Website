@@ -422,6 +422,10 @@ textarea { resize: vertical; }
 .form-success h3 { color: var(--cream); margin-bottom: 6px; }
 .form-success p { color: var(--cream-dim); margin: 0; }
 
+/* hCaptcha-Feld im Kontaktformular – nur Abstand; Widget lädt erst bei Nutzung */
+.captcha-field { margin: 4px 0 6px; min-height: 0; }
+.captcha-field .h-captcha { display: inline-block; }
+
 /* Cal.com Einwilligungs-Box (2-Klick-Lösung) – Embed lädt erst nach Klick.
    Bewusst als einladender Buchungs-Button gestaltet, nicht als Warnhinweis. */
 .cal-consent { text-align: center; }
