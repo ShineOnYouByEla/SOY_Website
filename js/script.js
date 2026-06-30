@@ -14,7 +14,7 @@ const CONFIG = {
      Web3Forms: auf https://web3forms.com die Empfänger-E-Mail eintragen,
      den per Mail erhaltenen Access Key hier einsetzen.
      Leer lassen = Fallback: öffnet vorausgefüllte E-Mail im Mailprogramm. */
-  web3formsKey: "",                  // Access Key von web3forms.com
+  web3formsKey: "ee15661a-109f-4c28-aac7-bcb24f223a98",                  // Access Key von web3forms.com
 
   /* --- Online-Terminbuchung (Cal.com) ---
      Konto auf https://cal.com anlegen, Apple Kalender verbinden, Event-Typ
