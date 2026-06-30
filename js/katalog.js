@@ -36,8 +36,9 @@
   let renderToken = 0; // bricht veraltete Render-Vorgänge ab
   let currentPdf = null;      // aktuell geladenes PDF (für die Zoom-Ansicht)
   let currentPageCount = 0;
-  let pageImages = [];        // Vorschau-Bilder der Seiten (für die Lupe)
+  let pageImages = [];        // Vorschau-Bilder der Seiten (für Lupe & Vollbild)
   let isFlipping = false;     // gerade eine Blätter-Animation aktiv?
+  let currentRatio = 1;       // Seitenverhältnis (Breite/Höhe) der Katalogseiten
 
   /* ---- Steuerung verdrahten (unabhängig von den Daten) ---- */
   if (prevBtn) prevBtn.addEventListener("click", () => pageFlip && pageFlip.flipPrev());
@@ -48,8 +49,8 @@
   document.addEventListener("keydown", (e) => {
     if (zoomOpen) {
       if (e.key === "Escape") closeZoom();
-      if (e.key === "ArrowLeft")  zoomStep(-1);
-      if (e.key === "ArrowRight") zoomStep(1);
+      if (e.key === "ArrowLeft")  zoomFlip(-1);
+      if (e.key === "ArrowRight") zoomFlip(1);
       return;
     }
     if (magnifierOn && e.key === "Escape") { setMagnifier(false); return; }
@@ -164,6 +165,7 @@
     // Seitenverhältnis der ersten Seite als Maß für das Buch
     const firstVp = (await pdf.getPage(1)).getViewport({ scale: 1 });
     const ratio = firstVp.width / firstVp.height;
+    currentRatio = ratio;             // für die Vollbild-Ansicht merken
 
     // Alle Seiten als Bilder rendern
     const images = [];
@@ -256,204 +258,244 @@
   }
 
   /* ============================================================
-     Zoom-Ansicht: einzelne Seite in hoher Auflösung, zum
-     Reinzoomen (zwei Finger / Doppeltipp) und Verschieben
+     Vollbild-Ansicht: ein zweiter, großer Blätterer mit demselben
+     schönen Blätter-Effekt. Zum Vergrößern kann man die ganze Bühne
+     zoomen (Mausrad/Doppelklick bzw. zwei Finger) und verschieben.
+     Geblättert wird mit den Pfeilen, den Pfeiltasten oder per Wischen.
      ============================================================ */
-  const zoomOverlay = document.getElementById("zoomOverlay");
+  const zoomOverlay  = document.getElementById("zoomOverlay");
   const zoomViewport = document.getElementById("zoomViewport");
-  const zoomImg = document.getElementById("zoomImg");
-  const zoomLoading = document.getElementById("zoomLoading");
-  const zoomIndic = document.getElementById("zoomIndicator");
-  const zoomPrev = document.getElementById("zoomPrev");
-  const zoomNext = document.getElementById("zoomNext");
-  const zoomClose = document.getElementById("zoomClose");
+  const zoomStage    = document.getElementById("zoomStage");
+  const zoomFlipEl   = document.getElementById("zoomFlip");
+  const zoomLoading  = document.getElementById("zoomLoading");
+  const zoomIndic    = document.getElementById("zoomIndicator");
+  const zoomPrev     = document.getElementById("zoomPrev");
+  const zoomNext     = document.getElementById("zoomNext");
+  const zoomClose    = document.getElementById("zoomClose");
 
   let zoomOpen = false;
-  let zoomPageNum = 1;            // 1-basiert
-  let zoomRenderToken = 0;
-  // Transform-Zustand
-  let baseW = 0, baseH = 0, scale = 1, tx = 0, ty = 0;
-  const MIN_SCALE = 1, MAX_SCALE = 6;
-  const pointers = new Map();
-  let pinchStart = null;
-  let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
+  let zoomBook = null;            // eigener Blätterer für die Vollbild-Ansicht
+  let zoomFlipping = false;
+  let zoomStartIndex = 0;
+  const Z_MIN = 1, Z_MAX = 3;     // Zoom-Grenzen der Vollbild-Bühne
+  let zScale = 1, ztx = 0, zty = 0;
+  const zPointers = new Map();
+  let zPinch = null;
+  let zDown = null;               // Start eines Einzelzeigers (Wischen/Tippen)
+  let zLastTapTime = 0, zLastTapX = 0, zLastTapY = 0;
 
   if (zoomClose) zoomClose.addEventListener("click", closeZoom);
-  if (zoomPrev) zoomPrev.addEventListener("click", () => zoomStep(-1));
-  if (zoomNext) zoomNext.addEventListener("click", () => zoomStep(1));
+  if (zoomPrev) zoomPrev.addEventListener("click", () => zoomFlip(-1));
+  if (zoomNext) zoomNext.addEventListener("click", () => zoomFlip(1));
 
   if (zoomViewport) {
-    zoomViewport.addEventListener("pointerdown", onPointerDown);
-    zoomViewport.addEventListener("pointermove", onPointerMove);
-    zoomViewport.addEventListener("pointerup", onPointerUp);
-    zoomViewport.addEventListener("pointercancel", onPointerUp);
-    zoomViewport.addEventListener("pointerleave", onPointerUp);
-    // natives Doppeltipp-Zoom des Browsers unterdrücken (wir machen es selbst)
-    zoomViewport.addEventListener("dblclick", (e) => { e.preventDefault(); toggleDoubleZoom(e.clientX, e.clientY); });
+    zoomViewport.addEventListener("pointerdown", onZoomPointerDown);
+    zoomViewport.addEventListener("pointermove", onZoomPointerMove);
+    zoomViewport.addEventListener("pointerup", onZoomPointerUp);
+    zoomViewport.addEventListener("pointercancel", onZoomPointerUp);
+    // Doppelklick (Maus) zoomt an der Stelle hinein/heraus
+    zoomViewport.addEventListener("dblclick", (e) => { e.preventDefault(); toggleZoomAt(e.clientX, e.clientY); });
+    // Mausrad zoomt an der Zeigerstelle
+    zoomViewport.addEventListener("wheel", (e) => {
+      if (!zoomOpen) return;
+      e.preventDefault();
+      const r = zoomViewport.getBoundingClientRect();
+      setZoomScaleAround(e.clientX - r.left, e.clientY - r.top, zScale + (e.deltaY < 0 ? 0.3 : -0.3));
+    }, { passive: false });
   }
 
-  async function openZoom(pageNum) {
-    if (!currentPdf) return;
-    setMagnifier(false); // Lupe schließen, solange die Vollbild-Ansicht offen ist
+  function openZoom(pageNum) {
+    if (!currentPdf || !pageImages.length) return;
+    hideLens(); // Lupe ausblenden, solange die Vollbild-Ansicht offen ist
     let n = pageNum;
     if (!n && pageFlip) n = pageFlip.getCurrentPageIndex() + 1; // aktuelle Seite
-    zoomPageNum = Math.min(Math.max(n || 1, 1), currentPageCount);
+    zoomStartIndex = Math.min(Math.max((n || 1) - 1, 0), currentPageCount - 1);
 
     zoomOpen = true;
     zoomOverlay.hidden = false;
     zoomOverlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("zoom-lock");
-    await loadZoomPage();
+    if (zoomLoading) { zoomLoading.hidden = false; zoomLoading.textContent = "Vollbild wird vorbereitet …"; }
+    buildZoomBook();
+  }
+
+  /* Großen Blätterer aufbauen – aus denselben Seitenbildern wie im
+     normalen Katalog, nur größer dargestellt. */
+  function buildZoomBook() {
+    destroyZoomBook();
+    const baseH = 1000;
+    const baseW = Math.round(baseH * (currentRatio || 0.7));
+    zoomBook = new St.PageFlip(zoomFlipEl, {
+      width: baseW,
+      height: baseH,
+      size: "stretch",
+      minWidth: 280,
+      maxWidth: 3000,
+      minHeight: 380,
+      maxHeight: 3000,
+      drawShadow: true,
+      maxShadowOpacity: 0.5,
+      flippingTime: 700,
+      usePortrait: true,
+      showCover: true,
+      mobileScrollSupport: false,
+      useMouseEvents: false,    // Gesten steuern wir selbst (Zoom/Wischen)
+      startPage: zoomStartIndex,
+    });
+    zoomBook.on("flip", updateZoomIndicator);
+    zoomBook.on("changeState", (e) => { zoomFlipping = !!(e && e.data && e.data !== "read"); });
+    zoomBook.on("init", () => { if (zoomLoading) zoomLoading.hidden = true; });
+    zoomBook.loadFromImages(pageImages);
+    resetZoomTransform();
+    updateZoomIndicator();
+  }
+
+  function destroyZoomBook() {
+    if (zoomBook) { try { zoomBook.destroy(); } catch (e) {} zoomBook = null; }
+    if (zoomFlipEl) zoomFlipEl.innerHTML = "";
   }
 
   function closeZoom() {
+    if (!zoomOpen) return;
     zoomOpen = false;
+    const idx = zoomBook ? safeIndex(zoomBook) : zoomStartIndex;
     zoomOverlay.hidden = true;
     zoomOverlay.setAttribute("aria-hidden", "true");
     document.body.classList.remove("zoom-lock");
-    pointers.clear(); pinchStart = null;
-    // Blätterer an die zuletzt gelesene Seite setzen
-    if (pageFlip) { try { pageFlip.turnToPage(zoomPageNum - 1); } catch (e) {} }
+    zPointers.clear(); zPinch = null; zDown = null;
+    destroyZoomBook();
+    // normalen Blätterer an die zuletzt gesehene Seite setzen
+    if (pageFlip) { try { pageFlip.turnToPage(idx); } catch (e) {} }
   }
 
-  function zoomStep(dir) {
-    const next = zoomPageNum + dir;
-    if (next < 1 || next > currentPageCount) return;
-    zoomPageNum = next;
-    loadZoomPage();
+  function safeIndex(book) { try { return book.getCurrentPageIndex(); } catch (e) { return 0; } }
+
+  function zoomFlip(dir) {
+    if (!zoomBook || zoomFlipping) return;
+    if (dir < 0) zoomBook.flipPrev(); else zoomBook.flipNext();
+    resetZoomTransform(); // beim Blättern wieder die ganze Seite zeigen
   }
 
-  async function loadZoomPage() {
-    const token = ++zoomRenderToken;
-    if (zoomIndic) zoomIndic.textContent = "Seite " + zoomPageNum + " / " + currentPageCount;
-    if (zoomPrev) zoomPrev.disabled = zoomPageNum <= 1;
-    if (zoomNext) zoomNext.disabled = zoomPageNum >= currentPageCount;
-    if (zoomLoading) zoomLoading.hidden = false;
-    if (zoomImg) zoomImg.style.visibility = "hidden";
-
-    let url;
-    try {
-      url = await renderPageToImage(currentPdf, zoomPageNum, 2200); // hohe Auflösung
-    } catch (e) {
-      if (token !== zoomRenderToken) return;
-      if (zoomLoading) zoomLoading.textContent = "Seite konnte nicht geladen werden.";
-      return;
+  function updateZoomIndicator() {
+    if (!zoomBook) return;
+    const idx = safeIndex(zoomBook);
+    const portrait = zoomBook.getOrientation && zoomBook.getOrientation() === "portrait";
+    const n = currentPageCount;
+    let label;
+    if (portrait) {
+      label = (idx + 1) + " / " + n;
+    } else {
+      const right = Math.min(idx + 1, n - 1);
+      label = (idx === right) ? (idx + 1) + " / " + n
+                              : (idx + 1) + "–" + (right + 1) + " / " + n;
     }
-    if (token !== zoomRenderToken || !zoomOpen) return;
-
-    zoomImg.onload = () => {
-      if (token !== zoomRenderToken) return;
-      if (zoomLoading) zoomLoading.hidden = true;
-      zoomImg.style.visibility = "visible";
-      fitZoom();
-    };
-    zoomImg.src = url;
+    if (zoomIndic) zoomIndic.textContent = "Seite " + label;
+    if (zoomPrev) zoomPrev.disabled = idx <= 0;
+    if (zoomNext) zoomNext.disabled = idx >= n - 1;
   }
 
-  /* Bild einpassen (scale = 1 zeigt die ganze Seite) */
-  function fitZoom() {
-    const vpW = zoomViewport.clientWidth;
-    const vpH = zoomViewport.clientHeight;
-    const iw = zoomImg.naturalWidth || 1;
-    const ih = zoomImg.naturalHeight || 1;
-    const fit = Math.min(vpW / iw, vpH / ih);
-    baseW = iw * fit;
-    baseH = ih * fit;
-    zoomImg.style.width = baseW + "px";
-    zoomImg.style.height = baseH + "px";
-    scale = 1;
-    tx = (vpW - baseW) / 2;
-    ty = (vpH - baseH) / 2;
-    applyTransform();
+  /* ---- Zoom & Verschieben der ganzen Vollbild-Bühne ---- */
+  function resetZoomTransform() { zScale = 1; ztx = 0; zty = 0; applyZoom(); }
+
+  function applyZoom() {
+    clampZoom();
+    if (zoomStage) zoomStage.style.transform = "translate(" + ztx + "px," + zty + "px) scale(" + zScale + ")";
+    if (zoomViewport) zoomViewport.classList.toggle("is-zoomed", zScale > 1.02);
   }
 
-  function applyTransform() {
-    clampTranslate();
-    zoomImg.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + scale + ")";
+  function clampZoom() {
+    const vpW = zoomViewport.clientWidth, vpH = zoomViewport.clientHeight;
+    const w = vpW * zScale, h = vpH * zScale;
+    if (w <= vpW) ztx = (vpW - w) / 2; else ztx = Math.min(0, Math.max(vpW - w, ztx));
+    if (h <= vpH) zty = (vpH - h) / 2; else zty = Math.min(0, Math.max(vpH - h, zty));
   }
 
-  function clampTranslate() {
-    const vpW = zoomViewport.clientWidth;
-    const vpH = zoomViewport.clientHeight;
-    const w = baseW * scale, h = baseH * scale;
-    if (w <= vpW) { tx = (vpW - w) / 2; }
-    else { tx = Math.min(0, Math.max(vpW - w, tx)); }
-    if (h <= vpH) { ty = (vpH - h) / 2; }
-    else { ty = Math.min(0, Math.max(vpH - h, ty)); }
+  function setZoomScaleAround(px, py, newScale) {
+    newScale = Math.min(Z_MAX, Math.max(Z_MIN, newScale));
+    const ix = (px - ztx) / zScale, iy = (py - zty) / zScale;
+    zScale = newScale;
+    ztx = px - ix * zScale;
+    zty = py - iy * zScale;
+    applyZoom();
   }
 
-  function setScaleAround(px, py, newScale) {
-    newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
-    // Bildpunkt unter (px,py) vor und nach dem Skalieren konstant halten
-    const ix = (px - tx) / scale;
-    const iy = (py - ty) / scale;
-    scale = newScale;
-    tx = px - ix * scale;
-    ty = py - iy * scale;
-    applyTransform();
-  }
-
-  function toggleDoubleZoom(clientX, clientY) {
+  function toggleZoomAt(clientX, clientY) {
     const r = zoomViewport.getBoundingClientRect();
-    const px = clientX - r.left, py = clientY - r.top;
-    setScaleAround(px, py, scale > 1.2 ? 1 : 2.6);
+    setZoomScaleAround(clientX - r.left, clientY - r.top, zScale > 1.2 ? 1 : 2.4);
   }
 
-  function onPointerDown(e) {
+  /* ---- Zeiger: Wischen zum Blättern, Ziehen zum Verschieben (gezoomt),
+         Kneifen/Doppeltipp zum Zoomen ---- */
+  function onZoomPointerDown(e) {
     if (!zoomOpen) return;
     zoomViewport.setPointerCapture(e.pointerId);
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.size === 2) startPinch();
+    zPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (zPointers.size === 2) { startZoomPinch(); zDown = null; }
+    else if (zPointers.size === 1) { zDown = { x: e.clientX, y: e.clientY, t: Date.now(), type: e.pointerType }; }
   }
 
-  function onPointerMove(e) {
-    if (!zoomOpen || !pointers.has(e.pointerId)) return;
-    const prev = pointers.get(e.pointerId);
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  function onZoomPointerMove(e) {
+    if (!zoomOpen || !zPointers.has(e.pointerId)) return;
+    const prev = zPointers.get(e.pointerId);
+    zPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-    if (pointers.size === 2 && pinchStart) {
-      const pts = [...pointers.values()];
+    if (zPointers.size === 2 && zPinch) {
+      const pts = [...zPointers.values()];
       const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
       const r = zoomViewport.getBoundingClientRect();
       const midX = (pts[0].x + pts[1].x) / 2 - r.left;
       const midY = (pts[0].y + pts[1].y) / 2 - r.top;
-      setScaleAround(midX, midY, pinchStart.scale * (dist / pinchStart.dist));
-    } else if (pointers.size === 1) {
-      tx += e.clientX - prev.x;
-      ty += e.clientY - prev.y;
-      applyTransform();
+      setZoomScaleAround(midX, midY, zPinch.scale * (dist / zPinch.dist));
+    } else if (zPointers.size === 1 && zScale > 1.02) {
+      ztx += e.clientX - prev.x;
+      zty += e.clientY - prev.y;
+      applyZoom();
     }
   }
 
-  function onPointerUp(e) {
-    if (!pointers.has(e.pointerId)) return;
-    const p = pointers.get(e.pointerId);
-    pointers.delete(e.pointerId);
+  function onZoomPointerUp(e) {
+    if (!zPointers.has(e.pointerId)) return;
+    zPointers.delete(e.pointerId);
     try { zoomViewport.releasePointerCapture(e.pointerId); } catch (_) {}
-    if (pointers.size < 2) pinchStart = null;
+    if (zPointers.size < 2) zPinch = null;
+    if (zPointers.size !== 0) return;
 
-    // Doppeltipp erkennen (Touch)
-    if (e.pointerType !== "mouse" && pointers.size === 0) {
+    const start = zDown; zDown = null;
+    if (!start) return;
+    const dx = e.clientX - start.x, dy = e.clientY - start.y;
+    const dist = Math.hypot(dx, dy), dt = Date.now() - start.t;
+
+    // Wischen zum Blättern (nur ungezoomt, deutlich waagerecht)
+    if (zScale <= 1.02 && dist > 60 && Math.abs(dx) > Math.abs(dy) * 1.3 && dt < 800) {
+      zoomFlip(dx < 0 ? 1 : -1);
+      zLastTapTime = 0;
+      return;
+    }
+    // Doppeltipp zum Zoomen (Touch; die Maus nutzt dblclick)
+    if (start.type !== "mouse" && dist < 24) {
       const now = Date.now();
-      const moved = Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY);
-      if (now - lastTapTime < 320 && moved < 30) {
-        toggleDoubleZoom(e.clientX, e.clientY);
-        lastTapTime = 0;
+      if (now - zLastTapTime < 320 && Math.hypot(e.clientX - zLastTapX, e.clientY - zLastTapY) < 30) {
+        toggleZoomAt(e.clientX, e.clientY);
+        zLastTapTime = 0;
       } else {
-        lastTapTime = now; lastTapX = e.clientX; lastTapY = e.clientY;
+        zLastTapTime = now; zLastTapX = e.clientX; zLastTapY = e.clientY;
       }
     }
   }
 
-  function startPinch() {
-    const pts = [...pointers.values()];
-    pinchStart = {
+  function startZoomPinch() {
+    const pts = [...zPointers.values()];
+    zPinch = {
       dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
-      scale: scale,
+      scale: zScale,
     };
   }
 
-  window.addEventListener("resize", () => { if (zoomOpen && zoomImg.naturalWidth) fitZoom(); });
+  window.addEventListener("resize", () => {
+    if (!zoomOpen) return;
+    if (zoomBook) { try { zoomBook.update(); } catch (e) {} }
+    resetZoomTransform();
+  });
 
   /* ============================================================
      Lupe: eine runde Vergrößerung, die man mit der Maus über den
@@ -492,6 +534,8 @@
         LENS_ZOOM = Math.min(4, Math.max(1.6, LENS_ZOOM + (e.deltaY < 0 ? 0.2 : -0.2)));
         if (lastClient) moveLens(lastClient.x, lastClient.y);
       }, { passive: false });
+      // Lupe ist von Anfang an aktiv: einfach mit der Maus über die Seite fahren
+      setMagnifier(true);
     }
   }
 
@@ -510,15 +554,17 @@
     on = !!on && canHover;
     magnifierOn = on;
     if (magBtn) magBtn.setAttribute("aria-pressed", on ? "true" : "false");
-    if (stageEl) stageEl.classList.toggle("lens-active", on);
     if (!on) hideLens();
   }
 
   function showLens() {
     if (!lensVisible) { ensureLensEl().classList.add("is-visible"); lensVisible = true; }
+    // Solange die Lupe sichtbar ist, ersetzt sie den Mauszeiger
+    if (stageEl) stageEl.classList.add("lens-show");
   }
   function hideLens() {
     if (lensVisible && lensEl) { lensEl.classList.remove("is-visible"); lensVisible = false; }
+    if (stageEl) stageEl.classList.remove("lens-show");
   }
 
   function resetMagnifier() {
