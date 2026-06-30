@@ -388,16 +388,14 @@
                das Embed wird erst nach aktivem Klick (Einwilligung) geladen.
                Wird angezeigt, sobald CONFIG.calLink gesetzt ist. -->
           <div id="calConsent" class="cal-consent card" hidden>
-            <h3>Online-Terminbuchung</h3>
-            <p>
-              Zum Buchen wird das Kalender-Widget von <strong>Cal.com</strong> (EU-Region)
-              geladen. Dabei wird eine Verbindung zu Cal.com hergestellt und u. a. deine
-              IP-Adresse übermittelt. Mehr dazu in der
-              <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a>.
-            </p>
-            <button type="button" id="calConsentBtn" class="btn btn-sun btn-block">
-              Online-Terminbuchung laden
+            <button type="button" id="calConsentBtn" class="btn btn-sun btn-block cal-consent-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              Termin online buchen
             </button>
+            <p class="cal-consent-note">
+              Öffnet den Kalender von Cal.com (EU-Region) – dabei wird eine Verbindung
+              hergestellt. <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutz</a>
+            </p>
           </div>
           <div id="calEmbed" class="cal-embed card" hidden aria-label="Online-Terminbuchung"></div>
         </div>

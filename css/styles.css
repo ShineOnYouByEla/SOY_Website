@@ -422,11 +422,13 @@ textarea { resize: vertical; }
 .form-success h3 { color: var(--cream); margin-bottom: 6px; }
 .form-success p { color: var(--cream-dim); margin: 0; }
 
-/* Cal.com Einwilligungs-Box (2-Klick-Lösung) – Embed lädt erst nach Klick */
+/* Cal.com Einwilligungs-Box (2-Klick-Lösung) – Embed lädt erst nach Klick.
+   Bewusst als einladender Buchungs-Button gestaltet, nicht als Warnhinweis. */
 .cal-consent { text-align: center; }
-.cal-consent h3 { color: var(--cream); margin: 0 0 10px; }
-.cal-consent p { margin: 0 0 18px; }
-.cal-consent .btn { margin-top: 4px; }
+.cal-consent-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.cal-consent-btn svg { width: 20px; height: 20px; flex: none; }
+.cal-consent-note { margin: 14px 0 0; font-size: .8rem; color: var(--cream-dim); opacity: .75; }
+.cal-consent-note a { color: inherit; text-decoration: underline; }
 
 /* Cal.com Embed-Container – Höhe wächst automatisch mit dem Inhalt (kein Scrollen im Embed) */
 .cal-embed { padding: 8px; min-height: 300px; }
