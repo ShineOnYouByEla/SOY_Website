@@ -27,7 +27,7 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
 
 body {
   margin: 0;
@@ -411,9 +411,9 @@ textarea { resize: vertical; }
 .form-success h3 { color: var(--cream); margin-bottom: 6px; }
 .form-success p { color: var(--cream-dim); margin: 0; }
 
-/* Cal.com Embed-Container */
-.cal-embed { padding: 8px; min-height: 560px; overflow: hidden; }
-.cal-embed iframe { border-radius: 10px; }
+/* Cal.com Embed-Container – Höhe wächst automatisch mit dem Inhalt (kein Scrollen im Embed) */
+.cal-embed { padding: 8px; min-height: 300px; }
+.cal-embed iframe { width: 100% !important; height: auto; border: 0; border-radius: var(--radius); }
 .is-loading { opacity: .6; pointer-events: none; }
 
 /* color scheme hint for native date/time pickers */
