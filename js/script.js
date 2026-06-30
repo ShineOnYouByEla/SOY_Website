@@ -118,11 +118,34 @@ if (dateInput) {
   dateInput.min = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
 }
 
-/* ===== Online-Terminbuchung (Cal.com) ===== */
+/* ===== Online-Terminbuchung (Cal.com) =====
+   Datenschutzkonforme 2-Klick-Lösung: Das Cal.com-Embed (externer Dienst) wird
+   NICHT automatisch geladen. Stattdessen zeigen wir einen Einwilligungs-Hinweis;
+   erst ein Klick lädt das Widget und stellt damit die Verbindung zu Cal.com her. */
 function initCalEmbed() {
   const container = document.getElementById("calEmbed");
+  const consent = document.getElementById("calConsent");
+  if (!CONFIG.calLink || !container) return; // nichts konfiguriert -> nichts laden
+
+  // Einwilligungs-Box anzeigen; Embed erst nach Klick laden.
+  if (consent) {
+    consent.hidden = false;
+    const btn = document.getElementById("calConsentBtn");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        consent.hidden = true;
+        loadCalEmbed(container);
+      }, { once: true });
+    }
+    return;
+  }
+
+  // Fallback (keine Einwilligungs-Box im Markup): direkt laden.
+  loadCalEmbed(container);
+}
+
+function loadCalEmbed(container) {
   const form = document.getElementById("bookingForm");
-  if (!CONFIG.calLink || !container) return; // -> .ics-Formular bleibt aktiv
 
   // Offizielles Cal.com Embed-Snippet
   (function (C, A) {
