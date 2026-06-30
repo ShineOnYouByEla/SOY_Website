@@ -268,11 +268,30 @@ if (bookingForm) {
   });
 }
 
+/* ===== hCaptcha (Spamschutz, von Web3Forms verlangt) =====
+   Aus Datenschutzgründen wird das hCaptcha-Skript NICHT beim Seitenaufruf geladen,
+   sondern erst, sobald jemand das Kontaktformular benutzt (erste Eingabe). */
+let hcaptchaRequested = false;
+function loadHCaptcha() {
+  if (hcaptchaRequested) return;
+  hcaptchaRequested = true;
+  const s = document.createElement("script");
+  s.src = "https://js.hcaptcha.com/1/api.js";
+  s.async = true;
+  s.defer = true;
+  document.head.appendChild(s); // rendert automatisch alle .h-captcha-Elemente
+}
+
 /* ===== Kontaktformular ===== */
 const contactForm = document.getElementById("contactForm");
 const contactHint = document.getElementById("contactHint");
 
 if (contactForm) {
+  // hCaptcha erst bei tatsächlicher Nutzung des Formulars nachladen.
+  if (CONFIG.web3formsKey) {
+    contactForm.addEventListener("focusin", loadHCaptcha, { once: true });
+  }
+
   contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!contactForm.reportValidity()) return;
@@ -280,6 +299,16 @@ if (contactForm) {
     const data = Object.fromEntries(new FormData(contactForm).entries());
 
     if (CONFIG.web3formsKey) {
+      // hCaptcha muss gelöst sein, sonst lehnt Web3Forms mit 400 ab.
+      const captchaToken = data["h-captcha-response"];
+      if (!captchaToken) {
+        loadHCaptcha(); // falls noch nicht geladen, jetzt anzeigen
+        contactHint.classList.add("error");
+        contactHint.textContent =
+          "Bitte bestätige im Feld oberhalb des Buttons, dass du kein Roboter bist.";
+        return;
+      }
+
       contactForm.classList.add("is-loading");
       contactHint.classList.remove("error");
       contactHint.textContent = "Nachricht wird gesendet …";
@@ -289,7 +318,8 @@ if (contactForm) {
         await sendViaWeb3Forms({
           subject: `Neue Kontaktanfrage von ${data.name} – Shine On You`,
           from_name: "Shine On You · Website",
-          botcheck: data.botcheck,      // Honeypot an Web3Forms durchreichen (Spam-Schutz)
+          botcheck: data.botcheck,            // Honeypot (Spam-Schutz)
+          "h-captcha-response": captchaToken, // hCaptcha-Token
           name: data.name,
           email: data.email,
           message: data.message,

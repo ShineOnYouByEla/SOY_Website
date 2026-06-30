@@ -450,6 +450,11 @@
               <input type="checkbox" name="consent" required />
               <span>Ich habe die <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a> gelesen und bin mit der Verarbeitung meiner Daten zur Bearbeitung meiner Anfrage einverstanden.</span>
             </label>
+            <!-- hCaptcha-Spamschutz (von Web3Forms verlangt). Wird aus Datenschutzgründen
+                 erst geladen, sobald das Formular benutzt wird (siehe js/script.js). -->
+            <div class="field captcha-field">
+              <div class="h-captcha" data-sitekey="50b2fe65-b00b-4b9e-ad62-3ba471098be2"></div>
+            </div>
             <button type="submit" class="btn btn-wave btn-block">Nachricht senden</button>
             <p class="form-hint" id="contactHint" role="status"></p>
           </form>
