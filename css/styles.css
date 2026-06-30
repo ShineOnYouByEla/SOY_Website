@@ -283,62 +283,80 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 .cards .card:nth-child(even) .card-icon { background: rgba(142,210,217,.12); color: var(--wave); }
 
 /* ===== Ablauf / proWINparty Schritte ===== */
-.flow-block + .flow-block { margin-top: clamp(46px, 7vw, 78px); }
+.flow-block + .flow-block { margin-top: clamp(36px, 6vw, 60px); }
 .flow-head {
-  display: flex; align-items: center; gap: 16px;
-  max-width: 760px; margin: 0 auto 30px;
+  display: flex; align-items: center; gap: 14px;
+  max-width: 960px; margin: 0 auto 22px;
 }
 .flow-badge {
-  flex: 0 0 auto; width: 58px; height: 58px; border-radius: 16px;
+  flex: 0 0 auto; width: 52px; height: 52px; border-radius: 14px;
   display: inline-flex; align-items: center; justify-content: center;
   background: rgba(233,182,144,.14); color: var(--sun);
 }
-.flow-badge svg { width: 32px; height: 32px; }
-.flow-head h3 { color: var(--cream); margin: 0 0 2px; }
-.flow-head p { color: var(--cream-dim); margin: 0; font-size: .96rem; }
+.flow-head h3 { color: var(--cream); margin: 0 0 2px; font-size: 1.15rem; }
+.flow-head p { color: var(--cream-dim); margin: 0; font-size: .95rem; }
 
-.steps {
-  list-style: none; padding: 0; margin: 0;
-  display: grid; gap: 20px;
-  grid-template-columns: repeat(5, 1fr);
+/* horizontaler Ablauf mit Pfeil-Verbindern */
+.flow-steps {
+  display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center;
+  gap: 12px;
 }
-.step {
+.fstep {
+  flex: 1 1 0; min-width: 150px; max-width: 232px;
   position: relative;
-  background: var(--petrol-card);
-  border: 1px solid var(--petrol-line);
-  border-radius: var(--radius);
-  padding: 22px 20px;
+  background: var(--petrol-card); border: 1px solid var(--petrol-line);
+  border-radius: var(--radius); padding: 20px 16px; text-align: center;
 }
-.step-num {
-  display: block;
-  font-family: var(--font-head); font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em;
-  font-size: .72rem; color: var(--sun); margin-bottom: 12px;
-}
-.step-ic {
-  display: inline-flex; width: 48px; height: 48px; margin-bottom: 14px;
-  align-items: center; justify-content: center; border-radius: 13px;
+.fstep-ic {
+  display: inline-flex; width: 46px; height: 46px; margin-bottom: 12px;
+  align-items: center; justify-content: center; border-radius: 12px;
   background: rgba(233,182,144,.12); color: var(--sun);
 }
-.step-ic svg { width: 26px; height: 26px; }
-.step h4 {
-  font-family: var(--font-head); font-size: 1.02rem; font-weight: 600;
+.fstep-num {
+  position: absolute; top: 12px; right: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  font-family: var(--font-head); font-weight: 700; font-size: .76rem;
+  background: var(--sun); color: #2a1606;
+}
+.fstep h4 {
+  font-family: var(--font-head); font-size: .98rem; font-weight: 600;
   color: var(--cream); margin: 0 0 6px;
 }
-.step p { color: var(--cream-dim); margin: 0; font-size: .9rem; line-height: 1.5; }
+.fstep p { color: var(--cream-dim); margin: 0; font-size: .86rem; line-height: 1.45; }
+
+.flow-arrow {
+  display: flex; align-items: center; justify-content: center;
+  flex: 0 0 auto; color: var(--sun);
+}
 
 /* Online-Variante in Türkis statt Sonne */
-.flow-wave .flow-badge { background: rgba(142,210,217,.14); color: var(--wave); }
-.flow-wave .step-num { color: var(--wave); }
-.flow-wave .step-ic { background: rgba(142,210,217,.12); color: var(--wave); }
+.flow-wave .flow-badge,
+.flow-wave .fstep-ic { background: rgba(142,210,217,.12); color: var(--wave); }
+.flow-wave .fstep-num { background: var(--wave); color: #06262b; }
+.flow-wave .flow-arrow { color: var(--wave); }
 
-.flow-cta { text-align: center; margin-top: clamp(40px, 6vw, 64px); }
-
-@media (max-width: 980px) {
-  .steps { grid-template-columns: repeat(3, 1fr); }
+/* Pfeil nach unten zur Terminbuchung */
+.flow-down {
+  display: flex; align-items: center; justify-content: center;
+  width: 54px; height: 54px; margin: clamp(28px, 5vw, 44px) auto 0;
+  border-radius: 50%; color: var(--sun);
+  border: 1.5px solid var(--petrol-line);
+  animation: flow-bounce 2.2s ease-in-out infinite;
 }
-@media (max-width: 620px) {
-  .steps { grid-template-columns: 1fr; }
+.flow-down:hover { border-color: var(--sun); background: rgba(233,182,144,.08); }
+@keyframes flow-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(7px); }
+}
+
+@media (max-width: 760px) {
+  .flow-steps { flex-direction: column; align-items: stretch; }
+  .fstep { max-width: none; }
+  .flow-arrow { transform: rotate(90deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-down { animation: none; }
 }
 
 /* ===== Forms ===== */
