@@ -1,0 +1,14 @@
+{
+  "kataloge": [
+    {
+      "id": "26s-02-11-02-magazin-symbiontische-reinigung-6-de-ide",
+      "titel": "Symbiontische Reinigung #6/2026",
+      "datei": "kataloge/26S-02-11-02---Magazin---Symbiontische-Reinigung--6---DE-iDE.pdf"
+    },
+    {
+      "id": "beispiel-katalog",
+      "titel": "Beispiel-Katalog",
+      "datei": "kataloge/beispiel-katalog.pdf"
+    }
+  ]
+}

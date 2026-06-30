@@ -32,6 +32,11 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      # Baut kataloge/manifest.json automatisch aus den vorhandenen PDFs,
+      # damit neue Kataloge ohne Code-Änderung erscheinen.
+      - name: Katalog-Liste aus PDFs erzeugen
+        run: node scripts/build-katalog-manifest.mjs
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
