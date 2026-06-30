@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /impressum.html
 Disallow: /datenschutz.html
-
+Disallow: /katalog.html
+Disallow: /kataloge/
 Sitemap: https://shineonyou.de/sitemap.xml

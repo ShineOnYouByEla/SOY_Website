@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kataloge – Shine On You</title>
+  <!-- Nicht von Suchmaschinen indexieren -->
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#041f24" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/katalog.css" />
+</head>
+<body>
+  <!-- ===== Header ===== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html#top" class="brand" aria-label="Shine On You – Startseite">
+        <img src="assets/img/wordmark.png" alt="Shine On You" class="brand-logo" />
+      </a>
+      <a href="https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F" target="_blank" rel="noopener" class="header-channel" aria-label="WhatsApp-Kanal folgen – aktuellste Angebote">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.97L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.13c-1.52 0-3-.41-4.3-1.18l-.31-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.35c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.16 8.16 0 0 1 2.41 5.82c0 4.54-3.69 8.24-8.23 8.24zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.16.25-.64.81-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43-.14-.01-.31-.01-.48-.01-.16 0-.43.06-.66.31-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.56.12.16 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="catalog-main">
+    <div class="container">
+      <a href="index.html" class="legal-back">&larr; Zur Startseite</a>
+      <div class="catalog-head">
+        <p class="section-kicker">Kataloge</p>
+        <h1>Blättere durch unsere Kataloge</h1>
+        <p class="catalog-intro">
+          Wie in einem echten Katalog: Klicke auf die Seitenränder oder nutze die
+          Pfeile zum Blättern. Am Computer kannst du auch die Pfeiltasten verwenden.
+        </p>
+      </div>
+
+      <!-- Katalog-Auswahl (erscheint nur bei mehreren Katalogen) -->
+      <div class="catalog-tabs" id="catalogTabs" role="tablist" aria-label="Katalog auswählen" hidden></div>
+
+      <!-- Viewer -->
+      <section id="catalogViewer" class="catalog-viewer" aria-label="Katalog-Ansicht">
+        <p id="catalogStatus" class="catalog-status" role="status"></p>
+        <div class="catalog-stage">
+          <div id="flipbook" class="flipbook"></div>
+        </div>
+
+        <div id="catalogToolbar" class="catalog-toolbar" hidden>
+          <button id="prevPage" class="catalog-nav-btn" type="button" aria-label="Vorherige Seite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <span id="pageIndicator" class="catalog-indicator" aria-live="polite">Seite 1</span>
+          <button id="nextPage" class="catalog-nav-btn" type="button" aria-label="Nächste Seite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+          <button id="fullscreenBtn" class="catalog-nav-btn catalog-fs" type="button" aria-label="Vollbild" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Leerer Zustand: kein Katalog hinterlegt -->
+      <div id="catalogEmpty" class="catalog-empty card" hidden>
+        <h2>Aktuell ist kein Katalog hinterlegt</h2>
+        <p>Sobald ein Katalog verfügbar ist, kannst du hier bequem durch ihn blättern.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <img src="assets/img/wordmark.png" alt="Shine On You" class="footer-logo" />
+      <p class="footer-tag">Natürlich sauber. Natürlich du.</p>
+      <p class="footer-legal">
+        Manuela Zimmert · unabhängige proWin&#8209;Vertriebsberaterin · <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
+      </p>
+      <p class="footer-fine">&copy; <span id="year"></span> Shine On You · Seit 2026 <br />„proWIN“ ist eine Marke der proWIN International. Diese Seite ist ein unabhängiges Angebot.</p>
+    </div>
+  </footer>
+
+  <!-- Lokale Bibliotheken (keine externen Aufrufe) -->
+  <script src="js/vendor/pdf.min.js"></script>
+  <script src="js/vendor/page-flip.browser.js"></script>
+  <script>
+    // Jahr im Footer
+    var y = document.getElementById("year");
+    if (y) y.textContent = new Date().getFullYear();
+  </script>
+  <script src="js/katalog.js"></script>
+</body>
+</html>
