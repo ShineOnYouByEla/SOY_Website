@@ -25,7 +25,7 @@
   const indicEl   = document.getElementById("pageIndicator");
   const prevBtn   = document.getElementById("prevPage");
   const nextBtn   = document.getElementById("nextPage");
-  const fsBtn     = document.getElementById("fullscreenBtn");
+  const zoomBtn   = document.getElementById("zoomBtn");
   const viewerEl  = document.getElementById("catalogViewer");
   const toolbarEl = document.getElementById("catalogToolbar");
   const emptyEl   = document.getElementById("catalogEmpty");
@@ -33,18 +33,25 @@
   let KATALOGE = [];
   let pageFlip = null;
   let renderToken = 0; // bricht veraltete Render-Vorgänge ab
+  let currentPdf = null;      // aktuell geladenes PDF (für die Zoom-Ansicht)
+  let currentPageCount = 0;
 
   /* ---- Steuerung verdrahten (unabhängig von den Daten) ---- */
   if (prevBtn) prevBtn.addEventListener("click", () => pageFlip && pageFlip.flipPrev());
   if (nextBtn) nextBtn.addEventListener("click", () => pageFlip && pageFlip.flipNext());
-  if (fsBtn) fsBtn.addEventListener("click", toggleFullscreen);
+  if (zoomBtn) zoomBtn.addEventListener("click", () => openZoom());
+  // Doppeltipp/Doppelklick auf die Seite öffnet ebenfalls die Zoom-Ansicht
+  if (stageEl) stageEl.addEventListener("dblclick", () => openZoom());
   document.addEventListener("keydown", (e) => {
+    if (zoomOpen) {
+      if (e.key === "Escape") closeZoom();
+      if (e.key === "ArrowLeft")  zoomStep(-1);
+      if (e.key === "ArrowRight") zoomStep(1);
+      return;
+    }
     if (!pageFlip) return;
     if (e.key === "ArrowLeft")  { pageFlip.flipPrev(); }
     if (e.key === "ArrowRight") { pageFlip.flipNext(); }
-  });
-  document.addEventListener("fullscreenchange", () => {
-    if (fsBtn) fsBtn.setAttribute("aria-pressed", String(!!document.fullscreenElement));
   });
 
   /* ---- Katalog-Liste laden und Seite aufbauen ---- */
@@ -147,6 +154,8 @@
     }
 
     const pageCount = pdf.numPages;
+    currentPdf = pdf;                 // für die Zoom-Ansicht merken
+    currentPageCount = pageCount;
     // Seitenverhältnis der ersten Seite als Maß für das Buch
     const firstVp = (await pdf.getPage(1)).getViewport({ scale: 1 });
     const ratio = firstVp.width / firstVp.height;
@@ -235,15 +244,204 @@
     if (nextBtn) nextBtn.disabled = idx >= pageCount - 1;
   }
 
-  /* ---- Vollbild ---- */
-  function toggleFullscreen() {
-    const target = viewerEl || document.documentElement;
-    if (!document.fullscreenElement) {
-      if (target.requestFullscreen) target.requestFullscreen();
-    } else if (document.exitFullscreen) {
-      document.exitFullscreen();
+  /* ============================================================
+     Zoom-Ansicht: einzelne Seite in hoher Auflösung, zum
+     Reinzoomen (zwei Finger / Doppeltipp) und Verschieben
+     ============================================================ */
+  const zoomOverlay = document.getElementById("zoomOverlay");
+  const zoomViewport = document.getElementById("zoomViewport");
+  const zoomImg = document.getElementById("zoomImg");
+  const zoomLoading = document.getElementById("zoomLoading");
+  const zoomIndic = document.getElementById("zoomIndicator");
+  const zoomPrev = document.getElementById("zoomPrev");
+  const zoomNext = document.getElementById("zoomNext");
+  const zoomClose = document.getElementById("zoomClose");
+
+  let zoomOpen = false;
+  let zoomPageNum = 1;            // 1-basiert
+  let zoomRenderToken = 0;
+  // Transform-Zustand
+  let baseW = 0, baseH = 0, scale = 1, tx = 0, ty = 0;
+  const MIN_SCALE = 1, MAX_SCALE = 6;
+  const pointers = new Map();
+  let pinchStart = null;
+  let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
+
+  if (zoomClose) zoomClose.addEventListener("click", closeZoom);
+  if (zoomPrev) zoomPrev.addEventListener("click", () => zoomStep(-1));
+  if (zoomNext) zoomNext.addEventListener("click", () => zoomStep(1));
+
+  if (zoomViewport) {
+    zoomViewport.addEventListener("pointerdown", onPointerDown);
+    zoomViewport.addEventListener("pointermove", onPointerMove);
+    zoomViewport.addEventListener("pointerup", onPointerUp);
+    zoomViewport.addEventListener("pointercancel", onPointerUp);
+    zoomViewport.addEventListener("pointerleave", onPointerUp);
+    // natives Doppeltipp-Zoom des Browsers unterdrücken (wir machen es selbst)
+    zoomViewport.addEventListener("dblclick", (e) => { e.preventDefault(); toggleDoubleZoom(e.clientX, e.clientY); });
+  }
+
+  async function openZoom(pageNum) {
+    if (!currentPdf) return;
+    let n = pageNum;
+    if (!n && pageFlip) n = pageFlip.getCurrentPageIndex() + 1; // aktuelle Seite
+    zoomPageNum = Math.min(Math.max(n || 1, 1), currentPageCount);
+
+    zoomOpen = true;
+    zoomOverlay.hidden = false;
+    zoomOverlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("zoom-lock");
+    await loadZoomPage();
+  }
+
+  function closeZoom() {
+    zoomOpen = false;
+    zoomOverlay.hidden = true;
+    zoomOverlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("zoom-lock");
+    pointers.clear(); pinchStart = null;
+    // Blätterer an die zuletzt gelesene Seite setzen
+    if (pageFlip) { try { pageFlip.turnToPage(zoomPageNum - 1); } catch (e) {} }
+  }
+
+  function zoomStep(dir) {
+    const next = zoomPageNum + dir;
+    if (next < 1 || next > currentPageCount) return;
+    zoomPageNum = next;
+    loadZoomPage();
+  }
+
+  async function loadZoomPage() {
+    const token = ++zoomRenderToken;
+    if (zoomIndic) zoomIndic.textContent = "Seite " + zoomPageNum + " / " + currentPageCount;
+    if (zoomPrev) zoomPrev.disabled = zoomPageNum <= 1;
+    if (zoomNext) zoomNext.disabled = zoomPageNum >= currentPageCount;
+    if (zoomLoading) zoomLoading.hidden = false;
+    if (zoomImg) zoomImg.style.visibility = "hidden";
+
+    let url;
+    try {
+      url = await renderPageToImage(currentPdf, zoomPageNum, 2200); // hohe Auflösung
+    } catch (e) {
+      if (token !== zoomRenderToken) return;
+      if (zoomLoading) zoomLoading.textContent = "Seite konnte nicht geladen werden.";
+      return;
+    }
+    if (token !== zoomRenderToken || !zoomOpen) return;
+
+    zoomImg.onload = () => {
+      if (token !== zoomRenderToken) return;
+      if (zoomLoading) zoomLoading.hidden = true;
+      zoomImg.style.visibility = "visible";
+      fitZoom();
+    };
+    zoomImg.src = url;
+  }
+
+  /* Bild einpassen (scale = 1 zeigt die ganze Seite) */
+  function fitZoom() {
+    const vpW = zoomViewport.clientWidth;
+    const vpH = zoomViewport.clientHeight;
+    const iw = zoomImg.naturalWidth || 1;
+    const ih = zoomImg.naturalHeight || 1;
+    const fit = Math.min(vpW / iw, vpH / ih);
+    baseW = iw * fit;
+    baseH = ih * fit;
+    zoomImg.style.width = baseW + "px";
+    zoomImg.style.height = baseH + "px";
+    scale = 1;
+    tx = (vpW - baseW) / 2;
+    ty = (vpH - baseH) / 2;
+    applyTransform();
+  }
+
+  function applyTransform() {
+    clampTranslate();
+    zoomImg.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + scale + ")";
+  }
+
+  function clampTranslate() {
+    const vpW = zoomViewport.clientWidth;
+    const vpH = zoomViewport.clientHeight;
+    const w = baseW * scale, h = baseH * scale;
+    if (w <= vpW) { tx = (vpW - w) / 2; }
+    else { tx = Math.min(0, Math.max(vpW - w, tx)); }
+    if (h <= vpH) { ty = (vpH - h) / 2; }
+    else { ty = Math.min(0, Math.max(vpH - h, ty)); }
+  }
+
+  function setScaleAround(px, py, newScale) {
+    newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+    // Bildpunkt unter (px,py) vor und nach dem Skalieren konstant halten
+    const ix = (px - tx) / scale;
+    const iy = (py - ty) / scale;
+    scale = newScale;
+    tx = px - ix * scale;
+    ty = py - iy * scale;
+    applyTransform();
+  }
+
+  function toggleDoubleZoom(clientX, clientY) {
+    const r = zoomViewport.getBoundingClientRect();
+    const px = clientX - r.left, py = clientY - r.top;
+    setScaleAround(px, py, scale > 1.2 ? 1 : 2.6);
+  }
+
+  function onPointerDown(e) {
+    if (!zoomOpen) return;
+    zoomViewport.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) startPinch();
+  }
+
+  function onPointerMove(e) {
+    if (!zoomOpen || !pointers.has(e.pointerId)) return;
+    const prev = pointers.get(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointers.size === 2 && pinchStart) {
+      const pts = [...pointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const r = zoomViewport.getBoundingClientRect();
+      const midX = (pts[0].x + pts[1].x) / 2 - r.left;
+      const midY = (pts[0].y + pts[1].y) / 2 - r.top;
+      setScaleAround(midX, midY, pinchStart.scale * (dist / pinchStart.dist));
+    } else if (pointers.size === 1) {
+      tx += e.clientX - prev.x;
+      ty += e.clientY - prev.y;
+      applyTransform();
     }
   }
+
+  function onPointerUp(e) {
+    if (!pointers.has(e.pointerId)) return;
+    const p = pointers.get(e.pointerId);
+    pointers.delete(e.pointerId);
+    try { zoomViewport.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (pointers.size < 2) pinchStart = null;
+
+    // Doppeltipp erkennen (Touch)
+    if (e.pointerType !== "mouse" && pointers.size === 0) {
+      const now = Date.now();
+      const moved = Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY);
+      if (now - lastTapTime < 320 && moved < 30) {
+        toggleDoubleZoom(e.clientX, e.clientY);
+        lastTapTime = 0;
+      } else {
+        lastTapTime = now; lastTapX = e.clientX; lastTapY = e.clientY;
+      }
+    }
+  }
+
+  function startPinch() {
+    const pts = [...pointers.values()];
+    pinchStart = {
+      dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
+      scale: scale,
+    };
+  }
+
+  window.addEventListener("resize", () => { if (zoomOpen && zoomImg.naturalWidth) fitZoom(); });
 
   /* ---- Hilfs-Funktionen ---- */
   function setStatus(text) {
