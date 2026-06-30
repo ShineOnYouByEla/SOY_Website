@@ -24,6 +24,7 @@
       <nav class="nav" aria-label="Hauptnavigation">
         <a href="index.html#ueber">Über mich</a>
         <a href="index.html#produkte">Produkte</a>
+        <a href="index.html#ablauf">Ablauf</a>
         <a href="index.html#termin">Termin</a>
         <a href="index.html#kontakt">Kontakt</a>
       </nav>
@@ -41,6 +42,7 @@
     <nav class="mobile-nav" id="mobileNav" aria-label="Mobile Navigation">
       <a href="index.html#ueber">Über mich</a>
       <a href="index.html#produkte">Produkte</a>
+      <a href="index.html#ablauf">Ablauf</a>
       <a href="index.html#termin">Termin</a>
       <a href="index.html#kontakt">Kontakt</a>
       <a href="index.html#termin" class="btn btn-sun">Termin buchen</a>
@@ -77,11 +79,33 @@
           <button id="nextPage" class="catalog-nav-btn" type="button" aria-label="Nächste Seite">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
           </button>
-          <button id="fullscreenBtn" class="catalog-nav-btn catalog-fs" type="button" aria-label="Vollbild" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg>
+          <button id="zoomBtn" class="catalog-nav-btn catalog-fs" type="button" aria-label="Seite vergrößern">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg>
           </button>
         </div>
+        <p class="catalog-hint">Zum Lesen auf die Seite tippen oder
+          <span class="catalog-hint-zoom">die Lupe</span> nutzen – dann mit zwei Fingern zoomen.</p>
       </section>
+
+      <!-- Zoom-Ansicht (volle Seite, zum Reinzoomen und Verschieben) -->
+      <div id="zoomOverlay" class="zoom-overlay" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Seitenansicht vergrößert">
+        <div class="zoom-bar">
+          <button id="zoomPrev" class="zoom-btn" type="button" aria-label="Vorherige Seite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <span id="zoomIndicator" class="zoom-indicator" aria-live="polite">Seite 1</span>
+          <button id="zoomNext" class="zoom-btn" type="button" aria-label="Nächste Seite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+          <button id="zoomClose" class="zoom-btn zoom-close" type="button" aria-label="Schließen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div id="zoomViewport" class="zoom-viewport">
+          <img id="zoomImg" class="zoom-img" alt="Katalogseite vergrößert" draggable="false" />
+          <p id="zoomLoading" class="zoom-loading">Seite wird in hoher Auflösung geladen …</p>
+        </div>
+      </div>
 
       <!-- Leerer Zustand: kein Katalog hinterlegt -->
       <div id="catalogEmpty" class="catalog-empty card" hidden>
@@ -91,8 +115,28 @@
     </div>
   </main>
 
-  <!-- ===== Footer ===== -->
-  
+  <!-- ===== Footer (identisch zur Startseite) ===== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <img src="assets/img/wordmark.png" alt="Shine On You" class="footer-logo" />
+      <p class="footer-tag">Natürlich sauber. Natürlich du.</p>
+      <p class="footer-partner">
+        <span>Offizielle Beraterin von</span>
+        <img src="assets/img/prowin-gold.png" alt="proWIN rekoteam creates YOU – Logo" class="footer-prowin" />
+      </p>
+      <nav class="footer-nav">
+        <a href="index.html#ueber">Über mich</a>
+        <a href="index.html#produkte">Produkte</a>
+        <a href="index.html#ablauf">Ablauf</a>
+        <a href="index.html#termin">Termin</a>
+        <a href="index.html#kontakt">Kontakt</a>
+      </nav>
+      <p class="footer-legal">
+        Manuela Zimmert · unabhängige proWin&#8209;Vertriebsberaterin · <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
+      </p>
+      <p class="footer-fine">&copy; <span id="year"></span> Shine On You · Seit 2026 <br />„proWIN“ ist eine Marke der proWIN International. Diese Seite ist ein unabhängiges Angebot.</p>
+    </div>
+  </footer>
 
   <!-- Gemeinsame Seitenlogik (Mobile-Navigation, Jahr im Footer …) -->
   <script src="js/script.js"></script>

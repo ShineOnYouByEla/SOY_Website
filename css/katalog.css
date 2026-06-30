@@ -3,6 +3,9 @@
    nutzt die Design-Tokens aus styles.css (CI bleibt erhalten)
    ============================================================ */
 
+/* Das hidden-Attribut hat immer Vorrang (auch vor display:flex unten) */
+[hidden] { display: none !important; }
+
 .catalog-main { padding: clamp(24px, 4vw, 44px) 0 clamp(40px, 7vw, 80px); }
 
 .catalog-head { text-align: center; max-width: 680px; margin: 0 auto 22px; }
@@ -58,14 +61,6 @@
 }
 .flipbook { margin: 0 auto; }
 
-/* Vollbild-Hintergrund in Markenfarbe */
-.catalog-viewer:fullscreen {
-  background: var(--petrol);
-  padding: 24px;
-  display: flex; flex-direction: column; justify-content: center;
-}
-.catalog-viewer:fullscreen .catalog-stage { max-width: min(1400px, 96vw); }
-
 /* ===== Werkzeugleiste ===== */
 .catalog-toolbar {
   display: flex; align-items: center; justify-content: center; gap: 14px;
@@ -102,7 +97,62 @@
 .catalog-empty h2 { font-size: 1.3rem; }
 .catalog-empty p { color: var(--cream-dim); margin: 0; }
 
+/* Hinweis zum Lesen/Zoomen unter dem Blätterer */
+.catalog-hint {
+  text-align: center; color: var(--cream-dim); font-size: .9rem;
+  margin: 14px auto 0; max-width: 480px;
+}
+.catalog-hint-zoom { color: var(--sun); font-weight: 600; }
+
+/* ===== Zoom-Ansicht (einzelne Seite, groß) ===== */
+body.zoom-lock { overflow: hidden; }
+
+.zoom-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--petrol);
+  display: flex; flex-direction: column;
+}
+.zoom-bar {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 10px 14px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  border-bottom: 1px solid var(--petrol-line);
+  background: var(--petrol-2);
+}
+.zoom-indicator {
+  font-family: var(--font-head); font-weight: 600; color: var(--cream);
+  min-width: 120px; text-align: center;
+}
+.zoom-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 50%;
+  color: var(--cream); background: var(--petrol-card);
+  border: 1.5px solid var(--petrol-line); cursor: pointer;
+  transition: color .2s ease, border-color .2s ease, transform .15s ease;
+}
+.zoom-btn svg { width: 22px; height: 22px; }
+.zoom-btn:hover:not(:disabled) { color: var(--sun); border-color: var(--sun); transform: translateY(-2px); }
+.zoom-btn:disabled { opacity: .4; cursor: default; }
+.zoom-close { margin-left: 6px; }
+
+.zoom-viewport {
+  position: relative; flex: 1; overflow: hidden;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.zoom-img {
+  position: absolute; top: 0; left: 0;
+  transform-origin: 0 0; will-change: transform;
+  background: #fff; -webkit-user-drag: none; user-drag: none;
+}
+.zoom-loading {
+  position: absolute; inset: 0; margin: 0; padding: 20px;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  color: var(--cream-dim); font-family: var(--font-head);
+}
+
 @media (max-width: 560px) {
   .catalog-indicator { min-width: 90px; font-size: .9rem; }
   .catalog-nav-btn { width: 44px; height: 44px; }
+  .zoom-indicator { min-width: 92px; font-size: .92rem; }
+  .zoom-btn { width: 44px; height: 44px; }
 }
