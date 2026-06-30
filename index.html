@@ -361,6 +361,7 @@
           <p class="section-kicker">Termin</p>
           <h2>Beratungstermin vereinbaren</h2>
         </div>
+      </div>
       <div class="container two-col two-col-wide">
         <div class="two-col-text">
           <p>
@@ -383,7 +384,21 @@
         </div>
 
         <div class="two-col-media">
-          <!-- Online-Buchung (Cal.com) – wird angezeigt, sobald CONFIG.calLink gesetzt ist -->
+          <!-- Online-Buchung (Cal.com) – datenschutzkonforme 2-Klick-Lösung:
+               das Embed wird erst nach aktivem Klick (Einwilligung) geladen.
+               Wird angezeigt, sobald CONFIG.calLink gesetzt ist. -->
+          <div id="calConsent" class="cal-consent card" hidden>
+            <h3>Online-Terminbuchung</h3>
+            <p>
+              Zum Buchen wird das Kalender-Widget von <strong>Cal.com</strong> (EU-Region)
+              geladen. Dabei wird eine Verbindung zu Cal.com hergestellt und u. a. deine
+              IP-Adresse übermittelt. Mehr dazu in der
+              <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a>.
+            </p>
+            <button type="button" id="calConsentBtn" class="btn btn-sun btn-block">
+              Online-Terminbuchung laden
+            </button>
+          </div>
           <div id="calEmbed" class="cal-embed card" hidden aria-label="Online-Terminbuchung"></div>
         </div>
       </div>
@@ -395,6 +410,7 @@
         <div class="section-head">
           <p class="section-kicker">Kontakt</p>
         </div>
+      </div>
       <div class="container two-col two-col-wide">
         <div class="two-col-text">
           <h2>Schreib mir – ich freue mich auf dich</h2>

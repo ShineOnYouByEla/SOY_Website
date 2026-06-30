@@ -422,6 +422,12 @@ textarea { resize: vertical; }
 .form-success h3 { color: var(--cream); margin-bottom: 6px; }
 .form-success p { color: var(--cream-dim); margin: 0; }
 
+/* Cal.com Einwilligungs-Box (2-Klick-Lösung) – Embed lädt erst nach Klick */
+.cal-consent { text-align: center; }
+.cal-consent h3 { color: var(--cream); margin: 0 0 10px; }
+.cal-consent p { margin: 0 0 18px; }
+.cal-consent .btn { margin-top: 4px; }
+
 /* Cal.com Embed-Container – Höhe wächst automatisch mit dem Inhalt (kein Scrollen im Embed) */
 .cal-embed { padding: 8px; min-height: 300px; }
 .cal-embed iframe { width: 100% !important; height: auto; border: 0; border-radius: var(--radius); }

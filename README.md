@@ -119,13 +119,12 @@ die DNS-Einträge setzen. **Wichtig:** Wechselt der Hoster, muss der Abschnitt
 - **Einwilligungs-Checkbox** (DSGVO) ist Pflicht vor dem Absenden beider Formulare.
 - **Impressum** (`impressum.html`) und **Datenschutzerklärung** (`datenschutz.html`)
   sind mit den echten Angaben befüllt (Inhaberin, Anschrift, Kleinunternehmer-Hinweis,
-  Hoster united-domains, Web3Forms, Cal.com) und im Footer verlinkt.
+  Hoster GitHub Pages, Web3Forms, Cal.com) und im Footer verlinkt.
+- **Cal.com-Embed** wird über eine **2-Klick-Lösung** eingebunden: Das externe
+  Widget lädt erst, nachdem die Besucherin/der Besucher aktiv auf
+  „Online-Terminbuchung laden" klickt (DSGVO-konforme Einwilligung).
 
 ### Noch offen
 
-- **Web3Forms Access Key** und **Cal.com-Link** in `js/script.js` eintragen
-  (siehe oben) – bis dahin greift der mailto-/`.ics`-Fallback.
-
-> Empfehlung: Die Datenschutzerklärung vor dem Live-Gang zusätzlich mit einem
-> Generator (z. B. e-Recht24) oder anwaltlich prüfen lassen – die Verantwortung für
-> die Richtigkeit liegt bei der Betreiberin.
+- **Web3Forms Access Key** in `js/script.js` eintragen (siehe oben) – bis dahin
+  greift beim Kontaktformular der mailto-Fallback.
