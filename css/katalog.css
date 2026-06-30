@@ -1,0 +1,108 @@
+/* ============================================================
+   Shine On You — Katalog-Blätterer
+   nutzt die Design-Tokens aus styles.css (CI bleibt erhalten)
+   ============================================================ */
+
+.catalog-main { padding: clamp(24px, 4vw, 44px) 0 clamp(40px, 7vw, 80px); }
+
+.catalog-head { text-align: center; max-width: 680px; margin: 0 auto 22px; }
+.catalog-head h1 { font-size: clamp(1.7rem, 4.5vw, 2.4rem); margin: 6px 0 10px; }
+.catalog-intro { color: var(--cream-dim); margin: 0 auto; max-width: 560px; }
+
+/* ===== Katalog-Auswahl (Tabs) ===== */
+.catalog-tabs {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+  margin: 0 auto 30px;
+}
+.catalog-tab {
+  font-family: var(--font-head); font-weight: 600; font-size: .95rem;
+  color: var(--cream);
+  background: var(--petrol-card);
+  border: 1.5px solid var(--petrol-line);
+  border-radius: 999px;
+  padding: .6em 1.3em;
+  cursor: pointer;
+  transition: transform .15s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+.catalog-tab:hover { transform: translateY(-2px); border-color: var(--sun); color: var(--sun); }
+.catalog-tab.is-active {
+  background: var(--sun); color: #2a1606; border-color: var(--sun);
+}
+
+/* ===== Viewer ===== */
+.catalog-viewer { position: relative; }
+.catalog-viewer.is-busy .catalog-stage { opacity: .55; }
+
+.catalog-status {
+  text-align: center; color: var(--cream-dim);
+  font-family: var(--font-head); font-size: .95rem;
+  min-height: 1.4em; margin: 0 0 14px;
+}
+.catalog-status.is-error {
+  color: var(--sun); font-weight: 600;
+  background: rgba(233,182,144,.12); border: 1px solid var(--sun);
+  border-radius: var(--radius); padding: 14px 18px; max-width: 620px;
+  margin: 0 auto 14px;
+}
+
+/* Bühne, in der das Buch „lebt".
+   Die Breite ist zusätzlich an die sichtbare Fensterhöhe gekoppelt, damit
+   die Doppelseite samt Bedienleiste möglichst ohne Scrollen ins Bild passt
+   (Faktor ~1.41 = Seitenverhältnis einer A4-Doppelseite). */
+.catalog-stage {
+  width: 100%;
+  max-width: min(1180px, calc((100vh - 300px) * 1.41));
+  margin: 0 auto;
+  display: flex; justify-content: center;
+  min-height: 300px;
+}
+.flipbook { margin: 0 auto; }
+
+/* Vollbild-Hintergrund in Markenfarbe */
+.catalog-viewer:fullscreen {
+  background: var(--petrol);
+  padding: 24px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.catalog-viewer:fullscreen .catalog-stage { max-width: min(1400px, 96vw); }
+
+/* ===== Werkzeugleiste ===== */
+.catalog-toolbar {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin: 22px auto 0;
+}
+.catalog-nav-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 50%;
+  color: var(--cream);
+  background: var(--petrol-card);
+  border: 1.5px solid var(--petrol-line);
+  cursor: pointer;
+  transition: transform .15s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+.catalog-nav-btn svg { width: 22px; height: 22px; }
+.catalog-nav-btn:hover:not(:disabled) {
+  transform: translateY(-2px); color: var(--sun); border-color: var(--sun);
+}
+.catalog-nav-btn:disabled { opacity: .4; cursor: default; }
+.catalog-fs { margin-left: 6px; }
+.catalog-nav-btn[aria-pressed="true"] { color: var(--wave); border-color: var(--wave); }
+
+.catalog-indicator {
+  font-family: var(--font-head); font-weight: 600; font-size: .98rem;
+  color: var(--cream-dim);
+  min-width: 120px; text-align: center;
+}
+
+/* ===== Leerer Zustand ===== */
+.catalog-empty {
+  text-align: center; max-width: 520px; margin: 10px auto 0;
+  padding: 32px 28px;
+}
+.catalog-empty h2 { font-size: 1.3rem; }
+.catalog-empty p { color: var(--cream-dim); margin: 0; }
+
+@media (max-width: 560px) {
+  .catalog-indicator { min-width: 90px; font-size: .9rem; }
+  .catalog-nav-btn { width: 44px; height: 44px; }
+}

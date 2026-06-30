@@ -1,0 +1,4 @@
+User-agent: *
+# Katalog-Bereich nicht indexieren
+Disallow: /katalog.html
+Disallow: /kataloge/
