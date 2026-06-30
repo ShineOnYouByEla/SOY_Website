@@ -26,6 +26,7 @@
   const prevBtn   = document.getElementById("prevPage");
   const nextBtn   = document.getElementById("nextPage");
   const zoomBtn   = document.getElementById("zoomBtn");
+  const magBtn    = document.getElementById("magnifierBtn");
   const viewerEl  = document.getElementById("catalogViewer");
   const toolbarEl = document.getElementById("catalogToolbar");
   const emptyEl   = document.getElementById("catalogEmpty");
@@ -35,6 +36,8 @@
   let renderToken = 0; // bricht veraltete Render-Vorgänge ab
   let currentPdf = null;      // aktuell geladenes PDF (für die Zoom-Ansicht)
   let currentPageCount = 0;
+  let pageImages = [];        // Vorschau-Bilder der Seiten (für die Lupe)
+  let isFlipping = false;     // gerade eine Blätter-Animation aktiv?
 
   /* ---- Steuerung verdrahten (unabhängig von den Daten) ---- */
   if (prevBtn) prevBtn.addEventListener("click", () => pageFlip && pageFlip.flipPrev());
@@ -49,6 +52,7 @@
       if (e.key === "ArrowRight") zoomStep(1);
       return;
     }
+    if (magnifierOn && e.key === "Escape") { setMagnifier(false); return; }
     if (!pageFlip) return;
     if (e.key === "ArrowLeft")  { pageFlip.flipPrev(); }
     if (e.key === "ArrowRight") { pageFlip.flipNext(); }
@@ -141,6 +145,7 @@
     // alten Blätterer entfernen
     if (pageFlip) { try { pageFlip.destroy(); } catch (e) {} pageFlip = null; }
     stageEl.innerHTML = "";
+    resetMagnifier();   // Lupen-Zwischenspeicher leeren, Lupe ausblenden
 
     let pdf;
     try {
@@ -197,9 +202,15 @@
     });
 
     pageFlip.on("flip", () => updateIndicator(pageCount));
-    pageFlip.on("changeState", () => updateIndicator(pageCount));
+    pageFlip.on("changeState", (e) => {
+      // Lupe nur im Ruhezustand zeigen, nicht während des Blätterns
+      isFlipping = e && e.data && e.data !== "read";
+      if (isFlipping) hideLens();
+      updateIndicator(pageCount);
+    });
     pageFlip.loadFromImages(images);
 
+    pageImages = images;       // Bildquellen für die Lupe merken
     updateIndicator(pageCount);
     setBusy(false);
     setStatus("");
@@ -283,6 +294,7 @@
 
   async function openZoom(pageNum) {
     if (!currentPdf) return;
+    setMagnifier(false); // Lupe schließen, solange die Vollbild-Ansicht offen ist
     let n = pageNum;
     if (!n && pageFlip) n = pageFlip.getCurrentPageIndex() + 1; // aktuelle Seite
     zoomPageNum = Math.min(Math.max(n || 1, 1), currentPageCount);
@@ -442,6 +454,159 @@
   }
 
   window.addEventListener("resize", () => { if (zoomOpen && zoomImg.naturalWidth) fitZoom(); });
+
+  /* ============================================================
+     Lupe: eine runde Vergrößerung, die man mit der Maus über den
+     Katalog bewegt. Der Blätter-Effekt bleibt dabei erhalten – die
+     Lupe schwebt einfach über dem laufenden Blätterer.
+     (Nur an Geräten mit Maus/Trackpad sinnvoll – am Handy bleibt die
+     Vollbild-Ansicht zum Zoomen.)
+     ============================================================ */
+  const LENS_SIZE     = 240;   // Durchmesser der Lupe in Pixeln
+  const LENS_HIRES_W  = 1800;  // Renderbreite der scharfen Lupen-Vorlage
+  let   LENS_ZOOM     = 2.2;   // Vergrößerungsfaktor (mit Mausrad änderbar)
+
+  let magnifierOn = false;
+  let lensVisible = false;
+  let lastClient  = null;            // zuletzt bekannte Mausposition
+  const lensHiRes = new Map();       // Seite (1-basiert) → scharfe Bild-URL
+  let lensEl = null;
+
+  // Lupe gibt es nur, wenn ein echter Zeiger (Maus/Trackpad) vorhanden ist
+  const canHover = !!(window.matchMedia &&
+    window.matchMedia("(hover: hover) and (pointer: fine)").matches);
+
+  if (magBtn) {
+    if (!canHover) {
+      magBtn.hidden = true;
+    } else {
+      magBtn.hidden = false;
+      magBtn.addEventListener("click", () => setMagnifier(!magnifierOn));
+      stageEl.addEventListener("pointermove", (e) => {
+        if (magnifierOn && e.pointerType !== "touch") moveLens(e.clientX, e.clientY);
+      });
+      stageEl.addEventListener("pointerleave", hideLens);
+      stageEl.addEventListener("wheel", (e) => {
+        if (!magnifierOn || !lensVisible) return;
+        e.preventDefault();
+        LENS_ZOOM = Math.min(4, Math.max(1.6, LENS_ZOOM + (e.deltaY < 0 ? 0.2 : -0.2)));
+        if (lastClient) moveLens(lastClient.x, lastClient.y);
+      }, { passive: false });
+    }
+  }
+
+  function ensureLensEl() {
+    if (lensEl) return lensEl;
+    lensEl = document.createElement("div");
+    lensEl.className = "catalog-lens";
+    lensEl.setAttribute("aria-hidden", "true");
+    lensEl.style.width = LENS_SIZE + "px";
+    lensEl.style.height = LENS_SIZE + "px";
+    document.body.appendChild(lensEl);
+    return lensEl;
+  }
+
+  function setMagnifier(on) {
+    on = !!on && canHover;
+    magnifierOn = on;
+    if (magBtn) magBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    if (stageEl) stageEl.classList.toggle("lens-active", on);
+    if (!on) hideLens();
+  }
+
+  function showLens() {
+    if (!lensVisible) { ensureLensEl().classList.add("is-visible"); lensVisible = true; }
+  }
+  function hideLens() {
+    if (lensVisible && lensEl) { lensEl.classList.remove("is-visible"); lensVisible = false; }
+  }
+
+  function resetMagnifier() {
+    lensHiRes.clear();
+    hideLens();
+  }
+
+  /* Bestimmt, über welcher Katalogseite die Maus steht, und an welcher
+     Stelle dieser Seite (0…1). Funktioniert nur in der Doppelseiten-
+     Ansicht (Desktop) und im Ruhezustand – sonst gibt es nichts zu zeigen. */
+  function lensSource(clientX, clientY) {
+    if (!pageFlip || isFlipping) return null;
+    const canvas = stageEl.querySelector("canvas.stf__canvas");
+    if (!canvas) return null;
+
+    let rect, spread;
+    try {
+      if (pageFlip.render.getOrientation() !== "landscape") return null;
+      rect = pageFlip.render.getRect();
+      const spreads = pageFlip.pages.getSpread();
+      spread = spreads[pageFlip.pages.getCurrentSpreadIndex()];
+    } catch (e) { return null; }
+    if (!rect || !spread) return null;
+
+    // Welche Seite liegt links, welche rechts? (siehe page-flip-Logik)
+    let leftIdx = null, rightIdx = null;
+    if (spread.length === 2) { leftIdx = spread[0]; rightIdx = spread[1]; }
+    else if (spread[0] === currentPageCount - 1) { leftIdx = spread[0]; }
+    else { rightIdx = spread[0]; }
+
+    const cr = canvas.getBoundingClientRect();
+    const sx = cr.width / (canvas.width || cr.width);
+    const sy = cr.height / (canvas.height || cr.height);
+    const bookLeft = cr.left + rect.left * sx;
+    const bookTop  = cr.top  + rect.top  * sy;
+    const pw = rect.pageWidth * sx;
+    const ph = rect.height * sy;
+
+    const fy = (clientY - bookTop) / ph;
+    if (fy < 0 || fy > 1) return null;
+    const lx = clientX - bookLeft;
+
+    let idx = null, fx = null;
+    if (lx >= 0 && lx < pw && leftIdx !== null) { idx = leftIdx; fx = lx / pw; }
+    else if (lx >= pw && lx < 2 * pw && rightIdx !== null) { idx = rightIdx; fx = (lx - pw) / pw; }
+    else return null;
+
+    return { pageNum: idx + 1, fx: fx, fy: fy, pw: pw, ph: ph };
+  }
+
+  function moveLens(clientX, clientY) {
+    if (!magnifierOn) return;
+    const info = lensSource(clientX, clientY);
+    if (!info) { hideLens(); return; }
+
+    lastClient = { x: clientX, y: clientY };
+    const idx = info.pageNum - 1;
+    const src = lensHiRes.get(info.pageNum) || pageImages[idx];
+    if (!src) { hideLens(); return; }
+    ensureHiRes(info.pageNum); // schärfere Vorlage im Hintergrund nachladen
+
+    const el = ensureLensEl();
+    const bgW = info.pw * LENS_ZOOM;
+    const bgH = info.ph * LENS_ZOOM;
+    el.style.backgroundImage = 'url("' + src + '")';
+    el.style.backgroundSize = bgW + "px " + bgH + "px";
+    el.style.backgroundPosition =
+      (LENS_SIZE / 2 - info.fx * bgW) + "px " + (LENS_SIZE / 2 - info.fy * bgH) + "px";
+    el.style.left = (clientX - LENS_SIZE / 2) + "px";
+    el.style.top  = (clientY - LENS_SIZE / 2) + "px";
+    showLens();
+  }
+
+  /* Seite einmalig in hoher Auflösung rendern und merken – damit die
+     Lupe so scharf ist wie die Vollbild-Ansicht. */
+  function ensureHiRes(pageNum) {
+    if (lensHiRes.has(pageNum) || !currentPdf) return;
+    lensHiRes.set(pageNum, null); // als „wird geladen" markieren
+    const pdf = currentPdf;
+    renderPageToImage(pdf, pageNum, LENS_HIRES_W).then((url) => {
+      if (pdf !== currentPdf) { lensHiRes.delete(pageNum); return; }
+      lensHiRes.set(pageNum, url);
+      // Wenn die Maus noch auf dieser Seite steht: scharf nachziehen
+      if (magnifierOn && lastClient) moveLens(lastClient.x, lastClient.y);
+    }).catch(() => { lensHiRes.delete(pageNum); });
+  }
+
+  window.addEventListener("resize", () => { if (magnifierOn) hideLens(); });
 
   /* ---- Hilfs-Funktionen ---- */
   function setStatus(text) {
