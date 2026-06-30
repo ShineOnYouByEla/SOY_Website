@@ -279,9 +279,13 @@ if (contactForm) {
       contactHint.textContent = "Nachricht wird gesendet …";
       try {
         const ok = await sendViaWeb3Forms({
-          subject: `Kontaktanfrage von ${data.name}`,
-          from_name: data.name,
-          Name: data.name, email: data.email, Nachricht: data.message,
+          subject: `Neue Kontaktanfrage von ${data.name} – Shine On You`,
+          from_name: "Shine On You · Website",
+          replyto: data.email,          // Antwort geht direkt an die anfragende Person
+          botcheck: data.botcheck,      // Honeypot an Web3Forms durchreichen (Spam-Schutz)
+          Name: data.name,
+          "E-Mail": data.email,
+          Nachricht: data.message,
         });
         contactForm.classList.remove("is-loading");
         if (ok) {
