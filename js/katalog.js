@@ -10,9 +10,8 @@
    Mehrere Einträge erscheinen automatisch als Auswahl oben auf der Seite.
    ============================================================ */
 const KATALOGE = [
-  { id: "beispiel", titel: "Beispiel-Katalog", datei: "kataloge/beispiel-katalog.pdf" },
-  // { id: "fruehjahr-2026", titel: "Frühjahr 2026", datei: "kataloge/fruehjahr-2026.pdf" },
-  // { id: "wellness",       titel: "Wellness",      datei: "kataloge/wellness.pdf" },
+   { id: "beispiel", titel: "Beispiel-Katalog", datei: "kataloge/beispiel-katalog.pdf" },
+   { id: "SR#6/2026", titel: "Sybiotische Reinigung #6/2026", datei: "kataloge/26S-02-11-02---Magazin---Symbiontische-Reinigung--6---DE-iDE.pdf" },
 ];
 
 /* ===== Ab hier nichts mehr ändern nötig ===== */
