@@ -78,7 +78,7 @@ function downloadICS(filename, content) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/* Versand über Web3Forms (Promise: true = erfolgreich) */
+/* Versand über Web3Forms (Promise: true = erfolgreich, sonst Fehler mit Meldung) */
 async function sendViaWeb3Forms(fields) {
   const res = await fetch("https://api.web3forms.com/submit", {
     method: "POST",
@@ -86,7 +86,12 @@ async function sendViaWeb3Forms(fields) {
     body: JSON.stringify({ access_key: CONFIG.web3formsKey, ...fields }),
   });
   const data = await res.json().catch(() => ({}));
-  return res.ok && data.success;
+  if (!data.success) {
+    // Echte Ursache in die Konsole schreiben (z. B. "Access key invalid").
+    console.error("Web3Forms:", res.status, data.message || "(keine Meldung)");
+    throw new Error(data.message || `HTTP ${res.status}`);
+  }
+  return true;
 }
 
 /* mailto-Fallback öffnen */
@@ -222,21 +227,22 @@ if (bookingForm) {
       bookingHint.classList.remove("error");
       bookingHint.textContent = "Kalenderdatei heruntergeladen – Anfrage wird gesendet …";
       try {
-        const ok = await sendViaWeb3Forms({
+        await sendViaWeb3Forms({
           subject: `Terminanfrage ${data.date} ${data.time} – ${data.name}`,
-          from_name: data.name,
-          Anliegen: "Terminanfrage",
-          Datum: data.date, Uhrzeit: data.time, Art: data.mode,
-          Name: data.name, email: data.email, Thema: data.note || "—",
+          from_name: "Shine On You · Website",
+          botcheck: data.botcheck,
+          name: data.name,
+          email: data.email,
+          message:
+            `Terminanfrage\nDatum: ${data.date}\nUhrzeit: ${data.time}\n` +
+            `Art: ${data.mode}` + (data.note ? `\nThema: ${data.note}` : ""),
         });
         bookingForm.classList.remove("is-loading");
-        if (ok) {
-          showSuccess(
-            bookingForm,
-            "Termin angefragt!",
-            "Deine Anfrage ist eingegangen und die Kalenderdatei wurde heruntergeladen. Ich melde mich zur Bestätigung."
-          );
-        } else { throw new Error("Web3Forms"); }
+        showSuccess(
+          bookingForm,
+          "Termin angefragt!",
+          "Deine Anfrage ist eingegangen und die Kalenderdatei wurde heruntergeladen. Ich melde mich zur Bestätigung."
+        );
       } catch (_) {
         bookingForm.classList.remove("is-loading");
         bookingHint.classList.add("error");
@@ -278,23 +284,22 @@ if (contactForm) {
       contactHint.classList.remove("error");
       contactHint.textContent = "Nachricht wird gesendet …";
       try {
-        const ok = await sendViaWeb3Forms({
+        // Kanonische Web3Forms-Felder: name/email/message werden zuverlässig
+        // erkannt; "email" dient zugleich als Antwort-Adresse (replyto).
+        await sendViaWeb3Forms({
           subject: `Neue Kontaktanfrage von ${data.name} – Shine On You`,
           from_name: "Shine On You · Website",
-          replyto: data.email,          // Antwort geht direkt an die anfragende Person
           botcheck: data.botcheck,      // Honeypot an Web3Forms durchreichen (Spam-Schutz)
-          Name: data.name,
-          "E-Mail": data.email,
-          Nachricht: data.message,
+          name: data.name,
+          email: data.email,
+          message: data.message,
         });
         contactForm.classList.remove("is-loading");
-        if (ok) {
-          showSuccess(
-            contactForm,
-            "Nachricht gesendet!",
-            "Danke für deine Nachricht – ich melde mich so schnell wie möglich bei dir."
-          );
-        } else { throw new Error("Web3Forms"); }
+        showSuccess(
+          contactForm,
+          "Nachricht gesendet!",
+          "Danke für deine Nachricht – ich melde mich so schnell wie möglich bei dir."
+        );
       } catch (_) {
         contactForm.classList.remove("is-loading");
         contactHint.classList.add("error");
