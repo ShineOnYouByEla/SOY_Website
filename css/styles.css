@@ -27,7 +27,7 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
 
 body {
   margin: 0;
@@ -179,6 +179,17 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
   margin-top: 32px;
 }
+/* proWIN-Partner-Badge im Hero */
+.hero-partner {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 6px 14px;
+  margin: 28px auto 0;
+  font-family: var(--font-head); font-weight: 500;
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .2em;
+  color: var(--cream-dim);
+}
+.hero-partner img { height: 24px; width: auto; opacity: .95; }
+
 /* dezente Wellenkante unten am Hero */
 .hero-wave {
   position: absolute; left: 0; right: 0; bottom: -1px; height: 60px;
@@ -282,6 +293,83 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 .card-icon svg { width: 28px; height: 28px; }
 .cards .card:nth-child(even) .card-icon { background: rgba(142,210,217,.12); color: var(--wave); }
 
+/* ===== Ablauf / proWINparty Schritte ===== */
+.flow-block + .flow-block { margin-top: clamp(36px, 6vw, 60px); }
+.flow-head {
+  display: flex; align-items: center; gap: 14px;
+  max-width: 960px; margin: 0 auto 22px;
+}
+.flow-badge {
+  flex: 0 0 auto; width: 52px; height: 52px; border-radius: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(233,182,144,.14); color: var(--sun);
+}
+.flow-head h3 { color: var(--cream); margin: 0 0 2px; font-size: 1.15rem; }
+.flow-head p { color: var(--cream-dim); margin: 0; font-size: .95rem; }
+
+/* horizontaler Ablauf mit Pfeil-Verbindern */
+.flow-steps {
+  display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center;
+  gap: 12px;
+}
+.fstep {
+  flex: 1 1 0; min-width: 150px; max-width: 232px;
+  position: relative;
+  background: var(--petrol-card); border: 1px solid var(--petrol-line);
+  border-radius: var(--radius); padding: 20px 16px; text-align: center;
+}
+.fstep-ic {
+  display: inline-flex; width: 46px; height: 46px; margin-bottom: 12px;
+  align-items: center; justify-content: center; border-radius: 12px;
+  background: rgba(233,182,144,.12); color: var(--sun);
+}
+.fstep-num {
+  position: absolute; top: 12px; right: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  font-family: var(--font-head); font-weight: 700; font-size: .76rem;
+  background: var(--sun); color: #2a1606;
+}
+.fstep h4 {
+  font-family: var(--font-head); font-size: .98rem; font-weight: 600;
+  color: var(--cream); margin: 0 0 6px;
+}
+.fstep p { color: var(--cream-dim); margin: 0; font-size: .86rem; line-height: 1.45; }
+
+.flow-arrow {
+  display: flex; align-items: center; justify-content: center;
+  flex: 0 0 auto; color: var(--sun);
+}
+
+/* Online-Variante in Türkis statt Sonne */
+.flow-wave .flow-badge,
+.flow-wave .fstep-ic { background: rgba(142,210,217,.12); color: var(--wave); }
+.flow-wave .fstep-num { background: var(--wave); color: #06262b; }
+.flow-wave .flow-arrow { color: var(--wave); }
+
+/* Pfeil nach unten zur Terminbuchung */
+.flow-down {
+  display: flex; align-items: center; justify-content: center;
+  width: 54px; height: 54px; margin: clamp(28px, 5vw, 44px) auto 0;
+  border-radius: 50%; color: var(--sun);
+  border: 1.5px solid var(--petrol-line);
+  animation: flow-bounce 2.2s ease-in-out infinite;
+}
+.flow-down:hover { border-color: var(--sun); background: rgba(233,182,144,.08); }
+@keyframes flow-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(7px); }
+}
+
+@media (max-width: 760px) {
+  .flow-steps { flex-direction: column; align-items: stretch; }
+  .fstep { max-width: none; }
+  .flow-arrow { transform: rotate(90deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-down { animation: none; }
+}
+
 /* ===== Forms ===== */
 .form-card { background: var(--petrol-card); border: 1px solid var(--petrol-line); padding: 26px; }
 .field { margin-bottom: 16px; }
@@ -334,9 +422,9 @@ textarea { resize: vertical; }
 .form-success h3 { color: var(--cream); margin-bottom: 6px; }
 .form-success p { color: var(--cream-dim); margin: 0; }
 
-/* Cal.com Embed-Container */
-.cal-embed { padding: 8px; min-height: 560px; overflow: hidden; }
-.cal-embed iframe { border-radius: 10px; }
+/* Cal.com Embed-Container – Höhe wächst automatisch mit dem Inhalt (kein Scrollen im Embed) */
+.cal-embed { padding: 8px; min-height: 300px; }
+.cal-embed iframe { width: 100% !important; height: auto; border: 0; border-radius: var(--radius); }
 .is-loading { opacity: .6; pointer-events: none; }
 
 /* color scheme hint for native date/time pickers */
@@ -363,6 +451,15 @@ input[type="date"], input[type="time"], select { color-scheme: dark; }
 }
 .footer-logo { height: 80px; width: auto; margin: 0 auto 6px; }
 .footer-tag { color: var(--cream-dim); margin: 0 0 18px; font-style: italic; }
+.footer-partner {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 6px 14px;
+  margin: 0 0 22px;
+  font-family: var(--font-head); font-weight: 500;
+  font-size: .74rem; text-transform: uppercase; letter-spacing: .16em;
+  color: var(--cream-dim);
+}
+.footer-partner .footer-prowin { height: 30px; width: auto; }
 .footer-nav { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
 .footer-nav a { color: var(--cream); font-family: var(--font-head); font-size: .92rem; }
 .footer-nav a:hover { color: var(--sun); }
