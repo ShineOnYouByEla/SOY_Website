@@ -347,9 +347,10 @@ if (contactForm) {
   });
 }
 
-/* ===== Parallax (testweise) =====
-   Elemente mit data-parallax="0.3" bewegen sich beim Scrollen langsamer als
-   die Seite. Respektiert prefers-reduced-motion und läuft über rAF. */
+/* ===== Parallax =====
+   Elemente mit data-parallax="0.08" driften relativ zur Bildschirmmitte –
+   der Effekt ist dadurch lokal begrenzt und funktioniert auf der ganzen Seite
+   (nicht nur oben). Wert = Stärke. Respektiert prefers-reduced-motion, rAF. */
 (function initParallax() {
   const els = Array.from(document.querySelectorAll("[data-parallax]"));
   if (!els.length) return;
@@ -357,10 +358,13 @@ if (contactForm) {
 
   let ticking = false;
   function update() {
-    const y = window.scrollY || window.pageYOffset || 0;
+    const mid = window.innerHeight / 2;
     for (const el of els) {
       const speed = parseFloat(el.dataset.parallax) || 0;
-      el.style.transform = `translate3d(0, ${(y * speed).toFixed(1)}px, 0)`;
+      const rect = el.getBoundingClientRect();
+      const center = rect.top + rect.height / 2;
+      const shift = (mid - center) * speed;
+      el.style.transform = `translate3d(0, ${shift.toFixed(1)}px, 0)`;
     }
     ticking = false;
   }
@@ -370,4 +374,32 @@ if (contactForm) {
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll, { passive: true });
   update();
+})();
+
+/* ===== Sanftes Einblenden beim Scrollen =====
+   Fügt ausgewählten Elementen die .reveal-Animation hinzu und blendet sie ein,
+   sobald sie in den sichtbaren Bereich kommen. Reduced-motion: kein Effekt. */
+(function initReveal() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!("IntersectionObserver" in window)) return;
+  const targets = document.querySelectorAll(
+    ".section-head, .cards .card, .fstep, .flow-head, .two-col-text, .contact-list"
+  );
+  if (!targets.length) return;
+
+  const io = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      }
+    }
+  }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+
+  targets.forEach((el, i) => {
+    el.classList.add("reveal");
+    // leichte Staffelung innerhalb von Reihen (max. 3 Stufen)
+    el.style.transitionDelay = (Math.min(i % 3, 2) * 80) + "ms";
+    io.observe(el);
+  });
 })();
