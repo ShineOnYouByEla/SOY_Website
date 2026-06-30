@@ -160,8 +160,8 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 }
 .hero-inner { position: relative; z-index: 2; max-width: 760px; }
 .hero-logo {
-  width: clamp(190px, 32vw, 290px);
-  margin: 0 auto 18px;
+  width: clamp(280px, 52vw, 480px);
+  margin: 0 auto 22px;
   display: block;
 }
 .kicker {
