@@ -1,20 +1,16 @@
 /* ============================================================
    Shine On You — Katalog-Blätterer
    ------------------------------------------------------------
-   HIER NEUE KATALOGE EINTRAGEN:
-   1. PDF-Datei in den Ordner  kataloge/  legen
-   2. Unten im Array KATALOGE eine Zeile ergänzen
-        id    = kurzer Name ohne Leer-/Sonderzeichen (für den Link ?katalog=…)
-        titel = Anzeigename in der Auswahl
-        datei = Pfad zur PDF-Datei
-   Mehrere Einträge erscheinen automatisch als Auswahl oben auf der Seite.
-   ============================================================ */
-const KATALOGE = [
-   /* { id: "beispiel", titel: "Beispiel-Katalog", datei: "kataloge/beispiel-katalog.pdf" }, */
-   { id: "SR#6/2026", titel: "Sybiotische Reinigung #6/2026", datei: "kataloge/26S-02-11-02---Magazin---Symbiontische-Reinigung--6---DE-iDE.pdf" },
-];
+   NEUEN KATALOG HINZUFÜGEN – ganz einfach:
+     → Lade die PDF-Datei in den Ordner  kataloge/  hoch. Fertig.
 
-/* ===== Ab hier nichts mehr ändern nötig ===== */
+   Die Liste der Kataloge wird beim Veröffentlichen automatisch aus den
+   PDF-Dateien im Ordner erzeugt (kataloge/manifest.json). Du musst hier
+   nichts mehr von Hand eintragen.
+
+   Schöneren Anzeigenamen vergeben (optional): in kataloge/titel.json
+   einen Eintrag ergänzen – siehe kataloge/README.md.
+   ============================================================ */
 (function () {
   "use strict";
 
@@ -34,41 +30,14 @@ const KATALOGE = [
   const toolbarEl = document.getElementById("catalogToolbar");
   const emptyEl   = document.getElementById("catalogEmpty");
 
+  let KATALOGE = [];
   let pageFlip = null;
   let renderToken = 0; // bricht veraltete Render-Vorgänge ab
 
-  /* ---- Keine Kataloge hinterlegt ---- */
-  if (!KATALOGE.length) {
-    if (emptyEl) emptyEl.hidden = false;
-    if (viewerEl) viewerEl.hidden = true;
-    return;
-  }
-
-  /* ---- Auswahl-Tabs aufbauen (nur bei mehr als einem Katalog) ---- */
-  if (KATALOGE.length > 1 && tabsEl) {
-    KATALOGE.forEach((k) => {
-      const btn = document.createElement("button");
-      btn.className = "catalog-tab";
-      btn.type = "button";
-      btn.textContent = k.titel;
-      btn.dataset.id = k.id;
-      btn.addEventListener("click", () => selectCatalog(k.id, true));
-      tabsEl.appendChild(btn);
-    });
-    tabsEl.hidden = false;
-  }
-
-  /* ---- Startkatalog bestimmen (URL-Parameter ?katalog=… oder erster Eintrag) ---- */
-  const params = new URLSearchParams(window.location.search);
-  const wanted = params.get("katalog");
-  const start = KATALOGE.find((k) => k.id === wanted) || KATALOGE[0];
-  selectCatalog(start.id, false);
-
-  /* ---- Steuerung ---- */
+  /* ---- Steuerung verdrahten (unabhängig von den Daten) ---- */
   if (prevBtn) prevBtn.addEventListener("click", () => pageFlip && pageFlip.flipPrev());
   if (nextBtn) nextBtn.addEventListener("click", () => pageFlip && pageFlip.flipNext());
   if (fsBtn) fsBtn.addEventListener("click", toggleFullscreen);
-
   document.addEventListener("keydown", (e) => {
     if (!pageFlip) return;
     if (e.key === "ArrowLeft")  { pageFlip.flipPrev(); }
@@ -77,6 +46,56 @@ const KATALOGE = [
   document.addEventListener("fullscreenchange", () => {
     if (fsBtn) fsBtn.setAttribute("aria-pressed", String(!!document.fullscreenElement));
   });
+
+  /* ---- Katalog-Liste laden und Seite aufbauen ---- */
+  loadManifest();
+
+  async function loadManifest() {
+    setStatus("Kataloge werden geladen …");
+    try {
+      const res = await fetch("kataloge/manifest.json", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : (data && data.kataloge) || [];
+        // nur gültige Einträge übernehmen
+        KATALOGE = list.filter((k) => k && k.id && k.datei);
+      }
+    } catch (e) {
+      /* Manifest fehlt/fehlerhaft → leerer Zustand */
+    }
+    init();
+  }
+
+  function init() {
+    setStatus("");
+
+    if (!KATALOGE.length) {
+      if (emptyEl) emptyEl.hidden = false;
+      if (viewerEl) viewerEl.hidden = true;
+      return;
+    }
+
+    // Auswahl-Tabs aufbauen (nur bei mehr als einem Katalog)
+    if (KATALOGE.length > 1 && tabsEl) {
+      tabsEl.innerHTML = "";
+      KATALOGE.forEach((k) => {
+        const btn = document.createElement("button");
+        btn.className = "catalog-tab";
+        btn.type = "button";
+        btn.textContent = k.titel || k.id;
+        btn.dataset.id = k.id;
+        btn.addEventListener("click", () => selectCatalog(k.id, true));
+        tabsEl.appendChild(btn);
+      });
+      tabsEl.hidden = false;
+    }
+
+    // Startkatalog bestimmen (URL-Parameter ?katalog=… oder erster Eintrag)
+    const params = new URLSearchParams(window.location.search);
+    const wanted = params.get("katalog");
+    const start = KATALOGE.find((k) => k.id === wanted) || KATALOGE[0];
+    selectCatalog(start.id, false);
+  }
 
   /* ============================================================
      Katalog auswählen & laden
@@ -107,6 +126,7 @@ const KATALOGE = [
     const token = ++renderToken;
     setBusy(true);
     setStatus("Katalog wird geladen …");
+    if (statusEl) statusEl.classList.remove("is-error");
     if (toolbarEl) toolbarEl.hidden = true;
     if (emptyEl) emptyEl.hidden = true;
     if (viewerEl) viewerEl.hidden = false;
@@ -121,7 +141,7 @@ const KATALOGE = [
     } catch (err) {
       if (token !== renderToken) return;
       return showError(
-        'Der Katalog „' + katalog.titel + "“ konnte nicht geladen werden. " +
+        'Der Katalog „' + (katalog.titel || katalog.id) + "“ konnte nicht geladen werden. " +
         "Bitte prüfe, ob die Datei unter „" + katalog.datei + "“ vorhanden ist."
       );
     }
