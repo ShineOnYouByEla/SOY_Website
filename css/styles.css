@@ -179,16 +179,16 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
   margin-top: 32px;
 }
-/* proWIN-Partner-Badge im Hero */
+/* proWIN-Beraterin-Badge im Hero (ersetzt den Kicker) */
 .hero-partner {
   display: inline-flex; align-items: center; justify-content: center;
-  flex-wrap: wrap; gap: 6px 14px;
-  margin: 28px auto 0;
-  font-family: var(--font-head); font-weight: 500;
-  font-size: .72rem; text-transform: uppercase; letter-spacing: .2em;
-  color: var(--cream-dim);
+  flex-wrap: wrap; gap: 4px 12px;
+  margin: 0 auto 16px;
+  font-family: var(--font-head); font-weight: 600;
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .18em;
+  color: var(--wave);
 }
-.hero-partner img { height: 24px; width: auto; opacity: .95; }
+.hero-partner img { height: 22px; width: auto; opacity: .95; transform: translateY(-1px); }
 
 /* dezente Wellenkante unten am Hero */
 .hero-wave {
@@ -453,13 +453,13 @@ input[type="date"], input[type="time"], select { color-scheme: dark; }
 .footer-tag { color: var(--cream-dim); margin: 0 0 18px; font-style: italic; }
 .footer-partner {
   display: inline-flex; align-items: center; justify-content: center;
-  flex-wrap: wrap; gap: 6px 14px;
+  flex-wrap: wrap; gap: 4px 12px;
   margin: 0 0 22px;
-  font-family: var(--font-head); font-weight: 500;
-  font-size: .74rem; text-transform: uppercase; letter-spacing: .16em;
-  color: var(--cream-dim);
+  font-family: var(--font-head); font-weight: 600;
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .18em;
+  color: var(--wave);
 }
-.footer-partner .footer-prowin { height: 30px; width: auto; }
+.footer-partner .footer-prowin { height: 22px; width: auto; opacity: .95; transform: translateY(-1px); }
 .footer-nav { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
 .footer-nav a { color: var(--cream); font-family: var(--font-head); font-size: .92rem; }
 .footer-nav a:hover { color: var(--sun); }
