@@ -104,6 +104,25 @@
 }
 .catalog-hint-zoom { color: var(--sun); font-weight: 600; }
 
+/* ===== Lupe (Magnifier über dem Blätterer) ===== */
+/* Solange die Lupe aktiv ist, blenden wir den System-Cursor über dem
+   Buch aus – es schwebt nur die runde Lupe mit. */
+.catalog-stage.lens-active,
+.catalog-stage.lens-active canvas { cursor: none !important; }
+
+.catalog-lens {
+  position: fixed; z-index: 900;
+  border-radius: 50%;
+  border: 3px solid var(--sun);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.55);
+  background-color: #fff; background-repeat: no-repeat;
+  pointer-events: none; /* Klicks/Blättern gehen durch die Lupe hindurch */
+  opacity: 0; transform: scale(.82);
+  transition: opacity .12s ease, transform .12s ease;
+  will-change: left, top, background-position;
+}
+.catalog-lens.is-visible { opacity: 1; transform: scale(1); }
+
 /* ===== Zoom-Ansicht (einzelne Seite, groß) ===== */
 body.zoom-lock { overflow: hidden; }
 
