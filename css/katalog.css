@@ -105,10 +105,10 @@
 .catalog-hint-zoom { color: var(--sun); font-weight: 600; }
 
 /* ===== Lupe (Magnifier über dem Blätterer) ===== */
-/* Solange die Lupe aktiv ist, blenden wir den System-Cursor über dem
-   Buch aus – es schwebt nur die runde Lupe mit. */
-.catalog-stage.lens-active,
-.catalog-stage.lens-active canvas { cursor: none !important; }
+/* Solange die Lupe sichtbar ist, blenden wir den System-Cursor über dem
+   Buch aus – es schwebt nur die runde Lupe mit (sie ist der Zeiger). */
+.catalog-stage.lens-show,
+.catalog-stage.lens-show canvas { cursor: none !important; }
 
 .catalog-lens {
   position: fixed; z-index: 900;
@@ -157,16 +157,24 @@ body.zoom-lock { overflow: hidden; }
 .zoom-viewport {
   position: relative; flex: 1; overflow: hidden;
   touch-action: none; user-select: none; -webkit-user-select: none;
+  cursor: zoom-in;
 }
-.zoom-img {
-  position: absolute; top: 0; left: 0;
+.zoom-viewport.is-zoomed { cursor: grab; }
+/* Bühne, die als Ganzes gezoomt/verschoben wird */
+.zoom-stage {
+  position: absolute; inset: 0;
   transform-origin: 0 0; will-change: transform;
-  background: #fff; -webkit-user-drag: none; user-drag: none;
+}
+/* Der große Blätterer füllt die Bühne; page-flip zentriert das Buch selbst.
+   Das inset sorgt für etwas Luft rundherum. */
+.zoom-flip {
+  position: absolute; inset: clamp(8px, 2.5vmin, 28px);
 }
 .zoom-loading {
   position: absolute; inset: 0; margin: 0; padding: 20px;
   display: flex; align-items: center; justify-content: center; text-align: center;
   color: var(--cream-dim); font-family: var(--font-head);
+  pointer-events: none;
 }
 
 @media (max-width: 560px) {
