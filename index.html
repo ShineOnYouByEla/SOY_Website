@@ -98,7 +98,7 @@
 
       <a href="#termin" class="btn btn-sun nav-cta">Termin buchen</a>
 
-      <button class="nav-toggle" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobileNav">
+      <button type="button" class="nav-toggle" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobileNav">
         <span></span><span></span><span></span>
       </button>
 
@@ -421,7 +421,7 @@
               hergestellt. <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutz</a>
             </p>
           </div>
-          <div id="calEmbed" class="cal-embed card" hidden aria-label="Online-Terminbuchung"></div>
+          <section id="calEmbed" class="cal-embed card" hidden aria-label="Online-Terminbuchung"></section>
         </div>
       </div>
     </section>
@@ -458,7 +458,7 @@
           <form id="contactForm" class="card form-card" novalidate>
             <!-- Honeypot gegen Spam-Bots: für Menschen unsichtbar. Wird es ausgefüllt,
                  verwirft Web3Forms die Nachricht automatisch. -->
-            <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none !important;" />
+            <input type="checkbox" name="botcheck" tabindex="-1" aria-hidden="true" style="display:none !important;" />
             <div class="field">
               <label for="c-name">Name</label>
               <input type="text" id="c-name" name="name" autocomplete="name" required />
@@ -497,7 +497,7 @@
         <span>Offizielle Beraterin von</span>
         <img src="assets/img/prowin-gold.webp" alt="proWIN rekoteam creates YOU – Logo" class="footer-prowin" width="244" height="44" loading="lazy" decoding="async" />
       </p>
-      <nav class="footer-nav">
+      <nav class="footer-nav" aria-label="Footer-Navigation">
         <a href="#ueber">Über mich</a>
         <a href="#produkte">Produkte</a>
         <a href="#ablauf">Ablauf</a>
