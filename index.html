@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>proWIN Beratung aus Peiting – Shine On You | Manuela Zimmert</title>
-  <meta name="description" content="Persönliche proWIN-Beratung von Manuela Zimmert in Peiting: natürliche Produkte für Haushalt, Reinigung, Kosmetik &amp; Wellness. proWINparty zuhause oder online." />
-  <meta name="keywords" content="proWIN, proWINparty, Produktparty, Reinigung, Haushalt, Kosmetik, Wellness, nachhaltige Produkte, Manuela Zimmert, Shine On You, Beratung" />
+  <title>proWIN Beratung in Peiting – Manuela Zimmert | Shine On You</title>
+  <meta name="description" content="proWIN Beratung in Peiting &amp; Umgebung – Manuela Zimmert. Natürliche Produkte für Haushalt, Reinigung, Kosmetik &amp; Wellness. proWINparty zuhause oder online." />
   <meta name="author" content="Manuela Zimmert" />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#041f24" />
   <link rel="canonical" href="https://shineonyou.de/" />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Shine On You – proWIN Beratung &amp; Produkte" />
-  <meta property="og:description" content="Natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online erleben – Termin buchen oder Kontakt aufnehmen." />
+  <meta property="og:title" content="proWIN Beratung in Peiting – Manuela Zimmert | Shine On You" />
+  <meta property="og:description" content="proWIN Beratung in Peiting &amp; Umgebung – natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online erleben." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://shineonyou.de/" />
   <meta property="og:site_name" content="Shine On You" />
@@ -25,8 +24,8 @@
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Shine On You – proWIN Beratung &amp; Produkte" />
-  <meta name="twitter:description" content="Natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online erleben." />
+  <meta name="twitter:title" content="proWIN Beratung in Peiting – Manuela Zimmert | Shine On You" />
+  <meta name="twitter:description" content="proWIN Beratung in Peiting &amp; Umgebung – natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online erleben." />
   <meta name="twitter:image" content="https://shineonyou.de/assets/img/og-image.jpg" />
 
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
@@ -41,38 +40,64 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    "name": "Shine On You - Manuela Zimmert",
-    "description": "Persönliche proWIN-Beratung von Manuela Zimmert – natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness.",
-    "url": "https://shineonyou.de/",
-    "email": "manuela@shineonyou.de",
-    "image": "https://shineonyou.de/assets/img/og-image.jpg",
-    "slogan": "Natürlich sauber. Natürlich du.",
-    "priceRange": "€€",
-    "areaServed": {
-      "@type": "City",
-      "name": "Peiting"
-    },
-    "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Peiting",
-    "postalCode": "86971",
-    "addressCountry": "DE"
-    },
-    "knowsLanguage": "de",
-    "founder": {
-      "@type": "Person",
-      "name": "Manuela Zimmert",
-      "jobTitle": "Unabhängige proWIN-Vertriebsberaterin"
-    },
-    "makesOffer": {
-      "@type": "Offer",
-      "itemOffered": {
-        "@type": "Service",
-        "name": "proWINparty & Produktberatung",
-        "description": "Produktberatung und proWINparty – zuhause oder online per Video."
+    "@graph": [
+      {
+        "@type": "ProfessionalService",
+        "@id": "https://shineonyou.de/#business",
+        "name": "Shine On You – proWIN Beratung Manuela Zimmert",
+        "description": "Unabhängige proWIN-Beratung in Peiting und Umgebung: natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online.",
+        "url": "https://shineonyou.de/",
+        "image": "https://shineonyou.de/assets/img/og-image.jpg",
+        "logo": "https://shineonyou.de/assets/img/logo-stacked-dark.png",
+        "email": "manuela@shineonyou.de",
+        "slogan": "Natürlich sauber. Natürlich du.",
+        "priceRange": "€€",
+        "knowsLanguage": "de",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Peiting",
+          "postalCode": "86971",
+          "addressRegion": "BY",
+          "addressCountry": "DE"
+        },
+        "areaServed": [
+          { "@type": "City", "name": "Peiting" },
+          { "@type": "City", "name": "Schongau" },
+          { "@type": "City", "name": "Weilheim in Oberbayern" },
+          { "@type": "AdministrativeArea", "name": "Landkreis Weilheim-Schongau" },
+          { "@type": "AdministrativeArea", "name": "Pfaffenwinkel" }
+        ],
+        "founder": { "@id": "https://shineonyou.de/#manuela" },
+        "makesOffer": {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "proWINparty & Produktberatung",
+            "description": "Produktberatung und proWINparty – zuhause oder online per Video."
+          }
+        },
+        "sameAs": [
+          "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F"
+        ]
+      },
+      {
+        "@type": "Person",
+        "@id": "https://shineonyou.de/#manuela",
+        "name": "Manuela Zimmert",
+        "alternateName": "Ela",
+        "jobTitle": "Unabhängige proWIN-Vertriebsberaterin",
+        "worksFor": { "@id": "https://shineonyou.de/#business" },
+        "url": "https://shineonyou.de/"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://shineonyou.de/#website",
+        "url": "https://shineonyou.de/",
+        "name": "Shine On You",
+        "inLanguage": "de-DE",
+        "publisher": { "@id": "https://shineonyou.de/#business" }
       }
-    }
+    ]
   }
   </script>
 
@@ -123,13 +148,13 @@
       <div class="container hero-inner">
         <img src="assets/img/logo-stacked.webp" alt="Shine On You – Sonne und Welle Logo" class="hero-logo" data-parallax="0.12" width="1160" height="870" fetchpriority="high" />
         <p class="hero-partner">
-          <span>Deine persönliche Beratung als offizielle Beraterin von</span>
+          <span>Deine proWIN&#8209;Beraterin aus Peiting im Pfaffenwinkel – offizielle Beraterin von</span>
           <img src="assets/img/prowin-gold.webp" alt="proWIN rekoteam creates YOU – Logo" width="244" height="44" />
         </p>
         <h1>Natürlich sauber.<br /><span class="accent-sun">Natürlich du.</span></h1>
         <p class="lead">
           Hochwertige Produkte für Haushalt, Reinigung, Kosmetik und Wellness –
-          nachhaltig, alltagstauglich und persönlich beraten.
+          nachhaltig, alltagstauglich und persönlich beraten, in Peiting &amp; Umgebung oder online.
           <br />
           Lass uns gemeinsam dein
           Zuhause zum Strahlen bringen.
@@ -153,21 +178,22 @@
       <div class="container two-col">
         <div class="two-col-media">
           <figure class="about-photo" data-parallax="0.04">
-            <img src="assets/img/manuela.webp" alt="Manuela Zimmert mit ihrem Hund am Strand – deine proWin-Partnerin" width="760" height="1013" loading="lazy" decoding="async" />
+            <img src="assets/img/manuela.webp" alt="Manuela Zimmert mit ihrem Hund am Strand – deine proWIN-Beraterin aus Peiting" width="760" height="1013" loading="lazy" decoding="async" />
           </figure>
         </div>
         <div class="two-col-text">
           <h2>Hallo, schön dass du da bist!</h2>
           <p>
-            Ich bin <strong>Manuela</strong> oder auch <strong>Ela</strong>, deine unabhängige proWin&#8209;Beraterin und begleite
+            Ich bin <strong>Manuela</strong> oder auch <strong>Ela</strong>, deine unabhängige proWIN&#8209;Beraterin
+            aus <strong>Peiting</strong> im Landkreis Weilheim&#8209;Schongau. Ich begleite
             dich auf dem Weg zu einem natürlich sauberen Zuhause und mehr Wohlbefinden.
             <br />Bei <em>Shine On You</em> dreht sich alles um Produkte, die wirken – dabei
             Mensch, Tier und Umwelt schonen.
           </p>
           <p>
             Ob persönliche Produktberatung, eine entspannte Produktparty bei dir zuhause
-            oder eine schnelle Empfehlung per Telefon: Ich nehme mir Zeit für dich und
-            finde gemeinsam mit dir die passende Lösung.
+            im Pfaffenwinkel oder eine schnelle Empfehlung per Telefon: Ich nehme mir Zeit
+            für dich und finde gemeinsam mit dir die passende Lösung.
           </p>
           <ul class="checklist">
             <li>Persönliche, ehrliche Beratung</li>
@@ -188,7 +214,7 @@
           <p class="section-kicker">Produkte</p>
           <h2>Bereiche, in denen ich dich berate</h2>
           <p class="section-sub">
-            Eine Auswahl der proWin&#8209;Produktwelten – frag mich gern zu allen Bereichen.
+            Eine Auswahl der proWIN&#8209;Produktwelten – frag mich gern zu allen Bereichen.
           </p>
         </div>
 
@@ -251,10 +277,11 @@
       <div class="container">
         <div class="section-head">
           <p class="section-kicker">So läuft's ab</p>
-          <h2>Deine proWINparty – ganz entspannt</h2>
+          <h2>Deine proWINparty in Peiting &amp; Umgebung – ganz entspannt</h2>
           <p class="section-sub">
-            Produkte erlebt man am besten live. Ob gemütlich bei dir zuhause oder
-            bequem online per Video – beides ist kostenlos, unverbindlich und kinderleicht.
+            Produkte erlebt man am besten live. Ob gemütlich bei dir zuhause in Peiting,
+            Schongau, Weilheim und dem ganzen Pfaffenwinkel oder bequem online per Video –
+            beides ist kostenlos, unverbindlich und kinderleicht.
             So einfach geht's:
           </p>
         </div>
@@ -505,7 +532,7 @@
         <a href="#kontakt">Kontakt</a>
       </nav>
       <p class="footer-legal">
-        Manuela Zimmert · unabhängige proWin&#8209;Vertriebsberaterin · <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
+        Manuela Zimmert · unabhängige proWIN&#8209;Vertriebsberaterin · 86971 Peiting · <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
       </p>
       <p class="footer-fine">&copy; <span id="year"></span> Shine On You · Seit 2026 <br />„proWIN“ ist eine Marke der proWIN International. Diese Seite ist ein unabhängiges Angebot.</p>
     </div>
