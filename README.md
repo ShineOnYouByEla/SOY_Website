@@ -1,6 +1,6 @@
 # Shine On You – Website
 
-Statische Landing- & Kontaktseite für den Direktvertrieb von proWin-Produkten.
+Statische Landing- & Kontaktseite für den Direktvertrieb von proWIN-Produkten.
 Gebaut mit reinem HTML, CSS und JavaScript – kein Build-Schritt nötig.
 
 ## Vorschau / lokal starten
