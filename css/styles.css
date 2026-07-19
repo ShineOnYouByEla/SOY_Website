@@ -159,13 +159,6 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   will-change: transform;
 }
 .hero-inner { position: relative; z-index: 2; max-width: 760px; }
-.hero-logo {
-  width: clamp(330px, 58vw, 580px);
-  height: auto;
-  margin: 0 auto 14px;
-  display: block;
-  filter: drop-shadow(0 14px 30px rgba(0,0,0,.35));
-}
 .kicker {
   font-family: var(--font-head); font-weight: 600;
   text-transform: uppercase; letter-spacing: .22em;
