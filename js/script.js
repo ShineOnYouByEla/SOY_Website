@@ -7,8 +7,8 @@ const CONFIG = {
   businessName: "Shine On You",
   ownerName: "Manuela Zimmert",
   email: "manuela@shineonyou.de",    // Kontakt-/Empfangsadresse
-  phone: "+49 173 2008319",          // Telefonnummer (Anzeige)
-  phoneHref: "+491732008319",        // Telefonnummer für tel:-Link (ohne Leerzeichen)
+  phone: "+49 1551 0279357",          // Telefonnummer (Anzeige)
+  phoneHref: "+4915510279357",        // Telefonnummer für tel:-Link (ohne Leerzeichen)
 
   /* --- Formularversand (ohne dass sich das Mailprogramm öffnet) ---
      Web3Forms: auf https://web3forms.com die Empfänger-E-Mail eintragen,
