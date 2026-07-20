@@ -175,6 +175,58 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   filter: brightness(0) saturate(100%) invert(14%) sepia(31%) saturate(1100%) hue-rotate(140deg) brightness(94%) contrast(96%);
 }
 
+/* ============================================================
+   Light Mode – Hintergrund mit Tiefe
+   Warmer Verlauf + dezente, fixierte Marken-Glows (Sonne/Welle),
+   damit die Seite nicht flach wirkt. Alternierende Sektionen und
+   Footer werden zu sanften, leicht erhabenen Panels.
+   ============================================================ */
+:root[data-theme="light"] body {
+  background: linear-gradient(180deg, #fdfaf4 0%, #f4ecdf 100%);
+  background-attachment: fixed;
+}
+:root[data-theme="light"] body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(760px 520px at 12% -6%, rgba(233, 182, 144, .24), transparent 62%),
+    radial-gradient(720px 560px at 96% 3%,  rgba(142, 210, 217, .22), transparent 62%),
+    radial-gradient(820px 640px at 50% 106%, rgba(233, 182, 144, .12), transparent 60%);
+}
+
+/* Hero-Glows auf hellem Grund deutlich sichtbarer */
+:root[data-theme="light"] .hero {
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(233, 182, 144, .30), transparent 55%),
+    radial-gradient(90% 70% at 50% 120%,  rgba(142, 210, 217, .22), transparent 60%);
+}
+:root[data-theme="light"] .hero-glow {
+  background:
+    radial-gradient(closest-side, rgba(233, 182, 144, .36), transparent 70%) 28% 18% / 62% 62% no-repeat,
+    radial-gradient(closest-side, rgba(142, 210, 217, .28), transparent 70%) 78% 64% / 54% 54% no-repeat;
+}
+
+/* Alternierende Sektionen: helles, leicht erhabenes Glas-Panel */
+:root[data-theme="light"] .section-alt {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .70), rgba(255, 255, 255, .42));
+  border-top: 1px solid rgba(255, 255, 255, .65);
+  border-bottom: 1px solid rgba(229, 220, 203, .55);
+}
+:root[data-theme="light"] .section-glow.sun  { background: radial-gradient(closest-side, rgba(233, 182, 144, .22), transparent 70%); }
+:root[data-theme="light"] .section-glow.wave { background: radial-gradient(closest-side, rgba(142, 210, 217, .20), transparent 70%); }
+
+/* Karten & Felder etwas anheben, damit sie sich vom Verlauf abheben */
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .form-card,
+:root[data-theme="light"] .fstep {
+  box-shadow: 0 12px 30px -22px rgba(18, 51, 56, .40);
+}
+
+/* Footer als sanftes Panel statt harter Fläche */
+:root[data-theme="light"] .site-footer {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(244, 236, 223, .80));
+}
+
 /* mobile nav toggle */
 .nav-toggle {
   display: none; margin-left: auto;
