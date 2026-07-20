@@ -31,8 +31,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />
 
-  <!-- LCP-Bild und Schriften früh laden (weniger Layout-Sprünge, schnellerer Hero) -->
-  <link rel="preload" as="image" href="assets/img/logo-stacked.webp" fetchpriority="high" />
+  <!-- Schriften früh laden (weniger Layout-Sprünge) -->
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/montserrat-latin.woff2" crossorigin />
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/inter-latin.woff2" crossorigin />
 
@@ -146,7 +145,7 @@
     <section class="hero">
       <div class="hero-glow" data-parallax="0.35" aria-hidden="true"></div>
       <div class="container hero-inner">
-        <img src="assets/img/logo-stacked.webp" alt="Shine On You – Sonne und Welle Logo" class="hero-logo" data-parallax="0.12" width="1160" height="870" fetchpriority="high" />
+        <br />
         <p class="hero-partner">
           <span>Deine persönliche Beratung als offizielle Beraterin von</span>
           <img src="assets/img/prowin-gold.webp" alt="proWIN rekoteam creates YOU – Logo" width="244" height="44" />
@@ -470,7 +469,7 @@
               <span class="contact-ic" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
               </span>
-              <a href="mailto:prowin.ela@web.de" id="contactEmail">prowin.ela [at] web.de</a>
+              <a href="mailto:prowin.ela@web.de" id="contactEmail">prowin.ela@web.de</a>
             </li>
             <li>
               <span class="contact-ic" aria-hidden="true">
@@ -492,6 +491,16 @@
             <div class="field">
               <label for="c-email">E‑Mail</label>
               <input type="email" id="c-email" name="email" autocomplete="email" required />
+            </div>
+            <div class="field">
+              <label for="c-reason">Grund für die Kontaktaufnahme</label>
+              <select id="c-reason" name="reason" required>
+                <option value="" disabled selected>Bitte auswählen …</option>
+                <option value="Ich möchte proWIN Vertriebspartner werden">Ich möchte proWIN Vertriebspartner werden</option>
+                <option value="Ich möchte proWIN Produkte erwerben">Ich möchte proWIN Produkte erwerben</option>
+                <option value="Ich habe eine Frage zu einem proWIN Produkt">Ich habe eine Frage zu einem proWIN Produkt</option>
+                <option value="Allgemeine Frage oder Mitteilung">Allgemeine Frage oder Mitteilung</option>
+              </select>
             </div>
             <div class="field">
               <label for="c-message">Nachricht</label>
@@ -517,7 +526,6 @@
   <!-- ===== Footer ===== -->
   <footer class="site-footer">
     <div class="container footer-inner">
-      <img src="assets/img/wordmark.webp" alt="Shine On You" class="footer-logo" width="640" height="360" loading="lazy" decoding="async" />
       <p class="footer-tag">Natürlich sauber. Natürlich du.</p>
       <p class="footer-partner">
         <span>Offizielle Beraterin von</span>

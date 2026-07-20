@@ -322,7 +322,8 @@ if (contactForm) {
           "h-captcha-response": captchaToken, // hCaptcha-Token
           name: data.name,
           email: data.email,
-          message: data.message,
+          reason: data.reason,
+          message: `Grund für die Kontaktaufnahme: ${data.reason}\n\n${data.message}`,
         });
         contactForm.classList.remove("is-loading");
         showSuccess(
@@ -342,7 +343,8 @@ if (contactForm) {
     contactHint.classList.remove("error");
     contactHint.textContent = "Dein E-Mail-Programm öffnet sich – bitte die Nachricht noch absenden.";
     openMailto(`Kontaktanfrage von ${data.name}`, [
-      `Name: ${data.name}`, `E-Mail: ${data.email}`, "", data.message,
+      `Name: ${data.name}`, `E-Mail: ${data.email}`,
+      `Grund: ${data.reason}`, "", data.message,
     ]);
   });
 }

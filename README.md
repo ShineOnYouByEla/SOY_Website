@@ -30,9 +30,9 @@ python3 -m http.server 8000
 ```js
 const CONFIG = {
   ownerName: "Manuela Zimmert",
-  email: "manuela@shineonyou.de",  // Empfangsadresse
-  phone: "+49 173 2008319",        // Telefon (Anzeige)
-  phoneHref: "+491732008319",      // Telefon für tel:-Link
+  email: "prowin.ela@web.de",  // Empfangsadresse
+  phone: "+49 155 10279357",        // Telefon (Anzeige)
+  phoneHref: "+4915510279357",      // Telefon für tel:-Link
   web3formsKey: "",                // Web3Forms Access Key -> echter Formularversand
   calLink: "",                     // Cal.com-Link -> Online-Terminbuchung
 };
@@ -57,7 +57,7 @@ Die Stufen schalten sich **automatisch** frei, sobald die jeweiligen Schlüssel 
 Funktioniert auf jedem Hosting, großzügiges Gratis-Kontingent, kein Konto-Login nötig.
 
 1. Auf [web3forms.com](https://web3forms.com) die Empfänger-E-Mail
-   (`manuela@shineonyou.de`) eintragen.
+   (`prowin.ela@web.de`) eintragen.
 2. Den **Access Key** aus der Bestätigungs-E-Mail kopieren.
 3. In `js/script.js` eintragen:
 
