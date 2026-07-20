@@ -29,7 +29,7 @@
 }
 .catalog-tab:hover { transform: translateY(-2px); border-color: var(--sun); color: var(--sun); }
 .catalog-tab.is-active {
-  background: var(--sun); color: #2a1606; border-color: var(--sun);
+  background: var(--sun); color: var(--btn-ink); border-color: var(--sun);
 }
 
 /* ===== Viewer ===== */
