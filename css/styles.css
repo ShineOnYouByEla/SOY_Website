@@ -159,13 +159,18 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   background: rgba(233, 182, 144, .08); transform: translateY(-1px);
 }
 
-/* ===== Theme-Umschalter (Hell/Dunkel) ===== */
+/* ===== Theme-Umschalter (System / Hell / Dunkel) ===== */
 .theme-toggle { background: transparent; cursor: pointer; padding: 0; }
-/* Sonne im Dunkelmodus (Klick -> hell), Mond im Hellmodus (Klick -> dunkel) */
-.theme-toggle .icon-moon { display: none; }
-.theme-toggle .icon-sun  { display: block; }
-:root[data-theme="light"] .theme-toggle .icon-sun  { display: none; }
-:root[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+/* Das Icon zeigt den aktuell gewählten Modus (System / Hell / Dunkel).
+   Sichtbarkeit richtet sich nach data-theme-mode auf <html>. */
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon,
+.theme-toggle .icon-system { display: none; }
+:root[data-theme-mode="system"] .theme-toggle .icon-system { display: block; }
+:root[data-theme-mode="light"]  .theme-toggle .icon-sun    { display: block; }
+:root[data-theme-mode="dark"]   .theme-toggle .icon-moon   { display: block; }
+/* Fallback, falls (noch) kein Modus gesetzt ist: Mond zeigen */
+:root:not([data-theme-mode]) .theme-toggle .icon-moon { display: block; }
 
 /* Das Wordmark-Logo ist für dunklen Grund in Creme gehalten – im Hellmodus
    färben wir es per Filter ins Marken-Petrol um, damit es lesbar bleibt. */
