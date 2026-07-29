@@ -280,9 +280,9 @@
   const zoomClose    = document.getElementById("zoomClose");
 
   let zoomOpen = false;
-  let zoomBook = null;            // eigener Blätterer für die Vollbild-Ansicht
-  let zoomFlipping = false;
-  let zoomStartIndex = 0;
+  let zoomIndex = 0;              // aktuell gezeigte Seite (0-basiert)
+  let zoomImgEl = null;           // <img> mit der aktuellen Seite in hoher Auflösung
+  let zoomRenderToken = 0;        // bricht veraltete Seiten-Renderings ab
   const Z_MIN = 1, Z_MAX = 4;     // Zoom-Grenzen der Vollbild-Bühne
   let zScale = 1, ztx = 0, zty = 0;
   const zPointers = new Map();
@@ -290,16 +290,15 @@
   let zDown = null;               // Start eines Einzelzeigers (Wischen/Tippen)
   let zLastTapTime = 0, zLastTapX = 0, zLastTapY = 0;
 
-  /* Scharfe Vollbild-Seiten: Die aktuell betrachtete Seite wird bei Bedarf
-     in hoher Auflösung nachgerendert und in den Vollbild-Blätterer getauscht.
-     So bleibt auch die feine Schrift beim Reinzoomen lesbar, ohne alle Seiten
-     (großes Magazin: ~56 Seiten) hochauflösend vorhalten zu müssen. */
-  const ZOOM_HIRES_W   = 2400;    // Renderbreite der scharfen Vollbild-Seiten
-  const ZOOM_HIRES_MAX = 12;      // max. gleichzeitig gemerkte scharfe Seiten
-  let   zoomImages = [];          // aktuelle Bildquellen des Vollbild-Blätterers
-  const zoomHiRes = new Map();    // Seiten-Index (0-basiert) -> scharfe Bild-URL
-  const zoomHiResLRU = [];        // Reihenfolge fürs Verdrängen (ältestes zuerst)
-  let   zoomDirty = false;        // stehen neue Bildquellen zum Übernehmen an?
+  /* Scharfe Vollbild-Seiten: Jede Seite wird für die Vollbild-Ansicht einzeln
+     in hoher Auflösung als Bild gerendert (nicht über die Blätter-Bibliothek,
+     die intern nur in CSS-Pixeln zeichnet und dadurch auf Handys unscharf
+     bliebe). So bleibt auch die feine Schrift beim Reinzoomen lesbar. */
+  const MAX_CANVAS_DIM = 4000;    // sichere Canvas-Kante (iOS-Limit ~4096)
+  const ZOOM_READ_W    = 2800;    // Ziel-Renderbreite der scharfen Seiten
+  const ZOOM_CACHE_MAX = 8;       // max. gemerkte scharfe Seiten (Speicher)
+  const zoomCache = new Map();    // Seiten-Index (0-basiert) -> scharfe Bild-URL
+  const zoomCacheLRU = [];        // Reihenfolge fürs Verdrängen (ältestes zuerst)
 
   if (zoomClose) zoomClose.addEventListener("click", closeZoom);
   if (zoomPrev) zoomPrev.addEventListener("click", () => zoomFlip(-1));
@@ -322,151 +321,107 @@
   }
 
   function openZoom(pageNum) {
-    if (!currentPdf || !pageImages.length) return;
+    if (!currentPdf || !currentPageCount) return;
     hideLens(); // Lupe ausblenden, solange die Vollbild-Ansicht offen ist
     let n = pageNum;
     if (!n && pageFlip) n = pageFlip.getCurrentPageIndex() + 1; // aktuelle Seite
-    zoomStartIndex = Math.min(Math.max((n || 1) - 1, 0), currentPageCount - 1);
+    zoomIndex = Math.min(Math.max((n || 1) - 1, 0), currentPageCount - 1);
 
     zoomOpen = true;
     zoomOverlay.hidden = false;
     zoomOverlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("zoom-lock");
-    if (zoomLoading) { zoomLoading.hidden = false; zoomLoading.textContent = "Vollbild wird vorbereitet …"; }
-    buildZoomBook();
-  }
 
-  /* Großen Blätterer aufbauen – aus denselben Seitenbildern wie im
-     normalen Katalog, nur größer dargestellt. */
-  function buildZoomBook() {
-    destroyZoomBook();
-    const baseH = 1000;
-    const baseW = Math.round(baseH * (currentRatio || 0.7));
-    zoomBook = new St.PageFlip(zoomFlipEl, {
-      width: baseW,
-      height: baseH,
-      size: "stretch",
-      minWidth: 280,
-      maxWidth: 3000,
-      minHeight: 380,
-      maxHeight: 3000,
-      drawShadow: true,
-      maxShadowOpacity: 0.5,
-      flippingTime: 700,
-      usePortrait: true,
-      showCover: true,
-      mobileScrollSupport: false,
-      useMouseEvents: false,    // Gesten steuern wir selbst (Zoom/Wischen)
-      startPage: zoomStartIndex,
-    });
-    zoomBook.on("flip", () => { updateZoomIndicator(); upgradeZoomPages(); });
-    zoomBook.on("changeState", (e) => {
-      zoomFlipping = !!(e && e.data && e.data !== "read");
-      if (!zoomFlipping) { refreshZoomBook(); upgradeZoomPages(); } // nach dem Blättern scharf nachziehen
-    });
-    zoomBook.on("init", () => { if (zoomLoading) zoomLoading.hidden = true; upgradeZoomPages(); });
-    // Eigene Bildquellen (anfangs die Vorschaubilder) – scharfe Seiten werden
-    // bei Bedarf hineingetauscht, ohne den Blätterer neu zu bauen.
-    zoomImages = pageImages.slice();
-    zoomBook.loadFromImages(zoomImages);
-    resetZoomTransform();
-    updateZoomIndicator();
-    upgradeZoomPages();
-  }
-
-  /* Aktuell sichtbare Vollbild-Seite(n) in hoher Auflösung nachladen und
-     scharf einsetzen. Ergebnisse werden gemerkt (begrenzt), damit erneutes
-     Anschauen sofort scharf ist. */
-  function upgradeZoomPages() {
-    if (!zoomOpen || !zoomBook || !currentPdf) return;
-    const idx = safeIndex(zoomBook);
-    // aktuelle Seite + Nachbar (für Doppelseite/nächsten Blätterschritt)
-    const wanted = [idx, idx + 1].filter((i) => i >= 0 && i < currentPageCount);
-    wanted.forEach((i) => {
-      if (zoomHiRes.has(i)) { applyZoomHiRes(i, zoomHiRes.get(i)); return; }
-      zoomHiRes.set(i, null); // als „wird geladen" markieren (verhindert Doppel-Render)
-      const pdf = currentPdf;
-      renderPageToImage(pdf, i + 1, ZOOM_HIRES_W).then((url) => {
-        if (pdf !== currentPdf || !zoomOpen) { zoomHiRes.delete(i); return; }
-        rememberZoomHiRes(i, url);
-        applyZoomHiRes(i, url);
-      }).catch(() => { zoomHiRes.delete(i); });
-    });
-  }
-
-  function rememberZoomHiRes(i, url) {
-    zoomHiRes.set(i, url);
-    const p = zoomHiResLRU.indexOf(i);
-    if (p >= 0) zoomHiResLRU.splice(p, 1);
-    zoomHiResLRU.push(i);
-    // ältere scharfe Seiten wieder freigeben, damit der Speicher nicht wächst
-    while (zoomHiResLRU.length > ZOOM_HIRES_MAX) {
-      const old = zoomHiResLRU.shift();
-      zoomHiRes.delete(old);
-      if (zoomImages[old] !== undefined) zoomImages[old] = pageImages[old];
+    // <img> für die scharfe Seite anlegen (einmalig)
+    if (zoomFlipEl) {
+      zoomFlipEl.innerHTML = "";
+      zoomImgEl = document.createElement("img");
+      zoomImgEl.className = "zoom-page";
+      zoomImgEl.alt = "";
+      zoomImgEl.decoding = "async";
+      zoomFlipEl.appendChild(zoomImgEl);
     }
+    showZoomPage(zoomIndex);
   }
 
-  function applyZoomHiRes(i, url) {
-    if (!url || !zoomBook || zoomImages[i] === url) return;
-    zoomImages[i] = url;
-    zoomDirty = true;
-    refreshZoomBook();
+  /* Eine Seite in hoher Auflösung rendern und im Vollbild scharf anzeigen. */
+  function showZoomPage(idx) {
+    if (!currentPdf) return;
+    zoomIndex = Math.min(Math.max(idx, 0), currentPageCount - 1);
+    resetZoomTransform();          // beim Seitenwechsel wieder die ganze Seite zeigen
+    updateZoomIndicator();
+    if (zoomLoading) { zoomLoading.hidden = false; zoomLoading.textContent = "Seite wird geladen …"; }
+
+    const token = ++zoomRenderToken;
+    const pdf = currentPdf;
+    getZoomImage(pdf, zoomIndex).then((url) => {
+      if (token !== zoomRenderToken || pdf !== currentPdf || !zoomOpen || !zoomImgEl) return;
+      zoomImgEl.src = url;
+      if (zoomLoading) zoomLoading.hidden = true;
+      prefetchZoomImage(pdf, zoomIndex + 1); // nächste Seite im Hintergrund vorbereiten
+    }).catch(() => {
+      if (token !== zoomRenderToken) return;
+      if (zoomLoading) { zoomLoading.hidden = false; zoomLoading.textContent = "Seite konnte nicht geladen werden."; }
+    });
   }
 
-  /* Neue Bildquellen in den Vollbild-Blätterer übernehmen – aber nur im
-     Ruhezustand, sonst würde eine laufende Blätter-Animation abgeschnitten.
-     Während des Blätterns bleibt „dirty" gesetzt und changeState zieht nach. */
-  function refreshZoomBook() {
-    if (!zoomBook || !zoomDirty || zoomFlipping) return;
-    zoomDirty = false;
-    try { zoomBook.updateFromImages(zoomImages); } catch (e) {}
+  /* Scharfe Seite (gemerkt) holen oder neu rendern. Breite so gedeckelt, dass
+     die Canvas-Kante das Geräte-Limit (iOS ~4096) nicht überschreitet. */
+  function getZoomImage(pdf, idx) {
+    if (zoomCache.has(idx)) { touchZoomCache(idx); return Promise.resolve(zoomCache.get(idx)); }
+    const ratio = currentRatio || 0.707;
+    const w = Math.min(ZOOM_READ_W, Math.floor(MAX_CANVAS_DIM * ratio), Math.floor(MAX_CANVAS_DIM));
+    return renderPageToImage(pdf, idx + 1, w).then((url) => {
+      if (pdf === currentPdf) rememberZoomImage(idx, url);
+      return url;
+    });
   }
 
-  function destroyZoomBook() {
-    if (zoomBook) { try { zoomBook.destroy(); } catch (e) {} zoomBook = null; }
-    if (zoomFlipEl) zoomFlipEl.innerHTML = "";
+  function prefetchZoomImage(pdf, idx) {
+    if (idx < 0 || idx >= currentPageCount || zoomCache.has(idx)) return;
+    getZoomImage(pdf, idx).catch(() => {});
+  }
+
+  function rememberZoomImage(idx, url) {
+    zoomCache.set(idx, url);
+    touchZoomCache(idx);
+    while (zoomCacheLRU.length > ZOOM_CACHE_MAX) zoomCache.delete(zoomCacheLRU.shift());
+  }
+  function touchZoomCache(idx) {
+    const p = zoomCacheLRU.indexOf(idx);
+    if (p >= 0) zoomCacheLRU.splice(p, 1);
+    zoomCacheLRU.push(idx);
   }
 
   function closeZoom() {
     if (!zoomOpen) return;
     zoomOpen = false;
-    const idx = zoomBook ? safeIndex(zoomBook) : zoomStartIndex;
+    zoomRenderToken++;             // laufende Renderings verwerfen
+    const idx = zoomIndex;
     zoomOverlay.hidden = true;
     zoomOverlay.setAttribute("aria-hidden", "true");
     document.body.classList.remove("zoom-lock");
     zPointers.clear(); zPinch = null; zDown = null;
-    destroyZoomBook();
+    if (zoomFlipEl) zoomFlipEl.innerHTML = "";
+    zoomImgEl = null;
     // scharfe Seiten wieder freigeben (Speicher)
-    zoomHiRes.clear(); zoomHiResLRU.length = 0; zoomImages = []; zoomDirty = false;
+    zoomCache.clear(); zoomCacheLRU.length = 0;
     // normalen Blätterer an die zuletzt gesehene Seite setzen
     if (pageFlip) { try { pageFlip.turnToPage(idx); } catch (e) {} }
   }
 
-  function safeIndex(book) { try { return book.getCurrentPageIndex(); } catch (e) { return 0; } }
-
   function zoomFlip(dir) {
-    if (!zoomBook || zoomFlipping) return;
-    if (dir < 0) zoomBook.flipPrev(); else zoomBook.flipNext();
-    resetZoomTransform(); // beim Blättern wieder die ganze Seite zeigen
+    if (!zoomOpen) return;
+    const next = zoomIndex + (dir < 0 ? -1 : 1);
+    if (next < 0 || next >= currentPageCount) return;
+    showZoomPage(next);
   }
 
   function updateZoomIndicator() {
-    if (!zoomBook) return;
-    const idx = safeIndex(zoomBook);
-    const portrait = zoomBook.getOrientation && zoomBook.getOrientation() === "portrait";
     const n = currentPageCount;
-    let label;
-    if (portrait) {
-      label = (idx + 1) + " / " + n;
-    } else {
-      const right = Math.min(idx + 1, n - 1);
-      label = (idx === right) ? (idx + 1) + " / " + n
-                              : (idx + 1) + "–" + (right + 1) + " / " + n;
-    }
-    if (zoomIndic) zoomIndic.textContent = "Seite " + label;
-    if (zoomPrev) zoomPrev.disabled = idx <= 0;
-    if (zoomNext) zoomNext.disabled = idx >= n - 1;
+    if (zoomIndic) zoomIndic.textContent = "Seite " + (zoomIndex + 1) + " / " + n;
+    if (zoomPrev) zoomPrev.disabled = zoomIndex <= 0;
+    if (zoomNext) zoomNext.disabled = zoomIndex >= n - 1;
   }
 
   /* ---- Zoom & Verschieben der ganzen Vollbild-Bühne ---- */
@@ -568,8 +523,7 @@
 
   window.addEventListener("resize", () => {
     if (!zoomOpen) return;
-    if (zoomBook) { try { zoomBook.update(); } catch (e) {} }
-    resetZoomTransform();
+    resetZoomTransform(); // Seite wieder mittig einpassen
   });
 
   /* ============================================================
