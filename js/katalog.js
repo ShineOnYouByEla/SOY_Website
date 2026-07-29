@@ -167,9 +167,14 @@
     const ratio = firstVp.width / firstVp.height;
     currentRatio = ratio;             // für die Vollbild-Ansicht merken
 
-    // Alle Seiten als Bilder rendern
+    // Alle Seiten als Bilder rendern.
+    // Renderbreite an die Bildschirmdichte anpassen, damit die Seiten auch
+    // auf hochauflösenden Handys (device-pixel-ratio 2–3) und beim Reinzoomen
+    // in die Vollbild-Ansicht scharf bleiben. Nach oben gedeckelt, damit große
+    // Kataloge nicht zu viel Speicher/Ladezeit brauchen (Schärfe vs. Speicher).
     const images = [];
-    const targetW = 1100; // Renderbreite je Seite (Schärfe vs. Speicher)
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const targetW = Math.max(1100, Math.min(1800, Math.round(1100 * dpr)));
     for (let i = 1; i <= pageCount; i++) {
       if (token !== renderToken) return; // Katalog wurde inzwischen gewechselt
       setStatus("Seite " + i + " von " + pageCount + " wird vorbereitet …");
@@ -233,7 +238,8 @@
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     await page.render({ canvasContext: ctx, viewport }).promise;
-    const url = canvas.toDataURL("image/jpeg", 0.85);
+    // Etwas höhere JPEG-Qualität – feine Schrift bleibt so besser lesbar.
+    const url = canvas.toDataURL("image/jpeg", 0.92);
     page.cleanup();
     return url;
   }
