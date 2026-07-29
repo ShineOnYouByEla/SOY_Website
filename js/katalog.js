@@ -283,12 +283,23 @@
   let zoomBook = null;            // eigener Blätterer für die Vollbild-Ansicht
   let zoomFlipping = false;
   let zoomStartIndex = 0;
-  const Z_MIN = 1, Z_MAX = 3;     // Zoom-Grenzen der Vollbild-Bühne
+  const Z_MIN = 1, Z_MAX = 4;     // Zoom-Grenzen der Vollbild-Bühne
   let zScale = 1, ztx = 0, zty = 0;
   const zPointers = new Map();
   let zPinch = null;
   let zDown = null;               // Start eines Einzelzeigers (Wischen/Tippen)
   let zLastTapTime = 0, zLastTapX = 0, zLastTapY = 0;
+
+  /* Scharfe Vollbild-Seiten: Die aktuell betrachtete Seite wird bei Bedarf
+     in hoher Auflösung nachgerendert und in den Vollbild-Blätterer getauscht.
+     So bleibt auch die feine Schrift beim Reinzoomen lesbar, ohne alle Seiten
+     (großes Magazin: ~56 Seiten) hochauflösend vorhalten zu müssen. */
+  const ZOOM_HIRES_W   = 2400;    // Renderbreite der scharfen Vollbild-Seiten
+  const ZOOM_HIRES_MAX = 12;      // max. gleichzeitig gemerkte scharfe Seiten
+  let   zoomImages = [];          // aktuelle Bildquellen des Vollbild-Blätterers
+  const zoomHiRes = new Map();    // Seiten-Index (0-basiert) -> scharfe Bild-URL
+  const zoomHiResLRU = [];        // Reihenfolge fürs Verdrängen (ältestes zuerst)
+  let   zoomDirty = false;        // stehen neue Bildquellen zum Übernehmen an?
 
   if (zoomClose) zoomClose.addEventListener("click", closeZoom);
   if (zoomPrev) zoomPrev.addEventListener("click", () => zoomFlip(-1));
@@ -348,12 +359,68 @@
       useMouseEvents: false,    // Gesten steuern wir selbst (Zoom/Wischen)
       startPage: zoomStartIndex,
     });
-    zoomBook.on("flip", updateZoomIndicator);
-    zoomBook.on("changeState", (e) => { zoomFlipping = !!(e && e.data && e.data !== "read"); });
-    zoomBook.on("init", () => { if (zoomLoading) zoomLoading.hidden = true; });
-    zoomBook.loadFromImages(pageImages);
+    zoomBook.on("flip", () => { updateZoomIndicator(); upgradeZoomPages(); });
+    zoomBook.on("changeState", (e) => {
+      zoomFlipping = !!(e && e.data && e.data !== "read");
+      if (!zoomFlipping) { refreshZoomBook(); upgradeZoomPages(); } // nach dem Blättern scharf nachziehen
+    });
+    zoomBook.on("init", () => { if (zoomLoading) zoomLoading.hidden = true; upgradeZoomPages(); });
+    // Eigene Bildquellen (anfangs die Vorschaubilder) – scharfe Seiten werden
+    // bei Bedarf hineingetauscht, ohne den Blätterer neu zu bauen.
+    zoomImages = pageImages.slice();
+    zoomBook.loadFromImages(zoomImages);
     resetZoomTransform();
     updateZoomIndicator();
+    upgradeZoomPages();
+  }
+
+  /* Aktuell sichtbare Vollbild-Seite(n) in hoher Auflösung nachladen und
+     scharf einsetzen. Ergebnisse werden gemerkt (begrenzt), damit erneutes
+     Anschauen sofort scharf ist. */
+  function upgradeZoomPages() {
+    if (!zoomOpen || !zoomBook || !currentPdf) return;
+    const idx = safeIndex(zoomBook);
+    // aktuelle Seite + Nachbar (für Doppelseite/nächsten Blätterschritt)
+    const wanted = [idx, idx + 1].filter((i) => i >= 0 && i < currentPageCount);
+    wanted.forEach((i) => {
+      if (zoomHiRes.has(i)) { applyZoomHiRes(i, zoomHiRes.get(i)); return; }
+      zoomHiRes.set(i, null); // als „wird geladen" markieren (verhindert Doppel-Render)
+      const pdf = currentPdf;
+      renderPageToImage(pdf, i + 1, ZOOM_HIRES_W).then((url) => {
+        if (pdf !== currentPdf || !zoomOpen) { zoomHiRes.delete(i); return; }
+        rememberZoomHiRes(i, url);
+        applyZoomHiRes(i, url);
+      }).catch(() => { zoomHiRes.delete(i); });
+    });
+  }
+
+  function rememberZoomHiRes(i, url) {
+    zoomHiRes.set(i, url);
+    const p = zoomHiResLRU.indexOf(i);
+    if (p >= 0) zoomHiResLRU.splice(p, 1);
+    zoomHiResLRU.push(i);
+    // ältere scharfe Seiten wieder freigeben, damit der Speicher nicht wächst
+    while (zoomHiResLRU.length > ZOOM_HIRES_MAX) {
+      const old = zoomHiResLRU.shift();
+      zoomHiRes.delete(old);
+      if (zoomImages[old] !== undefined) zoomImages[old] = pageImages[old];
+    }
+  }
+
+  function applyZoomHiRes(i, url) {
+    if (!url || !zoomBook || zoomImages[i] === url) return;
+    zoomImages[i] = url;
+    zoomDirty = true;
+    refreshZoomBook();
+  }
+
+  /* Neue Bildquellen in den Vollbild-Blätterer übernehmen – aber nur im
+     Ruhezustand, sonst würde eine laufende Blätter-Animation abgeschnitten.
+     Während des Blätterns bleibt „dirty" gesetzt und changeState zieht nach. */
+  function refreshZoomBook() {
+    if (!zoomBook || !zoomDirty || zoomFlipping) return;
+    zoomDirty = false;
+    try { zoomBook.updateFromImages(zoomImages); } catch (e) {}
   }
 
   function destroyZoomBook() {
@@ -370,6 +437,8 @@
     document.body.classList.remove("zoom-lock");
     zPointers.clear(); zPinch = null; zDown = null;
     destroyZoomBook();
+    // scharfe Seiten wieder freigeben (Speicher)
+    zoomHiRes.clear(); zoomHiResLRU.length = 0; zoomImages = []; zoomDirty = false;
     // normalen Blätterer an die zuletzt gesehene Seite setzen
     if (pageFlip) { try { pageFlip.turnToPage(idx); } catch (e) {} }
   }
