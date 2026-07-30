@@ -213,9 +213,37 @@ body.zoom-lock { overflow: hidden; }
   pointer-events: none;
 }
 
+/* Pfeile links und rechts neben der Seite – der kurze Weg zum Blättern.
+   Sie liegen außerhalb der zoombaren Bühne und wandern deshalb beim
+   Zoomen/Verschieben nicht mit. */
+.zoom-side {
+  position: absolute; top: 50%; z-index: 3;
+  transform: translateY(-50%);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px; border-radius: 50%;
+  color: var(--cream);
+  background: var(--petrol-card);
+  border: 1.5px solid var(--petrol-line);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+  cursor: pointer;
+  transition: color .2s ease, border-color .2s ease, opacity .2s ease, transform .15s ease;
+}
+.zoom-side svg { width: 26px; height: 26px; }
+/* Standardabstand zum Rand; sobald die Seitengröße bekannt ist, rückt das
+   Skript die Pfeile über --zoom-side-x direkt an die Seitenkanten. */
+.zoom-side-prev { left: var(--zoom-side-x, clamp(8px, 2vw, 26px)); }
+.zoom-side-next { right: var(--zoom-side-x, clamp(8px, 2vw, 26px)); }
+.zoom-side:hover:not(:disabled) { color: var(--sun); border-color: var(--sun); }
+.zoom-side-prev:hover:not(:disabled) { transform: translate(-2px, -50%); }
+.zoom-side-next:hover:not(:disabled) { transform: translate(2px, -50%); }
+/* Auf der ersten/letzten Seite gibt es nichts zu blättern – Pfeil ausblenden */
+.zoom-side:disabled { opacity: 0; pointer-events: none; }
+
 @media (max-width: 560px) {
   .catalog-indicator { min-width: 90px; font-size: .9rem; }
   .catalog-nav-btn { width: 44px; height: 44px; }
   .zoom-indicator { min-width: 92px; font-size: .92rem; }
   .zoom-btn { width: 44px; height: 44px; }
+  .zoom-side { width: 46px; height: 46px; }
+  .zoom-side svg { width: 22px; height: 22px; }
 }
