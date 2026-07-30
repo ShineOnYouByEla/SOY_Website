@@ -307,9 +307,11 @@
   const zoomFlipEl   = document.getElementById("zoomFlip");
   const zoomLoading  = document.getElementById("zoomLoading");
   const zoomIndic    = document.getElementById("zoomIndicator");
-  const zoomPrev     = document.getElementById("zoomPrev");
-  const zoomNext     = document.getElementById("zoomNext");
   const zoomClose    = document.getElementById("zoomClose");
+  // Blättern geht über zwei Wege: die Knöpfe in der oberen Leiste und die
+  // Pfeile direkt links/rechts neben der Seite. Beide werden gleich behandelt.
+  const zoomPrevBtns = ["zoomPrev", "zoomPrevSide"].map((id) => document.getElementById(id)).filter(Boolean);
+  const zoomNextBtns = ["zoomNext", "zoomNextSide"].map((id) => document.getElementById(id)).filter(Boolean);
 
   let zoomOpen = false;
   let zoomIndex = 0;              // aktuell gezeigte Seite (0-basiert)
@@ -333,8 +335,16 @@
   const zoomCacheLRU = [];        // Reihenfolge fürs Verdrängen (ältestes zuerst)
 
   if (zoomClose) zoomClose.addEventListener("click", closeZoom);
-  if (zoomPrev) zoomPrev.addEventListener("click", () => zoomFlip(-1));
-  if (zoomNext) zoomNext.addEventListener("click", () => zoomFlip(1));
+  zoomPrevBtns.forEach((b) => wireZoomFlipButton(b, -1));
+  zoomNextBtns.forEach((b) => wireZoomFlipButton(b, 1));
+
+  /* Blätter-Knopf verdrahten. Die Pfeile neben der Seite liegen innerhalb der
+     Vollbild-Bühne – ihr pointerdown darf dort nicht als Wischen/Ziehen
+     ankommen, sonst schluckt die Zeigererfassung der Bühne den Klick. */
+  function wireZoomFlipButton(btn, dir) {
+    btn.addEventListener("click", () => zoomFlip(dir));
+    btn.addEventListener("pointerdown", (e) => e.stopPropagation());
+  }
 
   if (zoomViewport) {
     zoomViewport.addEventListener("pointerdown", onZoomPointerDown);
@@ -371,6 +381,8 @@
       zoomImgEl.className = "zoom-page";
       zoomImgEl.alt = "";
       zoomImgEl.decoding = "async";
+      // Sobald die Seite ihre endgültige Größe hat: Pfeile daneben setzen
+      zoomImgEl.addEventListener("load", placeZoomSideArrows);
       zoomFlipEl.appendChild(zoomImgEl);
     }
     showZoomPage(zoomIndex);
@@ -434,6 +446,7 @@
     zoomOverlay.setAttribute("aria-hidden", "true");
     document.body.classList.remove("zoom-lock");
     zPointers.clear(); zPinch = null; zDown = null;
+    if (zoomViewport) zoomViewport.style.removeProperty("--zoom-side-x");
     if (zoomFlipEl) zoomFlipEl.innerHTML = "";
     zoomImgEl = null;
     // scharfe Seiten wieder freigeben (Speicher)
@@ -452,8 +465,23 @@
   function updateZoomIndicator() {
     const n = currentPageCount;
     if (zoomIndic) zoomIndic.textContent = "Seite " + (zoomIndex + 1) + " / " + n;
-    if (zoomPrev) zoomPrev.disabled = zoomIndex <= 0;
-    if (zoomNext) zoomNext.disabled = zoomIndex >= n - 1;
+    zoomPrevBtns.forEach((b) => { b.disabled = zoomIndex <= 0; });
+    zoomNextBtns.forEach((b) => { b.disabled = zoomIndex >= n - 1; });
+  }
+
+  /* Die Pfeile links/rechts sollen direkt an den Seitenkanten stehen – am
+     Computer also nicht weit außen am Bildschirmrand, sondern dort, wo die
+     Seite aufhört. Ist links und rechts kein Platz (Handy), bleiben sie mit
+     kleinem Abstand am Rand und liegen leicht über der Seite. */
+  function placeZoomSideArrows() {
+    if (!zoomViewport || !zoomImgEl) return;
+    const side = zoomViewport.querySelector(".zoom-side");
+    if (!side) return;
+    const vp = zoomViewport.getBoundingClientRect();
+    const page = zoomImgEl.getBoundingClientRect();
+    const free = Math.min(page.left - vp.left, vp.right - page.right); // Platz neben der Seite
+    const x = Math.max(8, Math.round(free - side.offsetWidth - 14));
+    zoomViewport.style.setProperty("--zoom-side-x", x + "px");
   }
 
   /* ---- Zoom & Verschieben der ganzen Vollbild-Bühne ---- */
@@ -555,7 +583,8 @@
 
   window.addEventListener("resize", () => {
     if (!zoomOpen) return;
-    resetZoomTransform(); // Seite wieder mittig einpassen
+    resetZoomTransform();     // Seite wieder mittig einpassen
+    placeZoomSideArrows();    // Pfeile neben die neu eingepasste Seite setzen
   });
 
   /* ============================================================
