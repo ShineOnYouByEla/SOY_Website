@@ -61,6 +61,20 @@
 }
 .flipbook { margin: 0 auto; }
 
+/* Katalogseiten im Blätterer: echte <img>-Elemente (scharf auf HiDPI).
+   Das Bild füllt das ganze Blatt; weißer Grund für Seiten ohne Hintergrund. */
+.flipbook .flip-page {
+  background: #fff;
+  overflow: hidden;
+}
+.flipbook .flip-page img {
+  display: block;
+  width: 100%; height: 100%;
+  user-select: none; -webkit-user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none; /* Wischen/Klicken geht an den Blätterer */
+}
+
 /* ===== Werkzeugleiste ===== */
 .catalog-toolbar {
   display: flex; align-items: center; justify-content: center; gap: 14px;
@@ -104,11 +118,25 @@
 }
 .catalog-hint-zoom { color: var(--sun); font-weight: 600; }
 
+/* Hinweistext je nach Gerät: Touch-Geräte sehen den Tipp zum Doppeltippen,
+   Maus-Geräte den Hinweis auf Lupe und Vollbild. */
+.catalog-hint .hint-touch { display: none; }
+@media (hover: none), (pointer: coarse) {
+  .catalog-hint .hint-touch { display: inline; }
+  .catalog-hint .hint-mouse { display: none; }
+  /* Vollbild-Knopf am Handy hervorheben – dort ist er der Weg zum Lesen */
+  .catalog-fs {
+    color: var(--btn-ink);
+    background: var(--sun);
+    border-color: var(--sun);
+  }
+}
+
 /* ===== Lupe (Magnifier über dem Blätterer) ===== */
 /* Solange die Lupe sichtbar ist, blenden wir den System-Cursor über dem
    Buch aus – es schwebt nur die runde Lupe mit (sie ist der Zeiger). */
 .catalog-stage.lens-show,
-.catalog-stage.lens-show canvas { cursor: none !important; }
+.catalog-stage.lens-show * { cursor: none !important; }
 
 .catalog-lens {
   position: fixed; z-index: 900;

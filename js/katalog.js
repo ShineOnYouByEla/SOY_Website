@@ -45,7 +45,21 @@
   if (nextBtn) nextBtn.addEventListener("click", () => pageFlip && pageFlip.flipNext());
   if (zoomBtn) zoomBtn.addEventListener("click", () => openZoom());
   // Doppeltipp/Doppelklick auf die Seite öffnet ebenfalls die Zoom-Ansicht
-  if (stageEl) stageEl.addEventListener("dblclick", () => openZoom());
+  if (stageEl) {
+    stageEl.addEventListener("dblclick", () => openZoom());
+    // Am Handy feuert kein dblclick – Doppeltipp selbst erkennen
+    let tapTime = 0, tapX = 0, tapY = 0;
+    stageEl.addEventListener("pointerup", (e) => {
+      if (e.pointerType !== "touch") return;
+      const now = Date.now();
+      if (now - tapTime < 320 && Math.hypot(e.clientX - tapX, e.clientY - tapY) < 30) {
+        tapTime = 0;
+        openZoom();
+      } else {
+        tapTime = now; tapX = e.clientX; tapY = e.clientY;
+      }
+    });
+  }
   document.addEventListener("keydown", (e) => {
     if (zoomOpen) {
       if (e.key === "Escape") closeZoom();
@@ -215,13 +229,31 @@
       if (isFlipping) hideLens();
       updateIndicator(pageCount);
     });
-    pageFlip.loadFromImages(images);
+    // Wichtig für die Schärfe: die Seiten als echte <img>-Elemente einhängen
+    // (loadFromHTML) statt sie von der Bibliothek auf ein Canvas zeichnen zu
+    // lassen (loadFromImages). Das Canvas arbeitet nur in CSS-Pixeln und ist
+    // dadurch auf Handys mit hoher Pixeldichte zwangsläufig unscharf – Bilder
+    // skaliert der Browser dagegen in echter Geräteauflösung.
+    pageFlip.loadFromHTML(images.map(createPageElement));
 
     pageImages = images;       // Bildquellen für die Lupe merken
     updateIndicator(pageCount);
     setBusy(false);
     setStatus("");
     if (toolbarEl) toolbarEl.hidden = false;
+  }
+
+  /* Eine Katalogseite als Blätter-Element (weißes Blatt mit Bild) aufbauen */
+  function createPageElement(src) {
+    const holder = document.createElement("div");
+    holder.className = "flip-page";
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = "";
+    img.draggable = false;
+    img.decoding = "async";
+    holder.appendChild(img);
+    return holder;
   }
 
   /* PDF-Seite auf ein Canvas rendern und als Bild-URL zurückgeben */
@@ -321,7 +353,7 @@
   }
 
   function openZoom(pageNum) {
-    if (!currentPdf || !currentPageCount) return;
+    if (zoomOpen || !currentPdf || !currentPageCount) return;
     hideLens(); // Lupe ausblenden, solange die Vollbild-Ansicht offen ist
     let n = pageNum;
     if (!n && pageFlip) n = pageFlip.getCurrentPageIndex() + 1; // aktuelle Seite
@@ -606,8 +638,8 @@
      Ansicht (Desktop) und im Ruhezustand – sonst gibt es nichts zu zeigen. */
   function lensSource(clientX, clientY) {
     if (!pageFlip || isFlipping) return null;
-    const canvas = stageEl.querySelector("canvas.stf__canvas");
-    if (!canvas) return null;
+    const block = stageEl.querySelector(".stf__block");
+    if (!block) return null;
 
     let rect, spread;
     try {
@@ -624,13 +656,12 @@
     else if (spread[0] === currentPageCount - 1) { leftIdx = spread[0]; }
     else { rightIdx = spread[0]; }
 
-    const cr = canvas.getBoundingClientRect();
-    const sx = cr.width / (canvas.width || cr.width);
-    const sy = cr.height / (canvas.height || cr.height);
-    const bookLeft = cr.left + rect.left * sx;
-    const bookTop  = cr.top  + rect.top  * sy;
-    const pw = rect.pageWidth * sx;
-    const ph = rect.height * sy;
+    // Der Buchbereich liegt in CSS-Pixeln innerhalb des Blätter-Containers
+    const cr = block.getBoundingClientRect();
+    const bookLeft = cr.left + rect.left;
+    const bookTop  = cr.top  + rect.top;
+    const pw = rect.pageWidth;
+    const ph = rect.height;
 
     const fy = (clientY - bookTop) / ph;
     if (fy < 0 || fy > 1) return null;
