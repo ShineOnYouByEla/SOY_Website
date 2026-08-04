@@ -57,8 +57,8 @@ if (toggle && mobileNav) {
 
 /* ===== Hinweis auf den WhatsApp-Kanal =====
    Beim ersten Besuch taucht kurz nach dem Laden eine Sprechblase unter dem
-   Kanal-Symbol im Header auf. Sie schließt sich per Klick, mit Escape oder
-   nach ein paar Sekunden von selbst – und kommt danach nicht wieder. */
+   Kanal-Symbol im Header auf. Sie bleibt stehen, bis sie jemand schließt
+   (✕, Escape oder Klick auf den Hinweis) – danach kommt sie nicht wieder. */
 (function initChannelTip() {
   const STORAGE_KEY = "soy-channel-tip";
   const icon = document.querySelector(".header-channel[href]");
@@ -73,13 +73,18 @@ if (toggle && mobileNav) {
   tip.setAttribute("role", "status");
   tip.hidden = true;
   tip.innerHTML =
-    '<a class="channel-tip-text" target="_blank" rel="noopener">' +
-    "☝🏼 Folge hier dem WhatsApp&#8209;Kanal, um kein Angebot zu verpassen!</a>" +
+    '<a class="channel-tip-link" target="_blank" rel="noopener">' +
+    '<span class="channel-tip-icon" aria-hidden="true">' +
+    icon.querySelector("svg").outerHTML +
+    "</span><span>" +
+    '<span class="channel-tip-title">Kein Angebot verpassen!</span>' +
+    '<span class="channel-tip-sub">Folge hier ☝🏼 meinem WhatsApp&#8209;Kanal.</span>' +
+    "</span></a>" +
     '<button type="button" class="channel-tip-close" aria-label="Hinweis schließen">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
     "</button>";
-  tip.querySelector(".channel-tip-text").href = icon.getAttribute("href");
+  tip.querySelector(".channel-tip-link").href = icon.getAttribute("href");
   document.body.appendChild(tip);
 
   /* Blase unter dem Symbol ausrichten, Pfeil auf dessen Mitte zeigen lassen */
@@ -89,7 +94,7 @@ if (toggle && mobileNav) {
     const margin = 12;
     const center = r.left + r.width / 2;
     const max = Math.max(margin, window.innerWidth - w - margin);
-    const left = Math.min(Math.max(center - w + 28, margin), max);
+    const left = Math.min(Math.max(center - w + 44, margin), max);
     tip.style.top = Math.round(r.bottom + 12) + "px";
     tip.style.left = Math.round(left) + "px";
     tip.style.setProperty("--tip-arrow", Math.round(center - left) + "px");
@@ -117,7 +122,7 @@ if (toggle && mobileNav) {
   function onKey(e) { if (e.key === "Escape") hide(); }
 
   tip.querySelector(".channel-tip-close").addEventListener("click", hide);
-  tip.querySelector(".channel-tip-text").addEventListener("click", hide);
+  tip.querySelector(".channel-tip-link").addEventListener("click", hide);
 
   setTimeout(() => {
     if (hidden) return;
@@ -128,7 +133,6 @@ if (toggle && mobileNav) {
     window.addEventListener("resize", onReflow, { passive: true });
     window.addEventListener("scroll", onReflow, { passive: true });
     document.addEventListener("keydown", onKey);
-    setTimeout(hide, 12000);
   }, 1400);
 })();
 
