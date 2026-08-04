@@ -74,12 +74,18 @@ if (toggle && mobileNav) {
   tip.hidden = true;
   tip.innerHTML =
     '<a class="channel-tip-link" target="_blank" rel="noopener">' +
+    '<span class="channel-tip-head">' +
     '<span class="channel-tip-icon" aria-hidden="true">' +
     icon.querySelector("svg").outerHTML +
-    "</span><span>" +
-    '<span class="channel-tip-title">Kein Angebot verpassen!</span>' +
-    '<span class="channel-tip-sub">Folge hier ☝🏼 meinem WhatsApp&#8209;Kanal.</span>' +
-    "</span></a>" +
+    "</span>" +
+    '<span class="channel-tip-title">Folge hier ☝🏼 meinem<br />WhatsApp&#8209;Kanal!</span>' +
+    "</span>" +
+    '<span class="channel-tip-sub">Neue Angebote und Aktionen bekommst du dort als Erste:r – ' +
+    "und verpasst garantiert keins mehr.</span>" +
+    '<span class="channel-tip-cta">Jetzt folgen' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg></span></a>' +
     '<button type="button" class="channel-tip-close" aria-label="Hinweis schließen">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
