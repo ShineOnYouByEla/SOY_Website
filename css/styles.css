@@ -148,6 +148,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 .nav a:hover { color: var(--sun); }
 .nav-cta { padding: .6em 1.2em; }
 .header-channel {
+  position: relative;
   display: inline-flex; align-items: center; justify-content: center;
   width: 40px; height: 40px; border-radius: 50%; flex: none;
   color: var(--cream); border: 1px solid var(--petrol-line);
@@ -157,6 +158,64 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 .header-channel:hover {
   color: var(--sun); border-color: var(--sun);
   background: rgba(233, 182, 144, .08); transform: translateY(-1px);
+}
+
+/* ===== Hinweis auf den WhatsApp-Kanal =====
+   Kleine Sprechblase, die beim ersten Besuch kurz nach dem Laden unter dem
+   Kanal-Symbol im Header auftaucht. Position und Pfeil setzt script.js. */
+.channel-tip {
+  position: fixed; z-index: 60;
+  display: flex; align-items: flex-start; gap: 6px;
+  max-width: min(310px, calc(100vw - 24px));
+  padding: 11px 8px 11px 14px;
+  background: var(--petrol-card);
+  border: 1px solid var(--sun);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  opacity: 0; transform: translateY(-8px);
+  transition: opacity .3s ease, transform .3s ease;
+  pointer-events: none;
+}
+.channel-tip[hidden] { display: none; }
+.channel-tip.open { opacity: 1; transform: none; pointer-events: auto; }
+/* Pfeilspitze zum Kanal-Symbol; --tip-arrow kommt aus script.js */
+.channel-tip::before {
+  content: "";
+  position: absolute; top: -7px; left: var(--tip-arrow, 50%);
+  width: 12px; height: 12px; margin-left: -6px;
+  background: var(--petrol-card);
+  border-left: 1px solid var(--sun); border-top: 1px solid var(--sun);
+  transform: rotate(45deg);
+}
+.channel-tip-text {
+  color: var(--cream);
+  font-family: var(--font-head); font-weight: 500;
+  font-size: .9rem; line-height: 1.35;
+}
+.channel-tip-text:hover { color: var(--sun); }
+.channel-tip-close {
+  flex: none; width: 26px; height: 26px; margin-top: -2px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; border-radius: 50%;
+  color: var(--cream-dim); cursor: pointer;
+  transition: color .2s ease, background .2s ease;
+}
+.channel-tip-close svg { width: 15px; height: 15px; }
+.channel-tip-close:hover { color: var(--sun); background: rgba(233, 182, 144, .1); }
+
+/* Das Kanal-Symbol pulsiert dezent, solange der Hinweis offen ist */
+.header-channel.is-hinted { color: var(--sun); border-color: var(--sun); }
+.header-channel.is-hinted::after {
+  content: "";
+  position: absolute; inset: -1px; border-radius: 50%;
+  border: 1px solid var(--sun);
+  animation: channel-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes channel-pulse {
+  0%   { opacity: .7; transform: scale(1); }
+  70%  { opacity: 0;  transform: scale(1.5); }
+  100% { opacity: 0;  transform: scale(1.5); }
 }
 
 /* ===== Theme-Umschalter (System / Hell / Dunkel) ===== */
@@ -677,4 +736,7 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
   * { scroll-behavior: auto !important; transition: none !important; }
   .reveal { opacity: 1 !important; transform: none !important; }
   .section-glow, [data-parallax] { transform: none !important; }
+  .channel-tip { opacity: 0; }
+  .channel-tip.open { opacity: 1; transform: none; }
+  .header-channel.is-hinted::after { animation: none; }
 }
