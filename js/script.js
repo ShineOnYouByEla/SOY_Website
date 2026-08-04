@@ -142,6 +142,18 @@ if (toggle && mobileNav) {
   }, 1400);
 })();
 
+/* ===== Kontaktgrund vorauswählen =====
+   Links mit data-contact-reason springen zum Kontaktformular und stellen den
+   passenden Grund gleich ein – z. B. „Mitmachen“ oder „Prämien“. */
+document.querySelectorAll("[data-contact-reason]").forEach((link) => {
+  link.addEventListener("click", () => {
+    const select = document.getElementById("c-reason");
+    if (!select) return;
+    const wanted = link.dataset.contactReason;
+    if (Array.from(select.options).some((o) => o.value === wanted)) select.value = wanted;
+  });
+});
+
 /* ===== Helfer ===== */
 function pad(n) { return String(n).padStart(2, "0"); }
 
