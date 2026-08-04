@@ -165,43 +165,93 @@ h3 { font-size: 1.2rem; font-weight: 600; }
    Kanal-Symbol im Header auftaucht. Position und Pfeil setzt script.js. */
 .channel-tip {
   position: fixed; z-index: 60;
-  display: flex; align-items: flex-start; gap: 6px;
-  max-width: min(310px, calc(100vw - 24px));
-  padding: 11px 8px 11px 14px;
-  background: var(--petrol-card);
-  border: 1px solid var(--sun);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  opacity: 0; transform: translateY(-8px);
-  transition: opacity .3s ease, transform .3s ease;
+  width: min(322px, calc(100vw - 24px));
+  border-radius: 18px;
+  background:
+    linear-gradient(158deg, rgba(233, 182, 144, .16), rgba(233, 182, 144, 0) 46%),
+    var(--petrol-card);
+  border: 1px solid rgba(233, 182, 144, .7);
+  box-shadow:
+    0 22px 46px -22px rgba(0, 0, 0, .8),
+    0 0 0 6px rgba(233, 182, 144, .05);
+  opacity: 0; transform: translateY(-10px) scale(.96);
+  transition: opacity .3s ease, transform .35s cubic-bezier(.2, .9, .3, 1.4);
   pointer-events: none;
 }
 .channel-tip[hidden] { display: none; }
-.channel-tip.open { opacity: 1; transform: none; pointer-events: auto; }
+/* Nach dem Einblenden hüpft die Blase im Takt Richtung Kanal-Symbol.
+   Die Animation startet erst, wenn der Einblend-Übergang durch ist. */
+.channel-tip.open {
+  opacity: 1; transform: none; pointer-events: auto;
+  animation: tip-nudge 3.2s ease-in-out .5s infinite;
+}
+.channel-tip.open:hover { animation-play-state: paused; }
+@keyframes tip-nudge {
+  0%, 68%, 100% { transform: translateY(0); }
+  78% { transform: translateY(-6px); }
+  86% { transform: translateY(-1px); }
+  93% { transform: translateY(-3px); }
+}
 /* Pfeilspitze zum Kanal-Symbol; --tip-arrow kommt aus script.js */
 .channel-tip::before {
   content: "";
   position: absolute; top: -7px; left: var(--tip-arrow, 50%);
-  width: 12px; height: 12px; margin-left: -6px;
+  width: 13px; height: 13px; margin-left: -6.5px;
   background: var(--petrol-card);
-  border-left: 1px solid var(--sun); border-top: 1px solid var(--sun);
+  border-left: 1px solid rgba(233, 182, 144, .7);
+  border-top: 1px solid rgba(233, 182, 144, .7);
   transform: rotate(45deg);
 }
-.channel-tip-text {
-  color: var(--cream);
-  font-family: var(--font-head); font-weight: 500;
-  font-size: .9rem; line-height: 1.35;
+.channel-tip-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 34px 14px 14px;
+  border-radius: inherit;
 }
-.channel-tip-text:hover { color: var(--sun); }
+.channel-tip-icon {
+  flex: none; width: 36px; height: 36px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(140deg, var(--sun), var(--sun-deep));
+  color: var(--btn-ink);
+  box-shadow: 0 8px 16px -8px rgba(233, 182, 144, .9);
+  transition: transform .2s ease;
+}
+.channel-tip-icon svg { width: 20px; height: 20px; }
+.channel-tip-link:hover .channel-tip-icon { transform: scale(1.06) rotate(-4deg); }
+.channel-tip-title {
+  display: block;
+  font-family: var(--font-head); font-weight: 600;
+  font-size: .95rem; line-height: 1.25; color: var(--cream);
+  transition: color .2s ease;
+}
+.channel-tip-link:hover .channel-tip-title { color: var(--sun); }
+.channel-tip-sub {
+  display: block; margin-top: 3px;
+  font-size: .82rem; line-height: 1.35; color: var(--cream-dim);
+}
 .channel-tip-close {
-  flex: none; width: 26px; height: 26px; margin-top: -2px;
+  position: absolute; top: 7px; right: 7px;
+  width: 26px; height: 26px;
   display: inline-flex; align-items: center; justify-content: center;
   background: transparent; border: 0; border-radius: 50%;
   color: var(--cream-dim); cursor: pointer;
   transition: color .2s ease, background .2s ease;
 }
-.channel-tip-close svg { width: 15px; height: 15px; }
-.channel-tip-close:hover { color: var(--sun); background: rgba(233, 182, 144, .1); }
+.channel-tip-close svg { width: 14px; height: 14px; }
+.channel-tip-close:hover { color: var(--sun); background: rgba(233, 182, 144, .12); }
+
+/* Hellmodus: warmer Rahmen statt des dunklen Sonnen-Tons */
+:root[data-theme="light"] .channel-tip {
+  background:
+    linear-gradient(158deg, rgba(180, 95, 22, .1), rgba(180, 95, 22, 0) 46%),
+    var(--petrol-card);
+  border-color: rgba(180, 95, 22, .5);
+  box-shadow:
+    0 22px 46px -24px rgba(18, 51, 56, .45),
+    0 0 0 6px rgba(180, 95, 22, .05);
+}
+:root[data-theme="light"] .channel-tip::before { border-color: rgba(180, 95, 22, .5); }
+:root[data-theme="light"] .channel-tip-icon { box-shadow: 0 8px 16px -9px rgba(180, 95, 22, .8); }
+:root[data-theme="light"] .channel-tip-close:hover { background: rgba(180, 95, 22, .1); }
 
 /* Das Kanal-Symbol pulsiert dezent, solange der Hinweis offen ist */
 .header-channel.is-hinted { color: var(--sun); border-color: var(--sun); }
@@ -736,7 +786,7 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
   * { scroll-behavior: auto !important; transition: none !important; }
   .reveal { opacity: 1 !important; transform: none !important; }
   .section-glow, [data-parallax] { transform: none !important; }
-  .channel-tip { opacity: 0; }
-  .channel-tip.open { opacity: 1; transform: none; }
+  .channel-tip { opacity: 0; transform: none; }
+  .channel-tip.open { opacity: 1; transform: none; animation: none; }
   .header-channel.is-hinted::after { animation: none; }
 }
