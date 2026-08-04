@@ -798,6 +798,7 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
 .footer-nav a:hover { color: var(--sun); }
 .footer-legal { font-size: .9rem; color: var(--cream-dim); margin: 0 0 8px; }
 .footer-legal a { color: var(--cream-dim); text-decoration: underline; }
+.footer-review { font-size: .8rem; color: #6e827f; max-width: 620px; margin: 0 auto 8px; }
 .footer-fine { font-size: .78rem; color: #6e827f; max-width: 620px; margin: 0 auto; }
 
 /* ===== Rechtsseiten (Impressum / Datenschutz) ===== */
