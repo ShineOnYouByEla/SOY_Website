@@ -7,8 +7,10 @@ const CONFIG = {
   businessName: "Shine On You",
   ownerName: "Manuela Zimmert",
   email: "prowin.ela@web.de",    // Kontakt-/Empfangsadresse
-  phone: "+49 1551 0279357",          // Telefonnummer (Anzeige)
-  phoneHref: "+4915510279357",        // Telefonnummer für tel:-Link (ohne Leerzeichen)
+  phone: "+49 1551 0279357",          // Mobilnummer (Anzeige)
+  phoneHref: "+4915510279357",        // Mobilnummer für tel:-Link (ohne Leerzeichen)
+  landline: "+49 8861 7138897",       // Festnetznummer (Anzeige)
+  landlineHref: "+4988617138897",     // Festnetznummer für tel:-Link (ohne Leerzeichen)
 
   /* --- Formularversand (ohne dass sich das Mailprogramm öffnet) ---
      Web3Forms: auf https://web3forms.com die Empfänger-E-Mail eintragen,
@@ -30,8 +32,12 @@ const CONFIG = {
 (function applyConfig() {
   const email = document.getElementById("contactEmail");
   if (email) { email.textContent = CONFIG.email; email.href = "mailto:" + CONFIG.email; }
+  // Geschützte Leerzeichen, damit die Nummern nie mitten drin umbrechen.
+  const nbsp = (nr) => nr.replace(/ /g, "\u00a0");
   const phone = document.getElementById("contactPhone");
-  if (phone) { phone.textContent = CONFIG.phone; phone.href = "tel:" + CONFIG.phoneHref; }
+  if (phone) { phone.textContent = nbsp(CONFIG.phone); phone.href = "tel:" + CONFIG.phoneHref; }
+  const landline = document.getElementById("contactPhoneLandline");
+  if (landline) { landline.textContent = nbsp(CONFIG.landline); landline.href = "tel:" + CONFIG.landlineHref; }
 })();
 
 /* Jahr im Footer */
