@@ -31,7 +31,8 @@ const CONFIG = {
   const email = document.getElementById("contactEmail");
   if (email) { email.textContent = CONFIG.email; email.href = "mailto:" + CONFIG.email; }
   const phone = document.getElementById("contactPhone");
-  if (phone) { phone.textContent = CONFIG.phone; phone.href = "tel:" + CONFIG.phoneHref; }
+  // Geschützte Leerzeichen, damit die Nummer nie mitten drin umbricht.
+  if (phone) { phone.textContent = CONFIG.phone.replace(/ /g, "\u00a0"); phone.href = "tel:" + CONFIG.phoneHref; }
 })();
 
 /* Jahr im Footer */
