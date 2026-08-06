@@ -772,6 +772,12 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
   background: rgba(142,210,217,.12); color: var(--wave);
 }
 .contact-ic svg { width: 22px; height: 22px; }
+/* Zweizeiliger Eintrag: kleine Beschriftung über der Angabe (z. B. Mobil/Festnetz) */
+.contact-text { display: flex; flex-direction: column; gap: 2px; }
+.contact-label {
+  font-family: var(--font-head); font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em; color: var(--wave);
+}
 .contact-list a { color: var(--cream); font-weight: 500; }
 .contact-list a:hover { color: var(--sun); }
 
@@ -798,6 +804,7 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
 .footer-nav a:hover { color: var(--sun); }
 .footer-legal { font-size: .9rem; color: var(--cream-dim); margin: 0 0 8px; }
 .footer-legal a { color: var(--cream-dim); text-decoration: underline; }
+.footer-review { font-size: .8rem; color: #6e827f; max-width: 620px; margin: 0 auto 8px; }
 .footer-fine { font-size: .78rem; color: #6e827f; max-width: 620px; margin: 0 auto; }
 
 /* ===== Rechtsseiten (Impressum / Datenschutz) ===== */
