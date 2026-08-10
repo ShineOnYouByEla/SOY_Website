@@ -88,17 +88,32 @@ Auf `s-lx04-docker`:
 docker volume create soy-admin-data
 ```
 
-### 3. Image auf dem Docker-Host bauen
+### 3. Stack deployen
 
-**Dieser Schritt ist Pflicht und muss vor dem Deployen passieren.** Ein
-Portainer-Stack aus dem Web-Editor liegt unter `/data/compose/<id>/` und hat
-keinen Quellcode neben sich – er kann nichts bauen, sondern nur ein fertiges
-Image starten. `docker-compose.yml` enthält deshalb bewusst keinen
-`build:`-Block.
+Zwei Wege. Der erste spart den manuellen Build und ist deshalb der bequemere.
 
-Auf `s-lx04-docker`:
+#### Weg A: Portainer baut selbst (empfohlen)
+
+**Stacks → Add Stack → Repository**, Stack-Name `s-lx04-soy-admin`:
+
+| Feld | Wert |
+|---|---|
+| Repository URL | `https://github.com/ShineOnYouByEla/SOY_Website` |
+| Repository reference | `refs/heads/main` |
+| Compose path | `backend/docker-compose.build.yml` |
+
+Portainer klont das Repository auf den Docker-Host, findet den Quellcode neben
+dem Compose-File und baut das Image dort. Updates laufen danach über
+**Pull and redeploy**.
+
+#### Weg B: Image von Hand bauen
+
+Der Build muss **auf dem Docker-Host** laufen, nicht auf dem eigenen Rechner:
+ein auf einem Apple-Silicon-Mac gebautes Image ist `arm64` und startet auf einem
+x86-Host gar nicht.
 
 ```bash
+ssh s-lx04-docker
 git clone https://github.com/ShineOnYouByEla/SOY_Website.git
 cd SOY_Website
 docker build -f backend/Dockerfile -t soy-admin:latest .
@@ -108,16 +123,12 @@ Der Punkt am Ende ist wichtig: Der Build-Kontext ist das
 **Repo-Wurzelverzeichnis**, nicht `backend/` – der Renderer unter `shared/` muss
 mit ins Image.
 
-> **Ohne manuelles Bauen** geht es mit einem Portainer-Stack vom Typ
-> **Repository**: Repository-URL eintragen, Compose-Pfad
-> `backend/docker-compose.build.yml`. Portainer klont dann selbst, und der
-> `build:`-Block in dieser Datei findet den Quellcode vor. Updates laufen danach
-> über „Pull and redeploy".
+Danach `backend/docker-compose.yml` unter **Stacks → Add Stack → Web editor**
+einfügen. Diese Datei enthält bewusst keinen `build:`-Block: ein Web-Editor-Stack
+liegt unter `/data/compose/<id>/` und hat keinen Quellcode neben sich, ein
+Build-Versuch scheitert dort zwangsläufig.
 
-### 4. Stack deployen
-
-`backend/docker-compose.yml` in Portainer unter **Stacks → Add Stack → Web
-editor** einfügen, Stack-Name `s-lx04-soy-admin`.
+#### In beiden Fällen
 
 Unter **Environment variables** eintragen (nicht ins Compose-File schreiben):
 
@@ -144,7 +155,7 @@ liegt.** Solange die Inhalte nur auf einem Testbranch liegen, meldet das Admin
 beim Öffnen, die Datei sei nicht zu finden. Und: veröffentlicht wird in genau
 diesen Branch – die Live-Seite baut sich nur aus `main`.
 
-### 5. Erstes Konto anlegen
+### 4. Erstes Konto anlegen
 
 Von einem Rechner im selben Netz:
 
@@ -160,7 +171,7 @@ geht der Aufruf an Port 80 und läuft ins Leere.
 
 Danach `SETUP_ENABLED` wieder auf `false` und den Stack neu starten.
 
-### 6. Anmelden
+### 5. Anmelden
 
 `http://admin.shineonyou.de:8080` bzw. `http://192.168.178.13:8080` im Browser
 öffnen – genau die Adresse, die in `ADMIN_ORIGIN` steht. Beim ersten Login wird die
@@ -185,8 +196,13 @@ Wiederherstellungscodes ausdrucken oder in den Passwortmanager legen.
 
 Watchtower greift hier nicht – das Image wird selbst gebaut:
 
+Bei Weg A: in Portainer **Pull and redeploy** – mehr ist nicht nötig.
+
+Bei Weg B auf dem Docker-Host:
+
 ```bash
-git pull && docker build -f backend/Dockerfile -t soy-admin:latest .
+cd SOY_Website && git pull
+docker build -f backend/Dockerfile -t soy-admin:latest .
 # danach in Portainer: Stack → Update (Re-pull deaktiviert lassen)
 ```
 
@@ -235,7 +251,7 @@ Wrangler nennt danach die Adresse, z. B.
 `ADMIN_ORIGIN` eintragen und **noch einmal** `npm run deploy` ausführen – sonst
 lehnt der CSRF-Schutz alle Schreibzugriffe ab.
 
-### 5. Erstes Konto anlegen
+### 4. Erstes Konto anlegen
 
 ```bash
 npm run setup
@@ -347,8 +363,10 @@ die Vorschau im Worker und `index.html` im Build.
 | Anmeldung springt zurück zum Login | Cookie kommt nicht an: bei `http://` muss `COOKIE_SECURE=false` gesetzt sein |
 | Server startet nicht, meckert über ADMIN_ORIGIN | Adresse fehlt oder passt nicht zum `COOKIE_SECURE`-Wert – die Meldung sagt, was zu tun ist |
 | Container startet, aber `/api/ping` antwortet nicht | Healthcheck prüft Port 8080 im Container; bei geändertem `PORT` auch den Healthcheck anpassen |
-| Portainer: „lstat /data/compose/backend: no such file or directory" | Der Stack versucht zu bauen. `docker-compose.yml` verwenden (ohne `build:`) und das Image vorher auf dem Host bauen – siehe A.3 |
-| Portainer: „pull access denied for soy-admin" | Das Image ist auf dem Host noch nicht gebaut – siehe A.3 |
+| Portainer: „lstat /data/compose/backend: no such file or directory" | Ein Web-Editor-Stack versucht zu bauen. Entweder `docker-compose.yml` verwenden und das Image vorher bauen (Weg B), oder auf einen Repository-Stack wechseln (Weg A) |
+| Portainer: „pull access denied for soy-admin" | Das Image ist auf dem Host noch nicht gebaut – siehe A.3, Weg B |
+| „Cannot connect to the Docker daemon at unix:///Users/…" | Der Befehl lief auf dem eigenen Rechner statt auf dem Docker-Host |
+| Container startet nicht, „exec format error" | Das Image wurde für die falsche Architektur gebaut (z. B. auf einem Apple-Silicon-Mac). Auf dem Docker-Host bauen |
 | Portainer: „volume soy-admin-data declared as external, but could not be found" | `docker volume create soy-admin-data` fehlt – siehe A.2 |
 | `npm run setup`: „… ist nicht erreichbar" | Meist fehlt der Port. Der Container lauscht auf 8080: `http://admin.shineonyou.de:8080` |
 | „SETUP_TOKEN ist nicht gesetzt" | Die Stack-Variable `SETUP_TOKEN` fehlt im Container |
