@@ -117,9 +117,20 @@ mit ins Image.
 ### 4. Stack deployen
 
 `backend/docker-compose.yml` in Portainer unter **Stacks → Add Stack → Web
-editor** einfügen, Stack-Name `s-lx04-soy-admin`. `GITHUB_TOKEN` und
-`SETUP_TOKEN` als Stack-Environment-Variablen setzen (nicht ins Compose-File
-schreiben). Für die Ersteinrichtung `SETUP_ENABLED` einmalig auf `true`.
+editor** einfügen, Stack-Name `s-lx04-soy-admin`.
+
+Unter **Environment variables** eintragen (nicht ins Compose-File schreiben):
+
+| Variable | Wert |
+|---|---|
+| `GITHUB_TOKEN` | der Token aus Schritt 1 |
+| `SETUP_TOKEN` | **selbst gewählt** – kein Wert, den man irgendwo abholt. Erzeugen z. B. mit `openssl rand -base64 32`. Er verhindert nur, dass in dem kurzen Zeitfenster mit offener Ersteinrichtung jemand anders ein Konto anlegt. |
+
+Für die Ersteinrichtung `SETUP_ENABLED` einmalig auf `true` setzen.
+
+**`ADMIN_ORIGIN` muss zur Adresse in der Browserzeile passen** – mit Schema und
+Port. Wer das Admin unter `http://admin.shineonyou.de:8080` aufruft, trägt genau
+das ein. Weicht es ab, lehnt der CSRF-Schutz jeden Schreibzugriff ab.
 
 ### 5. Erstes Konto anlegen
 
@@ -128,14 +139,19 @@ Von einem Rechner im selben Netz:
 ```bash
 cd backend
 npm install
-npm run setup     # fragt nach der Adresse, z. B. http://192.168.178.13:8080
+npm run setup
 ```
+
+Das Skript fragt zuerst die Adresse des Backends ab – **mit Port**:
+`http://admin.shineonyou.de:8080` oder `http://192.168.178.13:8080`. Ohne Port
+geht der Aufruf an Port 80 und läuft ins Leere.
 
 Danach `SETUP_ENABLED` wieder auf `false` und den Stack neu starten.
 
 ### 6. Anmelden
 
-`http://192.168.178.13:8080` im Browser öffnen. Beim ersten Login wird die
+`http://admin.shineonyou.de:8080` bzw. `http://192.168.178.13:8080` im Browser
+öffnen – genau die Adresse, die in `ADMIN_ORIGIN` steht. Beim ersten Login wird die
 Zwei-Faktor-App eingerichtet: QR-Code scannen, Code eingeben, die zehn
 Wiederherstellungscodes ausdrucken oder in den Passwortmanager legen.
 
@@ -151,7 +167,7 @@ Wiederherstellungscodes ausdrucken oder in den Passwortmanager legen.
 | `PBKDF2_ITERATIONS` | Rechenaufwand des Passwort-Hashings. Standard `600000`. |
 | `SETUP_ENABLED` / `SETUP_TOKEN` | Nur für die Ersteinrichtung. |
 | `DATABASE_PATH` | Standard `/data/soy-admin.db`. |
-| `PORT` / `HOST` | Standard `8080` / `0.0.0.0`. |
+| `PORT` / `HOST` | Standard `8080` / `0.0.0.0`. Für eine Adresse ohne Port `PORT=80` setzen und im Stack `cap_add: NET_BIND_SERVICE` einkommentieren – der Container läuft als normaler Nutzer. |
 
 ### Aktualisieren
 
@@ -322,6 +338,9 @@ die Vorschau im Worker und `index.html` im Build.
 | Portainer: „lstat /data/compose/backend: no such file or directory" | Der Stack versucht zu bauen. `docker-compose.yml` verwenden (ohne `build:`) und das Image vorher auf dem Host bauen – siehe A.3 |
 | Portainer: „pull access denied for soy-admin" | Das Image ist auf dem Host noch nicht gebaut – siehe A.3 |
 | Portainer: „volume soy-admin-data declared as external, but could not be found" | `docker volume create soy-admin-data` fehlt – siehe A.2 |
+| `npm run setup`: „… ist nicht erreichbar" | Meist fehlt der Port. Der Container lauscht auf 8080: `http://admin.shineonyou.de:8080` |
+| „SETUP_TOKEN ist nicht gesetzt" | Die Stack-Variable `SETUP_TOKEN` fehlt im Container |
+| „Anfrage von einer fremden Herkunft wurde abgelehnt" | `ADMIN_ORIGIN` weicht von der aufgerufenen Adresse ab – Schema und Port müssen exakt stimmen |
 | „Das Repository wurde zwischenzeitlich geändert" | Jemand hat parallel committet: Seite neu laden, erneut veröffentlichen |
 | Handy verloren | Mit einem Wiederherstellungscode anmelden, im Menü unter „Konto & Sicherheit" neu einrichten |
 | Alle Zugänge verloren | `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` löschen, `npm run setup` |
