@@ -874,6 +874,237 @@ app.delete("/api/kataloge/:name", async (c) => {
 });
 
 /* ============================================================
+   Benutzer & Einladungen
+   ------------------------------------------------------------
+   Weitere Konten entstehen ueber eine Einladung: die einladende
+   Person erzeugt einen einmalig gueltigen Link, die eingeladene
+   setzt ihr Passwort selbst. So wandert nie ein Passwort durch
+   einen Chat oder eine Mail.
+   ============================================================ */
+
+const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Wie viele Konten koennen sich noch anmelden? Schuetzt vor dem Aussperren. */
+async function activeUserCount(env) {
+  const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM users WHERE disabled = 0").first();
+  return row.n;
+}
+
+app.get("/api/users", async (c) => {
+  const guard = await requireUser(c);
+  if (guard) return guard;
+  const s = c.get("session");
+
+  const users = await c.env.DB.prepare(
+    `SELECT id, email, name, role, disabled, totp_enabled, created_at, last_login_at
+       FROM users ORDER BY created_at`
+  ).all();
+
+  const invites = await c.env.DB.prepare(
+    `SELECT id, email, role, created_at, expires_at, created_by
+       FROM invites WHERE used_at IS NULL AND expires_at > ? ORDER BY created_at DESC`
+  )
+    .bind(now())
+    .all();
+
+  return c.json({
+    users: (users.results || []).map((u) => ({ ...u, self: u.id === s.user_id })),
+    invites: invites.results || [],
+  });
+});
+
+app.post("/api/users/invite", async (c) => {
+  const guard = await requireUser(c);
+  if (guard) return guard;
+  const s = c.get("session");
+  const t = now();
+
+  const { email } = await c.req.json().catch(() => ({}));
+  const mail = String(email || "").toLowerCase().trim();
+  if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(mail)) return fail(c, 400, "E-Mail-Adresse ist ungültig.");
+
+  const existing = await c.env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(mail).first();
+  if (existing) return fail(c, 409, "Für diese E-Mail gibt es bereits ein Konto.");
+
+  // Offene Einladung an dieselbe Adresse ersetzen, statt zwei gueltige zu haben.
+  await c.env.DB.prepare("DELETE FROM invites WHERE email = ? AND used_at IS NULL").bind(mail).run();
+
+  const token = randomToken(32);
+  const id = randomToken(12);
+  await c.env.DB.prepare(
+    `INSERT INTO invites (id, email, token_hash, role, created_at, created_by, expires_at)
+     VALUES (?, ?, ?, 'editor', ?, ?, ?)`
+  )
+    .bind(id, mail, await sha256Hex(token), t, s.email, t + INVITE_TTL_MS)
+    .run();
+
+  await audit(c.env, {
+    userId: s.user_id,
+    email: s.email,
+    action: "invite_created",
+    detail: mail,
+    ip: clientIp(c),
+    now: t,
+  });
+
+  // Der Link enthaelt das Token im Klartext – gespeichert ist nur dessen Hash,
+  // er laesst sich also spaeter nicht noch einmal anzeigen.
+  const base = allowedOrigins(c.env)[0] || new URL(c.req.url).origin;
+  return c.json({
+    ok: true,
+    email: mail,
+    expiresAt: t + INVITE_TTL_MS,
+    url: `${base}/?einladung=${token}`,
+  });
+});
+
+app.delete("/api/users/invite/:id", async (c) => {
+  const guard = await requireUser(c);
+  if (guard) return guard;
+  const s = c.get("session");
+
+  await c.env.DB.prepare("DELETE FROM invites WHERE id = ? AND used_at IS NULL")
+    .bind(c.req.param("id"))
+    .run();
+  await audit(c.env, { userId: s.user_id, email: s.email, action: "invite_revoked", ip: clientIp(c), now: now() });
+  return c.json({ ok: true });
+});
+
+/** Gueltigkeit einer Einladung pruefen – ohne Anmeldung, deshalb sparsam. */
+app.get("/api/invite/:token", async (c) => {
+  const row = await c.env.DB.prepare("SELECT email, expires_at, used_at FROM invites WHERE token_hash = ?")
+    .bind(await sha256Hex(c.req.param("token")))
+    .first();
+
+  if (!row || row.used_at || row.expires_at <= now()) {
+    return fail(c, 404, "Diese Einladung ist ungültig oder abgelaufen.");
+  }
+  return c.json({ email: row.email, expiresAt: row.expires_at });
+});
+
+/** Einladung annehmen: Konto anlegen und gleich anmelden. */
+app.post("/api/invite/:token", async (c) => {
+  const t = now();
+  const ip = clientIp(c);
+
+  // Auch hier bremsen, sonst liesse sich der Token-Raum absuchen.
+  const key = `invite:${ip}`;
+  const wait = await checkRateLimit(c.env, key, t);
+  if (wait) return fail(c, 429, `Zu viele Versuche. Bitte in ${Math.ceil(wait / 60)} Minuten erneut versuchen.`);
+
+  const invite = await c.env.DB.prepare(
+    "SELECT id, email, role, expires_at, used_at FROM invites WHERE token_hash = ?"
+  )
+    .bind(await sha256Hex(c.req.param("token")))
+    .first();
+
+  if (!invite || invite.used_at || invite.expires_at <= t) {
+    await registerFailure(c.env, key, t);
+    return fail(c, 404, "Diese Einladung ist ungültig oder abgelaufen.");
+  }
+
+  const { name, password } = await c.req.json().catch(() => ({}));
+  const problem = checkPasswordRules(password);
+  if (problem) return fail(c, 400, problem);
+
+  const existing = await c.env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(invite.email).first();
+  if (existing) return fail(c, 409, "Für diese E-Mail gibt es bereits ein Konto.");
+
+  const iterations = Number(c.env.PBKDF2_ITERATIONS || 600000);
+  const userId = randomToken(16);
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      `INSERT INTO users (id, email, name, password_hash, role, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    ).bind(
+      userId,
+      invite.email,
+      String(name || "").slice(0, 80),
+      await hashPassword(password, iterations),
+      invite.role,
+      t
+    ),
+    c.env.DB.prepare("UPDATE invites SET used_at = ?, used_by = ? WHERE id = ?").bind(t, userId, invite.id),
+  ]);
+
+  await clearFailures(c.env, [key]);
+  await audit(c.env, { userId, email: invite.email, action: "invite_accepted", ip, now: t });
+
+  // Direkt anmelden – der zweite Faktor wird gleich danach eingerichtet.
+  const session = await createSession(c.env, userId, {
+    mfaDone: false,
+    ip,
+    userAgent: c.req.header("User-Agent"),
+    now: t,
+  });
+  c.header(
+    "Set-Cookie",
+    sessionCookie(session.token, Math.floor((session.expiresAt - t) / 1000), cookieSecure(c.env))
+  );
+
+  return c.json({ ok: true, mfaSetupRequired: true, user: { email: invite.email, name } });
+});
+
+app.post("/api/users/:id/disabled", async (c) => {
+  const guard = await requireUser(c);
+  if (guard) return guard;
+  const s = c.get("session");
+  const id = c.req.param("id");
+
+  if (id === s.user_id) return fail(c, 400, "Das eigene Konto lässt sich nicht sperren.");
+
+  const { disabled } = await c.req.json().catch(() => ({}));
+  const target = await c.env.DB.prepare("SELECT id, email, disabled FROM users WHERE id = ?").bind(id).first();
+  if (!target) return fail(c, 404, "Konto nicht gefunden.");
+
+  // Niemals das letzte aktive Konto sperren – sonst kommt niemand mehr hinein.
+  if (disabled && !target.disabled && (await activeUserCount(c.env)) <= 1) {
+    return fail(c, 400, "Das letzte aktive Konto lässt sich nicht sperren.");
+  }
+
+  await c.env.DB.prepare("UPDATE users SET disabled = ? WHERE id = ?").bind(disabled ? 1 : 0, id).run();
+  // Gesperrte Konten sofort abmelden.
+  if (disabled) await destroyAllSessions(c.env, id);
+
+  await audit(c.env, {
+    userId: s.user_id,
+    email: s.email,
+    action: disabled ? "user_disabled" : "user_enabled",
+    detail: target.email,
+    ip: clientIp(c),
+    now: now(),
+  });
+  return c.json({ ok: true });
+});
+
+app.delete("/api/users/:id", async (c) => {
+  const guard = await requireUser(c);
+  if (guard) return guard;
+  const s = c.get("session");
+  const id = c.req.param("id");
+
+  if (id === s.user_id) return fail(c, 400, "Das eigene Konto lässt sich nicht löschen.");
+
+  const target = await c.env.DB.prepare("SELECT id, email, disabled FROM users WHERE id = ?").bind(id).first();
+  if (!target) return fail(c, 404, "Konto nicht gefunden.");
+  if (!target.disabled && (await activeUserCount(c.env)) <= 1) {
+    return fail(c, 400, "Das letzte aktive Konto lässt sich nicht löschen.");
+  }
+
+  // Sitzungen und Wiederherstellungscodes haengen per ON DELETE CASCADE daran.
+  await c.env.DB.prepare("DELETE FROM users WHERE id = ?").bind(id).run();
+  await audit(c.env, {
+    userId: s.user_id,
+    email: s.email,
+    action: "user_deleted",
+    detail: target.email,
+    ip: clientIp(c),
+    now: now(),
+  });
+  return c.json({ ok: true });
+});
+
+/* ============================================================
    Protokoll & Systemstatus
    ============================================================ */
 
