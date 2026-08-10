@@ -1,6 +1,8 @@
 node_modules/
-package-lock.json
-package.json
+# Nur im Wurzelverzeichnis ignorieren: die statische Seite braucht kein npm.
+# backend/package.json gehoert dagegen ins Repository.
+/package-lock.json
+/package.json
 .DS_Store
 
 # Lighthouse-CI-Reports (lokale Läufe)

@@ -103,6 +103,17 @@ function renderHead(data) {
   ]);
 }
 
+/* Layout-Option: auf welcher Seite Bild bzw. Formular steht. */
+function mediaClass(d) {
+  return d.mediaPosition === "right" ? " media-right" : d.mediaPosition === "left" ? " media-left" : "";
+}
+
+/* Layout-Option: Anzahl der Kartenspalten (leer = Standard aus dem CSS). */
+function columnClass(d) {
+  const n = Number(d.columns);
+  return n >= 2 && n <= 4 ? ` cols-${n}` : "";
+}
+
 /* Ein Button/Link mit optionaler Vorauswahl des Kontaktgrunds. */
 function renderAction(a, extraClass = "") {
   const cls = ["btn", a.style === "ghost" ? "btn-ghost" : a.style === "wave" ? "btn-wave" : "btn-sun"];
@@ -174,7 +185,7 @@ const SECTIONS = {
       '<div class="container">',
       `  <div class="section-head">\n${indent(renderHead({ kicker: d.kicker }), 4)}\n  </div>`,
       "</div>",
-      '<div class="container two-col">',
+      `<div class="container two-col${mediaClass(d)}">`,
       `  <div class="two-col-media">\n${indent(img, 4)}\n  </div>`,
       `  <div class="two-col-text">\n${indent(text, 4)}\n  </div>`,
       "</div>",
@@ -211,7 +222,7 @@ const SECTIONS = {
       '<div class="container">',
       `  <div class="section-head">\n${indent(renderHead(d), 4)}\n  </div>`,
       "",
-      `  <div class="cards">\n${indent(cards, 4)}\n  </div>`,
+      `  <div class="cards${columnClass(d)}">\n${indent(cards, 4)}\n  </div>`,
       cta ? "\n" + indent(cta, 2) : "",
       "</div>",
     ]);
@@ -347,7 +358,7 @@ const SECTIONS = {
       '<div class="container">',
       `  <div class="section-head">\n${indent(renderHead(d), 4)}\n  </div>`,
       "</div>",
-      '<div class="container two-col two-col-wide">',
+      `<div class="container two-col two-col-wide${mediaClass(d)}">`,
       `  <div class="two-col-text">\n${indent(text, 4)}\n  </div>`,
       "",
       `  <div class="two-col-media">\n${indent(media, 4)}\n  </div>`,
@@ -443,7 +454,7 @@ const SECTIONS = {
       '<div class="container">',
       `  <div class="section-head">\n${indent(renderHead({ kicker: d.kicker }), 4)}\n  </div>`,
       "</div>",
-      '<div class="container two-col two-col-wide">',
+      `<div class="container two-col two-col-wide${mediaClass(d)}">`,
       '  <div class="two-col-text">',
       d.heading ? `    <h2>${rich(d.heading)}</h2>` : "",
       d.intro ? `    <p>${rich(d.intro)}</p>` : "",

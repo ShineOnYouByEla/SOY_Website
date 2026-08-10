@@ -1,45 +1,66 @@
 # Shine On You – Website
 
 Statische Landing- & Kontaktseite für den Direktvertrieb von proWIN-Produkten.
-Gebaut mit reinem HTML, CSS und JavaScript – kein Build-Schritt nötig.
+Gebaut mit reinem HTML, CSS und JavaScript.
+
+Die Inhalte stehen in **`content/site.json`**; daraus entsteht `index.html`.
+Gepflegt werden sie entweder direkt in der Datei oder bequem über das
+**Admin-Backend** mit Anmeldung und Zwei-Faktor-Bestätigung → [`backend/`](backend/README.md).
 
 ## Vorschau / lokal starten
 
-Einfach `index.html` im Browser öffnen, oder einen kleinen Server starten:
-
 ```bash
+node scripts/build-site.mjs   # index.html + js/config.js aus content/site.json
 python3 -m http.server 8000
 # danach http://localhost:8000 öffnen
 ```
+
+> `index.html` und `js/config.js` werden **erzeugt** – Änderungen darin gehen beim
+> nächsten Build verloren. Inhalte gehören nach `content/site.json` (oder ins Admin).
+> Die CI schlägt Alarm, wenn die erzeugten Dateien nicht zum Inhalt passen.
 
 ## Projektstruktur
 
 ```
 .
-├── index.html        # Seiteninhalt (Hero, Über, Produkte, Termin, Kontakt)
+├── content/site.json # ALLE Inhalte: Texte, Kontaktdaten, Bilder, Sektionen
+├── shared/render.mjs # erzeugt daraus das HTML (läuft in Node und im Worker)
+├── shared/icons.mjs  # die Inline-SVGs unter sprechenden Namen
+├── scripts/          # Build-Skripte und Qualitätsprüfungen
+├── backend/          # Admin-Backend (Cloudflare Worker) – siehe backend/README.md
+├── index.html        # ERZEUGT aus content/site.json – nicht von Hand ändern
+├── js/config.js      # ERZEUGT – Kontaktdaten und Dienste für script.js
 ├── css/styles.css    # Styles & Markenfarben
 ├── js/script.js      # Mobile-Menü, Terminbuchung (.ics), Formulare
 ├── assets/img/       # aus dem Iconset abgeleitete Logos & Favicons
-└── iconset/          # Original-Logodateien
+└── kataloge/         # PDF-Kataloge
 ```
 
 ## Anpassen
 
-**Kontaktdaten** stehen zentral oben in `js/script.js` im `CONFIG`-Objekt:
+Am bequemsten geht das über das **Admin-Backend** – dort gibt es Formulare,
+eine Live-Vorschau und einen Veröffentlichen-Knopf: [`backend/README.md`](backend/README.md).
 
-```js
-const CONFIG = {
-  ownerName: "Manuela Zimmert",
-  email: "prowin.ela@web.de",  // Empfangsadresse
-  phone: "+49 155 10279357",        // Telefon (Anzeige)
-  phoneHref: "+4915510279357",      // Telefon für tel:-Link
-  web3formsKey: "",                // Web3Forms Access Key -> echter Formularversand
-  calLink: "",                     // Cal.com-Link -> Online-Terminbuchung
-};
+Wer lieber direkt in der Datei arbeitet, findet alles in `content/site.json`:
+
+```jsonc
+{
+  "contact": {
+    "email": "prowin.ela@web.de",     // Empfangsadresse
+    "phone": "+49 1551 0279357",      // Mobil (Anzeige)
+    "phoneHref": "+4915510279357"     // Mobil für tel:-Link
+  },
+  "services": {
+    "web3formsKey": "…",              // echter Formularversand
+    "calLink": "…"                    // Online-Terminbuchung
+  },
+  "sections": [ /* Reihenfolge und "enabled" steuern den Seitenaufbau */ ]
+}
 ```
 
-E-Mail und Telefon werden daraus automatisch in die Seite geschrieben.
-`web3formsKey` und `calLink` schalten die erweiterten Funktionen frei (siehe unten).
+Danach `node scripts/build-site.mjs` ausführen und beides committen.
+E-Mail und Telefon landen automatisch überall auf der Seite – im Kontaktblock,
+in `js/config.js` und in den strukturierten Daten für Suchmaschinen.
 
 ## Funktionen
 

@@ -862,3 +862,19 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
   .channel-tip.open { opacity: 1; transform: none; animation: none; }
   .header-channel.is-hinted::after { animation: none; }
 }
+
+/* ===== Layout-Optionen aus dem Admin =====
+   Werden über content/site.json gesetzt. Greifen erst ab Tablet-Breite –
+   darunter stapeln die Sektionen ohnehin einspaltig. */
+@media (min-width: 861px) {
+  /* Bild bzw. Formular auf die andere Seite legen */
+  .two-col.media-right .two-col-media { order: 2; }
+  .two-col.media-right .two-col-text { order: 1; }
+  .two-col.media-left .two-col-media { order: 1; }
+  .two-col.media-left .two-col-text { order: 2; }
+
+  /* Anzahl der Kartenspalten */
+  .cards.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .cards.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .cards.cols-4 { grid-template-columns: repeat(4, 1fr); }
+}

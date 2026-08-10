@@ -1,0 +1,45 @@
+name = "soy-admin"
+main = "src/index.js"
+compatibility_date = "2025-01-15"
+
+# Der Worker laeuft vor der Auslieferung statischer Dateien, damit auch das
+# Admin-HTML Sicherheits-Header (CSP, HSTS, …) bekommt.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+# Datenbank fuer Benutzer, Sessions, Entwuerfe und Protokoll.
+# database_id nach `wrangler d1 create soy-admin` hier eintragen.
+[[d1_databases]]
+binding = "DB"
+database_name = "soy-admin"
+database_id = "HIER_DATABASE_ID_EINTRAGEN"
+
+[vars]
+# Repository, in das veroeffentlicht wird.
+GITHUB_REPO = "ShineOnYouByEla/SOY_Website"
+GITHUB_BRANCH = "main"
+# Oeffentliche Adresse der Website – wird fuer die Live-Vorschau gebraucht.
+SITE_URL = "https://shineonyou.de"
+# Erlaubte Herkunft fuer schreibende Zugriffe (CSRF-Schutz). Nach dem ersten
+# `wrangler deploy` auf die tatsaechliche Worker-Adresse setzen.
+ADMIN_ORIGIN = "https://soy-admin.workers.dev"
+# Rechenaufwand des Passwort-Hashings. 600000 entspricht der OWASP-Empfehlung
+# fuer PBKDF2-HMAC-SHA256 und braucht den Workers-Paid-Plan (30 s CPU).
+# Auf dem Free-Plan (10 ms CPU pro Anfrage) schlaegt der Login damit fehl –
+# dort einen deutlich kleineren Wert setzen und das Risiko abwaegen.
+PBKDF2_ITERATIONS = "600000"
+# Nur solange true, wie noch kein Benutzer angelegt ist: erlaubt die
+# Ersteinrichtung ueber /api/setup. Danach unbedingt auf false setzen.
+SETUP_ENABLED = "true"
+
+# Geheimnisse werden NICHT hier abgelegt, sondern per
+#   wrangler secret put GITHUB_TOKEN
+#   wrangler secret put SETUP_TOKEN
+# gesetzt. Siehe README.md.
+
+# Naechtliches Aufraeumen: abgelaufene Sitzungen, alte Zaehler und
+# Protokolleintraege verschwinden von selbst.
+[triggers]
+crons = ["17 3 * * *"]
