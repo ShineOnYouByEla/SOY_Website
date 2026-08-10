@@ -47,8 +47,9 @@ VOLUME ["/data"]
 
 EXPOSE 8080
 
+# CMD-SHELL, damit ein geändertes PORT auch hier greift.
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=10s \
-  CMD wget -qO- http://127.0.0.1:8080/api/ping >/dev/null || exit 1
+  CMD wget -qO- "http://127.0.0.1:${PORT}/api/ping" >/dev/null || exit 1
 
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "src/node.js"]

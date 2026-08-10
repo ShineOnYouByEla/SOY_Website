@@ -21,15 +21,29 @@ services:
     container_name: s-lx04-soy-admin
     environment:
       - TZ=Europe/Berlin
-      - ADMIN_ORIGIN=http://192.168.178.13:8080
+      # Adresse, unter der das Admin aufgerufen wird – MIT Port und Schema.
+      # Muss exakt der Adresse im Browser entsprechen, sonst lehnt der
+      # CSRF-Schutz jeden Schreibzugriff ab. Beispiele:
+      #   http://192.168.178.13:8080
+      #   http://admin.shineonyou.de:8080   (lokaler DNS-Eintrag auf .13)
+      - ADMIN_ORIGIN=http://admin.shineonyou.de:8080
+      # Ohne TLS im Heimnetz: das Secure-Flag am Cookie muss weg.
       - COOKIE_SECURE=false
+      # Port im Container. Für eine Adresse ganz ohne Port (http://admin.shineonyou.de)
+      # hier 80 eintragen und unten cap_add einkommentieren – der Container läuft
+      # als normaler Nutzer und darf Ports unter 1024 sonst nicht belegen.
+      - PORT=8080
       - GITHUB_REPO=ShineOnYouByEla/SOY_Website
       - GITHUB_BRANCH=main
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - SITE_URL=https://shineonyou.de
       - PBKDF2_ITERATIONS=600000
+      # Nur für die Ersteinrichtung auf true, danach zurückstellen.
       - SETUP_ENABLED=false
       - SETUP_TOKEN=${SETUP_TOKEN}
+    # Nur nötig, wenn PORT unter 1024 liegt:
+    # cap_add:
+    #   - NET_BIND_SERVICE
     volumes:
       - soy-admin-data:/data
     networks:
@@ -41,7 +55,8 @@ services:
     dns:
       - 192.168.178.254
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/api/ping"]
+      # Shell-Form, damit ein geändertes PORT auch hier greift.
+      test: ["CMD-SHELL", "wget -qO- \"http://127.0.0.1:${PORT:-8080}/api/ping\" >/dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
