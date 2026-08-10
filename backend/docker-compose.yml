@@ -1,9 +1,28 @@
+# ============================================================
+# Shine On You — Admin-Backend
+#
+# WICHTIG: Dieser Stack baut das Image NICHT. Ein Portainer-Stack
+# aus dem Web-Editor liegt unter /data/compose/<id>/ und hat keinen
+# Quellcode neben sich – ein build:-Block schlägt dort zwangsläufig
+# fehl ("lstat /data/compose/backend: no such file or directory").
+#
+# Deshalb vorher auf s-lx04-docker einmal bauen:
+#
+#   git clone https://github.com/ShineOnYouByEla/SOY_Website.git
+#   cd SOY_Website
+#   docker build -f backend/Dockerfile -t soy-admin:latest .
+#
+# Der Build-Kontext ist das Repo-Wurzelverzeichnis (der Punkt am
+# Ende), nicht backend/ – der Renderer unter shared/ muss mit ins
+# Image. Erst danach diesen Stack deployen.
+#
+# Alternative ohne manuelles Bauen: Portainer-Stack vom Typ
+# "Repository" anlegen, Compose-Pfad backend/docker-compose.build.yml.
+# Portainer klont dann selbst und baut mit.
+# ============================================================
+
 services:
   soy-admin:
-    build:
-      # Kontext ist das Repo-Wurzelverzeichnis: shared/ muss mit ins Image.
-      context: ..
-      dockerfile: backend/Dockerfile
     image: soy-admin:latest
     container_name: s-lx04-soy-admin
     environment:
@@ -38,14 +57,14 @@ services:
       retries: 3
       start_period: 15s
     restart: always
-    # Kein Watchtower-Label: das Image wird hier selbst gebaut,
+    # Kein Watchtower-Label: das Image wird selbst gebaut,
     # es gibt also nichts zu ziehen.
 
 volumes:
+  # Vorher anlegen:  docker volume create soy-admin-data
   soy-admin-data:
     external: true
 
 networks:
   FritzNetz:
-    external:
-      name: FritzNetz
+    external: true

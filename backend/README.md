@@ -88,16 +88,31 @@ Auf `s-lx04-docker`:
 docker volume create soy-admin-data
 ```
 
-### 3. Image bauen
+### 3. Image auf dem Docker-Host bauen
 
-Der Build-Kontext ist das **Repo-Wurzelverzeichnis**, nicht `backend/` – der
-Renderer unter `shared/` muss mit ins Image:
+**Dieser Schritt ist Pflicht und muss vor dem Deployen passieren.** Ein
+Portainer-Stack aus dem Web-Editor liegt unter `/data/compose/<id>/` und hat
+keinen Quellcode neben sich – er kann nichts bauen, sondern nur ein fertiges
+Image starten. `docker-compose.yml` enthält deshalb bewusst keinen
+`build:`-Block.
+
+Auf `s-lx04-docker`:
 
 ```bash
 git clone https://github.com/ShineOnYouByEla/SOY_Website.git
 cd SOY_Website
 docker build -f backend/Dockerfile -t soy-admin:latest .
 ```
+
+Der Punkt am Ende ist wichtig: Der Build-Kontext ist das
+**Repo-Wurzelverzeichnis**, nicht `backend/` – der Renderer unter `shared/` muss
+mit ins Image.
+
+> **Ohne manuelles Bauen** geht es mit einem Portainer-Stack vom Typ
+> **Repository**: Repository-URL eintragen, Compose-Pfad
+> `backend/docker-compose.build.yml`. Portainer klont dann selbst, und der
+> `build:`-Block in dieser Datei findet den Quellcode vor. Updates laufen danach
+> über „Pull and redeploy".
 
 ### 4. Stack deployen
 
@@ -243,13 +258,13 @@ zum Seitenentwurf gehören.
 npm test          # 37 Tests: TOTP, Passwort-Hashing, Inhaltsprüfung, Rendern
 ```
 
-**Node-Variante lokal** (braucht auf Node 22 das Flag `--experimental-sqlite`;
-ab Node 24 ist `node:sqlite` fest eingebaut):
+**Node-Variante lokal** (ab Node 22.13 ohne Flag; auf Node 22 gibt es noch
+eine ExperimentalWarning, ab Node 24 auch die nicht mehr):
 
 ```bash
 ADMIN_ORIGIN=http://localhost:8080 COOKIE_SECURE=false \
   SETUP_ENABLED=true SETUP_TOKEN=lokal PBKDF2_ITERATIONS=50000 \
-  node --experimental-sqlite src/node.js
+  node src/node.js
 ```
 
 **Cloudflare-Variante lokal:**
@@ -304,6 +319,9 @@ die Vorschau im Worker und `index.html` im Build.
 | Anmeldung springt zurück zum Login | Cookie kommt nicht an: bei `http://` muss `COOKIE_SECURE=false` gesetzt sein |
 | Server startet nicht, meckert über ADMIN_ORIGIN | Adresse fehlt oder passt nicht zum `COOKIE_SECURE`-Wert – die Meldung sagt, was zu tun ist |
 | Container startet, aber `/api/ping` antwortet nicht | Healthcheck prüft Port 8080 im Container; bei geändertem `PORT` auch den Healthcheck anpassen |
+| Portainer: „lstat /data/compose/backend: no such file or directory" | Der Stack versucht zu bauen. `docker-compose.yml` verwenden (ohne `build:`) und das Image vorher auf dem Host bauen – siehe A.3 |
+| Portainer: „pull access denied for soy-admin" | Das Image ist auf dem Host noch nicht gebaut – siehe A.3 |
+| Portainer: „volume soy-admin-data declared as external, but could not be found" | `docker volume create soy-admin-data` fehlt – siehe A.2 |
 | „Das Repository wurde zwischenzeitlich geändert" | Jemand hat parallel committet: Seite neu laden, erneut veröffentlichen |
 | Handy verloren | Mit einem Wiederherstellungscode anmelden, im Menü unter „Konto & Sicherheit" neu einrichten |
 | Alle Zugänge verloren | `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` löschen, `npm run setup` |
