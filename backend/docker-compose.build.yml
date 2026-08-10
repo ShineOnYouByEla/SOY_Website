@@ -1,0 +1,57 @@
+# ============================================================
+# Shine On You — Admin-Backend, Variante MIT Build
+#
+# Nur brauchbar, wenn der Quellcode neben dem Compose-File liegt:
+#   - lokal aus einem Klon:  docker compose -f backend/docker-compose.build.yml up -d
+#   - Portainer-Stack vom Typ "Repository" (Portainer klont selbst)
+#
+# Für einen Stack aus dem Portainer-Web-Editor ist docker-compose.yml
+# die richtige Datei – dort gibt es keinen Quellcode zum Bauen.
+#
+# Ansonsten identisch zu docker-compose.yml.
+# ============================================================
+
+services:
+  soy-admin:
+    build:
+      # Repo-Wurzelverzeichnis: shared/ muss mit ins Image.
+      context: ..
+      dockerfile: backend/Dockerfile
+    image: soy-admin:latest
+    container_name: s-lx04-soy-admin
+    environment:
+      - TZ=Europe/Berlin
+      - ADMIN_ORIGIN=http://192.168.178.13:8080
+      - COOKIE_SECURE=false
+      - GITHUB_REPO=ShineOnYouByEla/SOY_Website
+      - GITHUB_BRANCH=main
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - SITE_URL=https://shineonyou.de
+      - PBKDF2_ITERATIONS=600000
+      - SETUP_ENABLED=false
+      - SETUP_TOKEN=${SETUP_TOKEN}
+    volumes:
+      - soy-admin-data:/data
+    networks:
+      FritzNetz:
+        ipv4_address: 192.168.178.13
+        mac_address: 3A:42:5B:0D:11:13
+    hostname: s-lx04-soy
+    domainname: fritz.box
+    dns:
+      - 192.168.178.254
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/api/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: always
+
+volumes:
+  soy-admin-data:
+    external: true
+
+networks:
+  FritzNetz:
+    external: true
