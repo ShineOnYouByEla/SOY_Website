@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Shine On You – Website bearbeiten</title>
+  <link rel="stylesheet" href="/admin.css" />
+</head>
+<body>
+
+<!-- ===== Anmeldung ===== -->
+<div id="authView" class="auth" hidden>
+  <div class="auth-card">
+    <h1 class="auth-title">Shine On You</h1>
+    <p class="auth-sub">Website bearbeiten</p>
+
+    <!-- Schritt 1: E-Mail und Passwort -->
+    <form id="loginForm" class="stack" novalidate>
+      <div class="field">
+        <label for="loginEmail">E-Mail</label>
+        <input type="email" id="loginEmail" autocomplete="username" required />
+      </div>
+      <div class="field">
+        <label for="loginPassword">Passwort</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Anmelden</button>
+      <p class="hint" id="loginHint" role="alert"></p>
+    </form>
+
+    <!-- Schritt 2: Code aus der Authenticator-App -->
+    <form id="mfaForm" class="stack" novalidate hidden>
+      <p class="auth-note">Gib den 6-stelligen Code aus deiner Authenticator-App ein.</p>
+      <div class="field">
+        <label for="mfaCode">Bestätigungscode</label>
+        <input type="text" id="mfaCode" inputmode="numeric" autocomplete="one-time-code"
+               maxlength="6" pattern="[0-9]{6}" class="code-input" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Bestätigen</button>
+      <button type="button" class="btn btn-link" id="useRecovery">Kein Zugriff auf die App?</button>
+      <div class="field" id="recoveryField" hidden>
+        <label for="recoveryCode">Wiederherstellungscode</label>
+        <input type="text" id="recoveryCode" autocomplete="off" placeholder="XXXX-XXXX" />
+      </div>
+      <p class="hint" id="mfaHint" role="alert"></p>
+    </form>
+
+    <!-- Schritt 2b: MFA einrichten (Pflicht beim ersten Mal) -->
+    <div id="mfaSetup" class="stack" hidden>
+      <p class="auth-note">
+        Zum Schutz der Seite ist eine Bestätigung in zwei Schritten Pflicht.
+        Scanne den Code mit einer Authenticator-App – zum Beispiel
+        Google Authenticator, Aegis oder dem Passwortmanager deines Handys.
+      </p>
+      <div class="qr-box"><div id="qrTarget"></div></div>
+      <details class="details">
+        <summary>Der Code lässt sich nicht scannen?</summary>
+        <p class="auth-note">Dann gib dieses Geheimnis von Hand in der App ein:</p>
+        <p class="secret" id="secretText"></p>
+      </details>
+      <div class="field">
+        <label for="setupCode">Code aus der App</label>
+        <input type="text" id="setupCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" class="code-input" />
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="activateMfa">Einrichtung abschließen</button>
+      <p class="hint" id="setupHint" role="alert"></p>
+    </div>
+
+    <!-- Schritt 3: Wiederherstellungscodes anzeigen (nur einmal) -->
+    <div id="recoveryView" class="stack" hidden>
+      <h2 class="auth-title-sm">Wiederherstellungscodes</h2>
+      <p class="auth-note">
+        Bewahre diese Codes sicher auf – ausgedruckt oder im Passwortmanager.
+        Jeder Code funktioniert genau einmal und ersetzt die App, falls dein
+        Handy verloren geht. <strong>Sie werden nur dieses eine Mal angezeigt.</strong>
+      </p>
+      <ul class="codes" id="codeList"></ul>
+      <div class="row">
+        <button type="button" class="btn" id="copyCodes">Kopieren</button>
+        <button type="button" class="btn" id="printCodes">Drucken</button>
+      </div>
+      <label class="check">
+        <input type="checkbox" id="codesSaved" />
+        <span>Ich habe die Codes sicher gespeichert.</span>
+      </label>
+      <button type="button" class="btn btn-primary btn-block" id="codesDone" disabled>Weiter zur Bearbeitung</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Bearbeitung ===== -->
+<div id="appView" class="app" hidden>
+  <header class="topbar">
+    <div class="topbar-left">
+      <strong class="topbar-brand">Shine On You</strong>
+      <span class="badge" id="draftBadge" hidden>Ungespeicherte Änderungen</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbarUser"></span>
+      <button type="button" class="btn" id="btnDiscard">Verwerfen</button>
+      <button type="button" class="btn" id="btnSave">Speichern</button>
+      <button type="button" class="btn btn-primary" id="btnPublish">Veröffentlichen</button>
+      <button type="button" class="btn btn-icon" id="btnMenu" aria-label="Menü" aria-expanded="false">⋮</button>
+    </div>
+    <div class="menu" id="menu" hidden>
+      <button type="button" data-menu="account">Konto &amp; Sicherheit</button>
+      <button type="button" data-menu="history">Verlauf</button>
+      <button type="button" data-menu="audit">Protokoll</button>
+      <button type="button" data-menu="logout">Abmelden</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Bereiche"></nav>
+
+    <main class="editor" id="editor"></main>
+
+    <aside class="preview">
+      <div class="preview-bar">
+        <span>Vorschau</span>
+        <div class="preview-actions">
+          <button type="button" class="btn btn-sm" data-width="390">Handy</button>
+          <button type="button" class="btn btn-sm" data-width="820">Tablet</button>
+          <button type="button" class="btn btn-sm is-active" data-width="0">Voll</button>
+          <button type="button" class="btn btn-sm" id="btnRefresh">Aktualisieren</button>
+        </div>
+      </div>
+      <div class="preview-stage" id="previewStage">
+        <iframe id="previewFrame" title="Vorschau der Website"></iframe>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ===== Dialoge ===== -->
+<dialog id="dialog" class="dialog">
+  <div class="dialog-body" id="dialogBody"></div>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="/vendor/qrcode.js"></script>
+<script src="/admin.js" type="module"></script>
+</body>
+</html>

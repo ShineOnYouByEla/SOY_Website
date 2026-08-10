@@ -34,8 +34,18 @@ jobs:
 
       # Baut kataloge/manifest.json automatisch aus den vorhandenen PDFs,
       # damit neue Kataloge ohne Code-Änderung erscheinen.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Katalog-Liste aus PDFs erzeugen
         run: node scripts/build-katalog-manifest.mjs
+
+      # index.html und js/config.js aus content/site.json erzeugen. Damit
+      # wirkt sich jede Aenderung aus dem Admin direkt auf die Live-Seite aus.
+      - name: Seite aus content/site.json bauen
+        run: node scripts/build-site.mjs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

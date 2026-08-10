@@ -1,0 +1,27 @@
+{
+  "name": "soy-admin",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Admin-Backend für shineonyou.de – Login mit MFA, Inhaltspflege, Veröffentlichung per Git-Commit.",
+  "scripts": {
+    "start": "node src/node.js",
+    "dev:node": "node --watch src/node.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute soy-admin --remote --file=./schema.sql",
+    "db:init:local": "wrangler d1 execute soy-admin --local --file=./schema.sql",
+    "test": "node --test \"test/*.mjs\"",
+    "setup": "node scripts/create-admin.mjs"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.17",
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "wrangler": "^3.99.0"
+  },
+  "engines": {
+    "node": ">=22.5"
+  }
+}

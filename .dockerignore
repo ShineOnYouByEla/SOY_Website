@@ -1,0 +1,25 @@
+# Build-Kontext für backend/Dockerfile klein halten.
+# Ins Image gehören nur backend/ und shared/ — der Rest der Website nicht.
+
+.git
+.github
+node_modules
+backend/node_modules
+backend/.wrangler
+backend/data
+backend/.dev.vars
+
+# Die Website selbst wird im Container nicht gebraucht.
+assets
+css
+js
+kataloge
+iconset
+content
+scripts
+*.html
+*.md
+!backend/**/*.md
+
+.lighthouseci
+.DS_Store

@@ -1,0 +1,51 @@
+services:
+  soy-admin:
+    build:
+      # Kontext ist das Repo-Wurzelverzeichnis: shared/ muss mit ins Image.
+      context: ..
+      dockerfile: backend/Dockerfile
+    image: soy-admin:latest
+    container_name: s-lx04-soy-admin
+    environment:
+      - TZ=Europe/Berlin
+      # Adresse, unter der das Admin aufgerufen wird. Muss exakt stimmen,
+      # sonst lehnt der CSRF-Schutz jeden Schreibzugriff ab.
+      - ADMIN_ORIGIN=http://192.168.178.13:8080
+      # Ohne TLS im Heimnetz: das Secure-Flag am Cookie muss weg.
+      - COOKIE_SECURE=false
+      - GITHUB_REPO=ShineOnYouByEla/SOY_Website
+      - GITHUB_BRANCH=main
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - SITE_URL=https://shineonyou.de
+      - PBKDF2_ITERATIONS=600000
+      # Nur für die Ersteinrichtung auf true, danach zurückstellen.
+      - SETUP_ENABLED=false
+      - SETUP_TOKEN=${SETUP_TOKEN}
+    volumes:
+      - soy-admin-data:/data
+    networks:
+      FritzNetz:
+        ipv4_address: 192.168.178.13
+        mac_address: 3A:42:5B:0D:11:13
+    hostname: s-lx04-soy
+    domainname: fritz.box
+    dns:
+      - 192.168.178.254
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/api/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: always
+    # Kein Watchtower-Label: das Image wird hier selbst gebaut,
+    # es gibt also nichts zu ziehen.
+
+volumes:
+  soy-admin-data:
+    external: true
+
+networks:
+  FritzNetz:
+    external:
+      name: FritzNetz

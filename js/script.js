@@ -1,9 +1,12 @@
 /* ============================================================
    Shine On You — Interaktion
    ------------------------------------------------------------
-   HIER ANPASSEN: deine Kontaktdaten & Dienste
+   Die Werte unten sind nur noch der Notnagel. Gepflegt werden
+   Kontaktdaten und Dienste im Admin bzw. in content/site.json;
+   daraus entsteht beim Build js/config.js (window.SOY_CONFIG),
+   das hier die Standardwerte überschreibt.
    ============================================================ */
-const CONFIG = {
+const CONFIG_DEFAULTS = {
   businessName: "Shine On You",
   ownerName: "Manuela Zimmert",
   email: "prowin.ela@web.de",    // Kontakt-/Empfangsadresse
@@ -27,6 +30,9 @@ const CONFIG = {
   calOrigin: "https://cal.eu",                   // Booking-Origin (EU-Region)
   calEmbedJs: "https://app.cal.eu/embed/embed.js", // Embed-Loader passend zur Region
 };
+
+/* Gepflegte Werte aus js/config.js gewinnen; leere Felder fallen zurück. */
+const CONFIG = Object.assign({}, CONFIG_DEFAULTS, window.SOY_CONFIG || {});
 
 /* Kontaktdaten in die Seite schreiben (zentral pflegbar) */
 (function applyConfig() {

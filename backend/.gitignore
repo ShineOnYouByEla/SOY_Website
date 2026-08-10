@@ -1,0 +1,5 @@
+node_modules/
+.wrangler/
+data/
+# Lokale Geheimnisse — gehören niemals ins Repository.
+.dev.vars

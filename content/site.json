@@ -1,0 +1,375 @@
+{
+  "version": 1,
+  "site": {
+    "lang": "de",
+    "baseUrl": "https://shineonyou.de/",
+    "brandName": "Shine On You",
+    "tagline": "Natürlich sauber. Natürlich du.",
+    "title": "proWIN Beratung in Peiting – Manuela Zimmert | Shine On You",
+    "description": "proWIN Beratung in Peiting & Umgebung – Manuela Zimmert. Natürliche Produkte für Haushalt, Reinigung, Kosmetik & Wellness. proWINparty zuhause oder online.",
+    "ogDescription": "proWIN Beratung in Peiting & Umgebung – natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online erleben.",
+    "author": "Manuela Zimmert",
+    "themeColor": "#041f24",
+    "ogImage": "assets/img/og-image.jpg",
+    "ogImageAlt": "Shine On You – Sonne und Welle Logo"
+  },
+
+  "contact": {
+    "email": "prowin.ela@web.de",
+    "phone": "+49 1551 0279357",
+    "phoneHref": "+4915510279357",
+    "landline": "+49 8861 7138897",
+    "landlineHref": "+4988617138897",
+    "whatsappChannel": "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F"
+  },
+
+  "services": {
+    "web3formsKey": "ee15661a-109f-4c28-aac7-bcb24f223a98",
+    "hcaptchaSiteKey": "50b2fe65-b00b-4b9e-ad62-3ba471098be2",
+    "calLink": "manuelazi",
+    "calOrigin": "https://cal.eu",
+    "calEmbedJs": "https://app.cal.eu/embed/embed.js"
+  },
+
+  "business": {
+    "name": "Shine On You – proWIN Beratung Manuela Zimmert",
+    "description": "Unabhängige proWIN-Beratung in Peiting und Umgebung: natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online.",
+    "logo": "assets/img/logo-stacked-dark.png",
+    "priceRange": "€€",
+    "inLanguage": "de-DE",
+    "address": {
+      "locality": "Peiting",
+      "postalCode": "86971",
+      "region": "BY",
+      "country": "DE"
+    },
+    "areaServed": [
+      { "type": "City", "name": "Peiting" },
+      { "type": "City", "name": "Schongau" },
+      { "type": "City", "name": "Weilheim in Oberbayern" },
+      { "type": "AdministrativeArea", "name": "Landkreis Weilheim-Schongau" },
+      { "type": "AdministrativeArea", "name": "Pfaffenwinkel" }
+    ],
+    "offer": {
+      "name": "proWINparty & Produktberatung",
+      "description": "Produktberatung und proWINparty – zuhause oder online per Video."
+    },
+    "webPageName": "Shine On You – proWIN Beratung Manuela Zimmert",
+    "person": {
+      "id": "manuela",
+      "name": "Manuela Zimmert",
+      "alternateName": "Ela",
+      "jobTitle": "Unabhängige proWIN-Vertriebsberaterin"
+    },
+    "sameAs": [
+      "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F",
+      "https://kontakt.shineonyou.de"
+    ]
+  },
+
+  "header": {
+    "brandLabel": "Shine On You – Startseite",
+    "channelLabel": "WhatsApp-Kanal folgen – aktuellste Angebote",
+    "logo": {
+      "src": "assets/img/wordmark.webp",
+      "alt": "Shine On You",
+      "width": 640,
+      "height": 360
+    },
+    "cta": { "href": "#termin", "label": "Termin buchen", "style": "sun" }
+  },
+
+  "sections": [
+    {
+      "id": "hero",
+      "type": "hero",
+      "title": "Startbereich",
+      "enabled": true,
+      "data": {
+        "partnerText": "Deine persönliche Beratung als offizielle Beraterin von",
+        "partnerLogo": {
+          "src": "assets/img/prowin-gold.webp",
+          "alt": "proWIN rekoteam creates YOU – Logo",
+          "width": 244,
+          "height": 44
+        },
+        "headline": ["Natürlich sauber.", "Natürlich du."],
+        "lead": "Hochwertige Produkte für Haushalt, Reinigung, Kosmetik und Wellness –\nnachhaltig, alltagstauglich und persönlich beraten.\n<br />\nLass uns gemeinsam dein\nZuhause zum Strahlen bringen.",
+        "actions": [
+          { "href": "#termin", "label": "Beratungstermin buchen", "style": "sun" },
+          { "href": "#produkte", "label": "Produkte entdecken", "style": "ghost" }
+        ]
+      }
+    },
+
+    {
+      "id": "ueber",
+      "type": "about",
+      "title": "Über mich",
+      "navLabel": "Über mich",
+      "enabled": true,
+      "glows": [{ "kind": "wave", "parallax": 0.07, "style": "top:0; right:-12%;" }],
+      "data": {
+        "kicker": "Über mich",
+        "heading": "Hallo, schön dass du da bist!",
+        "image": {
+          "src": "assets/img/manuela.webp",
+          "alt": "Manuela Zimmert – deine proWIN-Beraterin aus Peiting",
+          "width": 760,
+          "height": 1013
+        },
+        "paragraphs": [
+          "Ich bin <strong>Manuela</strong> oder auch <strong>Ela</strong>, deine unabhängige proWIN‑Beraterin\naus Peiting und begleite\ndich auf dem Weg zu einem natürlich sauberen Zuhause und mehr Wohlbefinden.\n<br />Bei <em>Shine On You</em> dreht sich alles um Produkte, die wirken – dabei\nMensch, Tier und Umwelt schonen.",
+          "Ob persönliche Produktberatung, eine entspannte Produktparty bei dir zuhause\noder eine schnelle Empfehlung per Telefon: Ich nehme mir Zeit für dich und\nfinde gemeinsam mit dir die passende Lösung."
+        ],
+        "checklist": [
+          "Persönliche, ehrliche Beratung",
+          "Nachhaltige Produkte – Made in Germany",
+          "Hautverträglich & umweltschonend",
+          "Unverbindlich & auf Augenhöhe"
+        ]
+      }
+    },
+
+    {
+      "id": "produkte",
+      "type": "cards",
+      "title": "Produkte",
+      "navLabel": "Produkte",
+      "enabled": true,
+      "glows": [
+        { "kind": "wave", "parallax": 0.08, "style": "top:-12%; right:-10%;" },
+        { "kind": "sun", "parallax": 0.06, "style": "bottom:-16%; left:-12%;" }
+      ],
+      "data": {
+        "kicker": "Produkte",
+        "heading": "Bereiche, in denen ich dich berate",
+        "sub": "Eine Auswahl der proWIN‑Produktwelten – frag mich gern zu allen Bereichen.",
+        "cards": [
+          {
+            "icon": "spray",
+            "title": "Haushalt & Reinigung",
+            "text": "Kraftvolle, ergiebige Reiniger für Küche, Bad und Boden – sparsam dosiert und materialschonend."
+          },
+          {
+            "icon": "drop",
+            "title": "Kosmetik & Pflege",
+            "text": "Pflegeprodukte für Gesicht, Körper und Haare – hautfreundlich und mit hochwertigen Inhaltsstoffen."
+          },
+          {
+            "icon": "wellness",
+            "title": "Wellness & Gesundheit",
+            "text": "Produkte für mehr Wohlbefinden im Alltag – von Nahrungsergänzung bis Entspannung."
+          },
+          {
+            "icon": "wind",
+            "title": "Luft & Duft",
+            "text": "Frische Raumluft und angenehme Düfte – für ein gutes Gefühl und Wohlfühlatmosphäre in jedem Raum."
+          },
+          {
+            "icon": "paws",
+            "title": "BEST friends",
+            "text": "Pflege und Sauberkeit für deine Lieblinge – verträglich für Tier und Zuhause."
+          },
+          {
+            "icon": "star",
+            "title": "proWINparty & Beratung",
+            "text": "Lerne die Produkte in einem live Event zuhause oder Online kennen."
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "ablauf",
+      "type": "flow",
+      "title": "Ablauf einer proWINparty",
+      "navLabel": "Ablauf",
+      "enabled": true,
+      "glows": [
+        { "kind": "sun", "parallax": 0.07, "style": "top:6%; left:-14%;" },
+        { "kind": "wave", "parallax": 0.09, "style": "bottom:-10%; right:-12%;" }
+      ],
+      "data": {
+        "kicker": "So läuft's ab",
+        "heading": "Deine proWINparty – ganz entspannt",
+        "sub": "Produkte erlebt man am besten live. Ob gemütlich bei dir zuhause oder\nbequem online per Video – beides ist kostenlos, unverbindlich und kinderleicht.\nSo einfach geht's:",
+        "blocks": [
+          {
+            "variant": "sun",
+            "icon": "home",
+            "title": "Party bei dir zuhause",
+            "text": "Du lädst ein, ich bringe die Produkte mit – ganz gemütlich.",
+            "steps": [
+              { "icon": "calendar", "title": "Termin finden", "text": "Wunschtermin gemeinsam abstimmen." },
+              { "icon": "people", "title": "Gäste einladen", "text": "Freunde, Familie oder Nachbarn dazu holen." },
+              { "icon": "products", "title": "Gemütlich erleben", "text": "Zusammensitzen und die proWIN-Produkte live kennenlernen." },
+              { "icon": "gift", "title": "Bestellen & Prämie", "text": "Bestellen was dir zusagt – als Gastgeber:in Prämien sichern." }
+            ]
+          },
+          {
+            "variant": "wave",
+            "icon": "monitor",
+            "title": "Party Online",
+            "text": "Bequem von überall dabei – einfach per Link einwählen.",
+            "steps": [
+              { "icon": "calendar", "title": "Termin finden", "text": "Wunschtermin gemeinsam abstimmen." },
+              { "icon": "devices", "title": "Einwählen", "text": "Per Handy, Tablet oder PC mit einem Klick dazu." },
+              { "icon": "play-screen", "title": "Live erleben", "text": "Bequem von überall die proWIN-Produkte live erleben." },
+              { "icon": "chat", "title": "Austausch & bestellen", "text": "Direkten Austausch genießen und bestellen." }
+            ]
+          }
+        ],
+        "perks": {
+          "icon": "gift-big",
+          "title": "Prämien sichern – auf zwei Wegen",
+          "text": "Wer andere mitnimmt, bekommt bei proWIN etwas zurück.",
+          "items": [
+            {
+              "title": "Als Gastgeber:in",
+              "text": "Du lädst ein, ich bringe die Produkte mit – zuhause oder online.\nFür deine proWINparty sicherst du dir Gastgeber‑Prämien."
+            },
+            {
+              "title": "Als Mitbesteller:in",
+              "text": "Du möchtest einfach nur etwas bestellen? Dann such dir Mitbesteller:innen –\nFamilie, Freunde, Nachbarn oder Kolleg:innen. Gemeinsam kommt ihr auf mehr\nund du staubst ebenso Prämien ab."
+            }
+          ],
+          "cta": {
+            "href": "#kontakt",
+            "label": "Prämien mit mir besprechen",
+            "style": "sun",
+            "contactReason": "Ich möchte proWIN Produkte erwerben"
+          }
+        },
+        "downLink": { "href": "#termin", "label": "Weiter zur Terminbuchung" }
+      }
+    },
+
+    {
+      "id": "termin",
+      "type": "booking",
+      "title": "Termin",
+      "navLabel": "Termin",
+      "enabled": true,
+      "glows": [{ "kind": "wave", "parallax": 0.08, "style": "top:-10%; left:-10%;" }],
+      "data": {
+        "kicker": "Termin",
+        "heading": "Beratungstermin vereinbaren",
+        "paragraphs": [
+          "Wähle deinen Wunschtermin. Du erhältst sofort eine Kalenderdatei\n(<strong>.ics</strong>) zum Hinzufügen in deinen Apple‑, Google‑ oder\nOutlook‑Kalender – und ich bekomme deine Anfrage direkt per E‑Mail."
+        ],
+        "blocks": [
+          {
+            "title": "Telefonberatung",
+            "items": ["Dauer: ca. 30 Minuten", "Persönlich, per Telefon oder Video", "100 % unverbindlich"]
+          },
+          {
+            "title": "proWINparty",
+            "items": ["Dauer: ca. 60 Minuten", "Persönlich oder Video"]
+          }
+        ],
+        "consentButton": "Termin online buchen",
+        "consentNote": "Öffnet den Kalender von Cal.com (EU-Region) – dabei wird eine Verbindung\nhergestellt. <a href=\"datenschutz.html\" external>Datenschutz</a>"
+      }
+    },
+
+    {
+      "id": "mitmachen",
+      "type": "cards",
+      "title": "Mitmachen",
+      "navLabel": "Mitmachen",
+      "enabled": true,
+      "glows": [{ "kind": "wave", "parallax": 0.07, "style": "top:-8%; left:-12%;" }],
+      "data": {
+        "kicker": "Mitmachen",
+        "heading": "Lust, selbst durchzustarten?",
+        "sub": "Du magst die Produkte und könntest dir vorstellen, sie selbst weiterzugeben?\nDann steig als Beraterin oder Berater ein und arbeite mit mir im Team –\nich zeige dir alles, was du dafür brauchst.",
+        "cards": [
+          {
+            "icon": "clock",
+            "title": "Deine Zeit, dein Tempo",
+            "text": "Ob nebenbei oder mit größeren Zielen – du entscheidest, wie viel du machst und wann."
+          },
+          {
+            "icon": "person-plus",
+            "title": "Du startest nicht allein",
+            "text": "Von der ersten Frage bis zur ersten eigenen Party begleite ich dich persönlich."
+          },
+          {
+            "icon": "heart",
+            "title": "Aus Überzeugung",
+            "text": "Produkte, hinter denen du stehen kannst – das macht das Weitergeben leicht."
+          }
+        ],
+        "cta": {
+          "href": "#kontakt",
+          "label": "Erzähl mir mehr davon",
+          "style": "sun",
+          "contactReason": "Ich möchte mit dir in einem Team arbeiten",
+          "note": "Unverbindlich – wir schauen einfach, ob es zu dir passt."
+        }
+      }
+    },
+
+    {
+      "id": "kontakt",
+      "type": "contact",
+      "title": "Kontakt",
+      "navLabel": "Kontakt",
+      "enabled": true,
+      "glows": [{ "kind": "sun", "parallax": 0.07, "style": "bottom:-14%; right:-10%;" }],
+      "data": {
+        "kicker": "Kontakt",
+        "heading": "Schreib mir – ich freue mich auf dich",
+        "intro": "Du hast eine Frage oder möchtest direkt loslegen? Erreiche mich am besten so:",
+        "links": [
+          { "kind": "email", "icon": "mail" },
+          { "kind": "phone", "icon": "mobile", "label": "Mobil" },
+          { "kind": "landline", "icon": "phone", "label": "Festnetz" },
+          {
+            "kind": "url",
+            "icon": "whatsapp",
+            "text": "WhatsApp-Kanal für aktuelle Angebote",
+            "href": "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F",
+            "external": true
+          },
+          {
+            "kind": "url",
+            "icon": "link",
+            "text": "Digitale Visitenkarte",
+            "href": "http://kontakt.shineonyou.de",
+            "external": true
+          }
+        ],
+        "form": {
+          "nameLabel": "Name",
+          "emailLabel": "E‑Mail",
+          "reasonLabel": "Grund für die Kontaktaufnahme",
+          "reasonPlaceholder": "Bitte auswählen …",
+          "messageLabel": "Nachricht",
+          "submit": "Nachricht senden",
+          "consent": "Ich habe die <a href=\"datenschutz.html\" external>Datenschutzerklärung</a> gelesen und bin mit der Verarbeitung meiner Daten zur Bearbeitung meiner Anfrage einverstanden.",
+          "reasons": [
+            "Ich habe eine Frage zu einem proWIN Produkt",
+            "Ich möchte proWIN Produkte erwerben",
+            "Ich habe eine allgemeine Frage oder Mitteilung",
+            "Ich möchte mit dir in einem Team arbeiten"
+          ]
+        }
+      }
+    }
+  ],
+
+  "footer": {
+    "partnerText": "Offizielle Beraterin von",
+    "partnerLogo": {
+      "src": "assets/img/prowin-gold.webp",
+      "alt": "proWIN rekoteam creates YOU – Logo",
+      "width": 244,
+      "height": 44
+    },
+    "legal": "Manuela Zimmert · unabhängige proWIN‑Vertriebsberaterin · 86971 Peiting · <a href=\"impressum.html\">Impressum</a> · <a href=\"datenschutz.html\">Datenschutz</a>",
+    "review": "Texte und Grafiken dieser Website wurden von Manuela Zimmert redaktionell geprüft.",
+    "fine": "Shine On You · Seit 2026 <br />„proWIN“ ist eine Marke der proWIN International. Diese Seite ist ein unabhängiges Angebot."
+  }
+}
