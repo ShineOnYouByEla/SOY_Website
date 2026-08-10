@@ -63,7 +63,7 @@ const baseUrl = (
   argv[2] ||
   (await ask(
     "Adresse des Backends\n" +
-      "  Homelab:    http://admin.shineonyou.de:8080  (der Port gehört dazu!)\n" +
+      "  Homelab:    http://admin.shineonyou.de   (bei älteren Stacks mit :8080)\n" +
       "  Cloudflare: https://soy-admin.deinname.workers.dev\n" +
       "> "
   ))
@@ -79,8 +79,8 @@ try {
   console.error(
     "✗ Das ist keine gültige Adresse.\n" +
       "  Sie muss mit http:// oder https:// beginnen, z. B.:\n" +
-      "    http://admin.shineonyou.de:8080\n" +
-      "    http://192.168.178.13:8080\n" +
+      "    http://admin.shineonyou.de\n" +
+      "    http://192.168.178.13\n" +
       "    https://soy-admin.deinname.workers.dev"
   );
   exit(1);
@@ -93,14 +93,13 @@ const status = await fetch(`${baseUrl}/api/setup/status`)
 
 if (!status) {
   console.error(`✗ ${baseUrl} ist nicht erreichbar.`);
-  // Haeufigster Grund im Heimnetz: der Port fehlt. Der Container lauscht
-  // auf 8080, ohne Angabe landet der Aufruf auf 80 bzw. 443.
+  // Der Container lauscht auf Port 80; aeltere Stacks noch auf 8080.
   if (!parsed.port) {
-    const withPort = `${parsed.protocol}//${parsed.hostname}:8080`;
     console.error(
-      `\n  Es ist kein Port angegeben – der Aufruf ging damit an Port ` +
-        `${parsed.protocol === "https:" ? "443" : "80"}.\n` +
-        `  Der Container lauscht auf 8080. Versuch es mit:\n    ${withPort}`
+      "\n  Läuft der Container, und lauscht er auf Port 80?\n" +
+        "  Ältere Stacks benutzen 8080 – dann gehört der Port in die Adresse:\n" +
+        `    ${parsed.protocol}//${parsed.hostname}:8080\n` +
+        "  Auf dem Docker-Host prüfen:  docker logs s-lx04-soy-admin"
     );
   } else {
     console.error(

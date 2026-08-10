@@ -32,17 +32,16 @@ services:
       # Mehrere durch Komma trennen: im Heimnetz ist dasselbe Backend meist
       # sowohl per IP als auch per DNS-Name erreichbar, und beide Wege sollen
       # funktionieren. Was hier nicht steht, lehnt der CSRF-Schutz ab.
-      - ADMIN_ORIGIN=http://admin.shineonyou.de:8080,http://192.168.178.13:8080
+      - ADMIN_ORIGIN=http://admin.shineonyou.de,http://192.168.178.13
 
       # Ohne TLS im Heimnetz: das Secure-Flag am Cookie muss weg.
       - COOKIE_SECURE=false
 
-      # Port im Container. Für eine Adresse ganz ohne Port
-      # (http://admin.shineonyou.de) hier 80 eintragen, ADMIN_ORIGIN
-      # entsprechend ohne Port setzen und unten cap_add einkommentieren:
-      # der Container läuft als normaler Nutzer und darf Ports unter 1024
-      # sonst nicht belegen.
-      - PORT=8080
+      # Port im Container. 80 spart das ":8080" beim Aufrufen – der Container
+      # hat auf macvlan eine eigene IP, der Port ist also frei. Das Image bringt
+      # die nötige Berechtigung mit (setcap auf der node-Binary), es läuft
+      # trotzdem als normaler Nutzer.
+      - PORT=80
 
       - GITHUB_REPO=ShineOnYouByEla/SOY_Website
       # Branch, aus dem gelesen und in den veröffentlicht wird. content/site.json
@@ -56,9 +55,10 @@ services:
       - SETUP_ENABLED=false
       - SETUP_TOKEN=${SETUP_TOKEN}
 
-    # Nur nötig, wenn PORT unter 1024 liegt:
-    # cap_add:
-    #   - NET_BIND_SERVICE
+    # Falls Port 80 auf diesem Host trotzdem scheitern sollte (manche
+    # Storage-Treiber verlieren Datei-Capabilities), hilft stattdessen:
+    # sysctls:
+    #   - net.ipv4.ip_unprivileged_port_start=0
 
     volumes:
       - soy-admin-data:/data
@@ -72,7 +72,7 @@ services:
       - 192.168.178.254
     healthcheck:
       # Shell-Form, damit ein geändertes PORT auch hier greift.
-      test: ["CMD-SHELL", "wget -qO- \"http://127.0.0.1:${PORT:-8080}/api/ping\" >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- \"http://127.0.0.1:${PORT:-80}/api/ping\" >/dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
