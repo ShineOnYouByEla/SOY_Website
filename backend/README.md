@@ -139,12 +139,12 @@ Unter **Environment variables** eintragen (nicht ins Compose-File schreiben):
 
 Für die Ersteinrichtung `SETUP_ENABLED` einmalig auf `true` setzen.
 
-**`ADMIN_ORIGIN` muss zur Adresse in der Browserzeile passen** – mit Schema und
-Port. Im Heimnetz ist dasselbe Backend meist über zwei Wege erreichbar; dann
-beide eintragen, durch Komma getrennt:
+**`ADMIN_ORIGIN` muss zur Adresse in der Browserzeile passen** – mit Schema und,
+falls vorhanden, Port. Im Heimnetz ist dasselbe Backend meist über zwei Wege
+erreichbar; dann beide eintragen, durch Komma getrennt:
 
 ```
-ADMIN_ORIGIN=http://admin.shineonyou.de:8080,http://192.168.178.13:8080
+ADMIN_ORIGIN=http://admin.shineonyou.de,http://192.168.178.13
 ```
 
 Was hier nicht steht, lehnt der CSRF-Schutz ab – die Fehlermeldung im Admin
@@ -165,18 +165,40 @@ npm install
 npm run setup
 ```
 
-Das Skript fragt zuerst die Adresse des Backends ab – **mit Port**:
-`http://admin.shineonyou.de:8080` oder `http://192.168.178.13:8080`. Ohne Port
-geht der Aufruf an Port 80 und läuft ins Leere.
+Das Skript fragt zuerst die Adresse des Backends ab:
+`http://admin.shineonyou.de` oder `http://192.168.178.13`. Läuft noch ein
+älterer Stack mit `PORT=8080`, gehört der Port mit in die Adresse.
 
 Danach `SETUP_ENABLED` wieder auf `false` und den Stack neu starten.
 
 ### 5. Anmelden
 
-`http://admin.shineonyou.de:8080` bzw. `http://192.168.178.13:8080` im Browser
-öffnen – genau die Adresse, die in `ADMIN_ORIGIN` steht. Beim ersten Login wird die
+`http://admin.shineonyou.de` bzw. `http://192.168.178.13` im Browser öffnen –
+genau die Adresse, die in `ADMIN_ORIGIN` steht. Beim ersten Login wird die
 Zwei-Faktor-App eingerichtet: QR-Code scannen, Code eingeben, die zehn
 Wiederherstellungscodes ausdrucken oder in den Passwortmanager legen.
+
+### Warum das ohne Port funktioniert
+
+Der Container hat über macvlan eine eigene IP, Port 80 ist dort frei. Damit er
+ihn belegen darf, ohne als `root` zu laufen, setzt das Image beim Bauen
+`cap_net_bind_service` auf die node-Binary.
+
+Ein `cap_add: NET_BIND_SERVICE` im Compose würde **nicht** reichen: die
+Berechtigung geht verloren, sobald der Container auf den Benutzer `node`
+wechselt. Sie muss an der ausführbaren Datei selbst hängen.
+
+Sollte Port 80 auf einem Host trotzdem scheitern (manche Storage-Treiber
+verlieren Datei-Capabilities), hilft im Stack:
+
+```yaml
+sysctls:
+  - net.ipv4.ip_unprivileged_port_start=0
+```
+
+Wer stattdessen HTTPS möchte: den NGINX Proxy Manager davorschalten, dort das
+Zertifikat verwalten, `ADMIN_ORIGIN` auf `https://admin.shineonyou.de` setzen
+und `COOKIE_SECURE` auf `true` lassen.
 
 ### Weitere Zugänge
 
@@ -215,7 +237,7 @@ veröffentlichen und weitere Personen einladen.
 | `PBKDF2_ITERATIONS` | Rechenaufwand des Passwort-Hashings. Standard `600000`. |
 | `SETUP_ENABLED` / `SETUP_TOKEN` | Nur für die Ersteinrichtung. |
 | `DATABASE_PATH` | Standard `/data/soy-admin.db`. |
-| `PORT` / `HOST` | Standard `8080` / `0.0.0.0`. Für eine Adresse ohne Port `PORT=80` setzen und im Stack `cap_add: NET_BIND_SERVICE` einkommentieren – der Container läuft als normaler Nutzer. |
+| `PORT` / `HOST` | Standard `80` / `0.0.0.0`. Der Container darf Port 80 belegen, obwohl er als normaler Nutzer läuft – das Image setzt dafür `cap_net_bind_service` auf die node-Binary. |
 
 ### Aktualisieren
 
@@ -391,6 +413,7 @@ die Vorschau im Worker und `index.html` im Build.
 | Portainer: „lstat /data/compose/backend: no such file or directory" | Ein Web-Editor-Stack versucht zu bauen. Entweder `docker-compose.yml` verwenden und das Image vorher bauen (Weg B), oder auf einen Repository-Stack wechseln (Weg A) |
 | Portainer: „pull access denied for soy-admin" | Das Image ist auf dem Host noch nicht gebaut – siehe A.3, Weg B |
 | „Cannot connect to the Docker daemon at unix:///Users/…" | Der Befehl lief auf dem eigenen Rechner statt auf dem Docker-Host |
+| Container startet nicht, `EACCES` beim Binden von Port 80 | Das Image ist älter als der setcap-Schritt. Neu bauen – oder als Notlösung `sysctls: net.ipv4.ip_unprivileged_port_start=0` im Stack |
 | Container startet nicht, „exec format error" | Das Image wurde für die falsche Architektur gebaut (z. B. auf einem Apple-Silicon-Mac). Auf dem Docker-Host bauen |
 | Portainer: „volume soy-admin-data declared as external, but could not be found" | `docker volume create soy-admin-data` fehlt – siehe A.2 |
 | `npm run setup`: „… ist nicht erreichbar" | Meist fehlt der Port. Der Container lauscht auf 8080: `http://admin.shineonyou.de:8080` |

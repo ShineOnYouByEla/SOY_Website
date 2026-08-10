@@ -25,8 +25,15 @@ FROM node:24-alpine
 # tini reicht Signale sauber durch, damit der Container zügig stoppt.
 RUN apk add --no-cache tini wget
 
+# Damit der Dienst direkt auf Port 80 lauschen kann, ohne als root zu laufen.
+# Wichtig: cap_add im Compose reicht dafür NICHT — die Berechtigung geht beim
+# Wechsel auf den Benutzer node verloren. Sie muss an der Binary selbst hängen.
+RUN apk add --no-cache --virtual .setcap libcap \
+ && setcap 'cap_net_bind_service=+ep' /usr/local/bin/node \
+ && apk del .setcap
+
 ENV NODE_ENV=production \
-    PORT=8080 \
+    PORT=80 \
     HOST=0.0.0.0 \
     DATABASE_PATH=/data/soy-admin.db
 
@@ -45,7 +52,7 @@ RUN mkdir -p /data && chown -R node:node /data /app
 USER node
 VOLUME ["/data"]
 
-EXPOSE 8080
+EXPOSE 80
 
 # CMD-SHELL, damit ein geändertes PORT auch hier greift.
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=10s \
