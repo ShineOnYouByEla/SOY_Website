@@ -8,40 +8,60 @@
 
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout, argv, exit } from "node:process";
+import { Writable } from "node:stream";
 
-const rl = createInterface({ input: stdin, output: stdout });
+/* Ohne Terminal (Eingabe per Pipe) kann readline nicht Frage fuer Frage
+   lesen: der Datenstrom endet, bevor alle Fragen gestellt sind. Dann lesen
+   wir alles auf einmal und beantworten die Fragen daraus der Reihe nach. */
+const interactive = Boolean(stdin.isTTY);
+
+let piped = null;
+if (!interactive) {
+  const chunks = [];
+  for await (const chunk of stdin) chunks.push(chunk);
+  piped = Buffer.concat(chunks).toString("utf8").split(/\r?\n/);
+}
+let pipedIndex = 0;
+
+/* Ausgabe, die sich stummschalten laesst. Nur so bleibt eine Eingabe
+   wirklich unsichtbar: readline echot im Terminal jedes Zeichen selbst,
+   ein blosser Raw-Modus reicht dagegen nicht. */
+const output = new Writable({
+  write(chunk, encoding, callback) {
+    if (!output.muted) stdout.write(chunk, encoding);
+    callback();
+  },
+});
+output.muted = false;
+
+const rl = interactive ? createInterface({ input: stdin, output, terminal: true }) : null;
+
+/** Sichtbare Frage. */
+async function ask(question) {
+  if (!interactive) return piped[pipedIndex++] ?? "";
+  return rl.question(question);
+}
 
 /** Eingabe ohne Bildschirmausgabe (fuer Passwoerter und Schluessel). */
 async function secret(question) {
-  stdout.write(question);
-  const wasRaw = stdin.isRaw;
-  stdin.setRawMode?.(true);
+  if (!interactive) return piped[pipedIndex++] ?? "";
 
-  return new Promise((resolve) => {
-    let value = "";
-    const onData = (chunk) => {
-      const ch = chunk.toString("utf8");
-      if (ch === "\n" || ch === "\r" || ch === "") {
-        stdin.setRawMode?.(wasRaw ?? false);
-        stdin.removeListener("data", onData);
-        stdout.write("\n");
-        resolve(value);
-      } else if (ch === "") {
-        stdout.write("\n");
-        exit(1);
-      } else if (ch === "" || ch === "\b") {
-        value = value.slice(0, -1);
-      } else {
-        value += ch;
-      }
-    };
-    stdin.on("data", onData);
-  });
+  // Frage selbst schreiben, dann stummschalten – so ist der Zeitpunkt
+  // eindeutig und die Frage bleibt trotzdem lesbar.
+  stdout.write(question);
+  output.muted = true;
+  try {
+    return await rl.question("");
+  } finally {
+    output.muted = false;
+    // Das Enter wurde mitgeschluckt.
+    stdout.write("\n");
+  }
 }
 
 const baseUrl = (
   argv[2] ||
-  (await rl.question(
+  (await ask(
     "Adresse des Backends\n" +
       "  Homelab:    http://admin.shineonyou.de:8080  (der Port gehört dazu!)\n" +
       "  Cloudflare: https://soy-admin.deinname.workers.dev\n" +
@@ -106,8 +126,8 @@ if (!status.setupEnabled) {
 
 console.log("\nErstes Admin-Konto anlegen\n");
 
-const name = (await rl.question("Anzeigename: ")).trim();
-const email = (await rl.question("E-Mail: ")).trim();
+const name = (await ask("Anzeigename: ")).trim();
+const email = (await ask("E-Mail: ")).trim();
 const password = await secret("Passwort (min. 12 Zeichen, Groß/Klein + Ziffer): ");
 const repeat = await secret("Passwort wiederholen: ");
 
@@ -124,7 +144,7 @@ console.log(
     "Noch keinen? Dann einen erzeugen mit:  openssl rand -base64 32\n"
 );
 const setupToken = await secret("SETUP_TOKEN: ");
-rl.close();
+rl?.close();
 
 const res = await fetch(`${baseUrl}/api/setup`, {
   method: "POST",
