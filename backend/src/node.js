@@ -24,6 +24,9 @@ const root = join(here, "..");
 /* ---------- Konfiguration ---------- */
 
 const config = {
+  // Ausserhalb von Docker 8080, weil ein normaler Nutzer Port 80 nicht
+  // belegen darf. Im Container setzt das Image PORT=80 – dort bringt die
+  // node-Binary die noetige Berechtigung mit.
   port: Number(process.env.PORT || 8080),
   host: process.env.HOST || "0.0.0.0",
   databasePath: process.env.DATABASE_PATH || join(root, "data", "soy-admin.db"),
@@ -52,7 +55,7 @@ if (!origins.length) {
     "✗ ADMIN_ORIGIN ist nicht gesetzt. Bitte auf die Adresse(n) setzen, unter\n" +
       "  denen das Admin aufgerufen wird — mit Schema und Port, mehrere durch\n" +
       "  Komma getrennt, z. B.:\n" +
-      "    ADMIN_ORIGIN=http://admin.shineonyou.de:8080,http://192.168.178.13:8080\n" +
+      "    ADMIN_ORIGIN=http://admin.shineonyou.de,http://192.168.178.13\n" +
       "  Sonst lehnt der CSRF-Schutz jeden Schreibzugriff ab."
   );
   process.exit(1);
@@ -65,7 +68,7 @@ for (const origin of origins) {
   } catch {
     console.error(
       `✗ „${origin}" ist keine gültige Herkunft. Erwartet wird Schema, Host und\n` +
-        "  Port ohne Pfad, z. B. http://admin.shineonyou.de:8080"
+        "  ggf. Port, aber ohne Pfad, z. B. http://admin.shineonyou.de"
     );
     process.exit(1);
   }
