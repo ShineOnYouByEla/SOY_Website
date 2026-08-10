@@ -80,6 +80,8 @@ export async function cleanup(env, now) {
     env.DB.prepare("DELETE FROM sessions WHERE expires_at <= ?").bind(now),
     env.DB.prepare("DELETE FROM login_attempts WHERE first_at <= ?").bind(now - 24 * 60 * 60 * 1000),
     env.DB.prepare("DELETE FROM audit_log WHERE at <= ?").bind(now - 180 * 24 * 60 * 60 * 1000),
+    // Abgelaufene und verbrauchte Einladungen brauchen wir nicht aufzuheben.
+    env.DB.prepare("DELETE FROM invites WHERE expires_at <= ? OR used_at IS NOT NULL").bind(now),
   ]);
 }
 

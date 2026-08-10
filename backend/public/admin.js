@@ -23,10 +23,11 @@ function step(name) {
     ["mfaForm", "mfa"],
     ["mfaSetup", "setup"],
     ["recoveryView", "codes"],
+    ["inviteView", "invite"],
   ]) {
     $(`#${id}`).hidden = key !== name;
   }
-  const focus = { login: "#loginEmail", mfa: "#mfaCode", setup: "#setupCode" }[name];
+  const focus = { login: "#loginEmail", mfa: "#mfaCode", setup: "#setupCode", invite: "#inviteName" }[name];
   if (focus) setTimeout(() => $(focus)?.focus(), 50);
 }
 
@@ -47,6 +48,11 @@ async function boot() {
     step("login");
     hint("#loginHint", "Die Sitzung ist abgelaufen. Bitte erneut anmelden.");
   });
+
+  // Eine Einladung geht allem voraus: wer über einen Einladungslink kommt,
+  // hat noch kein Konto und soll nicht auf dem Anmeldeformular landen.
+  const inviteToken = new URLSearchParams(location.search).get("einladung");
+  if (inviteToken) return startInvite(inviteToken);
 
   let session;
   try {
@@ -98,6 +104,50 @@ function showFirstRunNotice() {
     }),
     el("p", { class: "secret", text: "npm run setup" })
   );
+}
+
+/* ---------- Einladung annehmen ---------- */
+
+/** Wird aufgerufen, wenn die Adresse ?einladung=… enthält. */
+async function startInvite(token) {
+  show("auth");
+
+  let invite;
+  try {
+    invite = await api.checkInvite(token);
+  } catch (err) {
+    // Abgelaufen oder schon benutzt: zurück zum normalen Anmeldeformular.
+    step("login");
+    hint("#loginHint", err.message);
+    return;
+  }
+
+  step("invite");
+  $("#inviteIntro").textContent =
+    `Du wurdest eingeladen, die Website von Shine On You zu bearbeiten. ` +
+    `Lege hier dein Konto für ${invite.email} an – danach richtest du die ` +
+    `Zwei-Faktor-App ein.`;
+
+  $("#inviteSubmit").onclick = async () => {
+    hint("#inviteHint", "");
+    const password = $("#invitePassword").value;
+    if (password !== $("#invitePassword2").value) {
+      return hint("#inviteHint", "Die beiden Passwörter stimmen nicht überein.");
+    }
+
+    $("#inviteSubmit").disabled = true;
+    try {
+      await api.acceptInvite(token, $("#inviteName").value.trim(), password);
+      // Token aus der Adresszeile entfernen – es ist jetzt verbraucht und
+      // hätte im Verlauf des Browsers nichts verloren.
+      history.replaceState(null, "", location.pathname);
+      await startMfaSetup();
+    } catch (err) {
+      hint("#inviteHint", err.message);
+    } finally {
+      $("#inviteSubmit").disabled = false;
+    }
+  };
 }
 
 /* ---------- Schritt 1: E-Mail und Passwort ---------- */

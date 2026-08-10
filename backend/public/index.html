@@ -67,6 +67,28 @@
       <p class="hint" id="setupHint" role="alert"></p>
     </div>
 
+    <!-- Einladung annehmen: eigenes Konto anlegen -->
+    <div id="inviteView" class="stack" hidden>
+      <p class="auth-note" id="inviteIntro"></p>
+      <div class="field">
+        <label for="inviteName">Dein Name</label>
+        <input type="text" id="inviteName" autocomplete="name" />
+      </div>
+      <div class="field">
+        <label for="invitePassword">Passwort</label>
+        <input type="password" id="invitePassword" autocomplete="new-password" />
+      </div>
+      <div class="field">
+        <label for="invitePassword2">Passwort wiederholen</label>
+        <input type="password" id="invitePassword2" autocomplete="new-password" />
+      </div>
+      <p class="field-note">
+        Mindestens 12 Zeichen, Groß- und Kleinbuchstaben sowie eine Ziffer.
+      </p>
+      <button type="button" class="btn btn-primary btn-block" id="inviteSubmit">Konto anlegen</button>
+      <p class="hint" id="inviteHint" role="alert"></p>
+    </div>
+
     <!-- Schritt 3: Wiederherstellungscodes anzeigen (nur einmal) -->
     <div id="recoveryView" class="stack" hidden>
       <h2 class="auth-title-sm">Wiederherstellungscodes</h2>
@@ -105,6 +127,7 @@
     </div>
     <div class="menu" id="menu" hidden>
       <button type="button" data-menu="account">Konto &amp; Sicherheit</button>
+      <button type="button" data-menu="users">Benutzer &amp; Zugänge</button>
       <button type="button" data-menu="history">Verlauf</button>
       <button type="button" data-menu="audit">Protokoll</button>
       <button type="button" data-menu="logout">Abmelden</button>

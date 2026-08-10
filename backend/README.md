@@ -178,6 +178,31 @@ Danach `SETUP_ENABLED` wieder auf `false` und den Stack neu starten.
 Zwei-Faktor-App eingerichtet: QR-Code scannen, Code eingeben, die zehn
 Wiederherstellungscodes ausdrucken oder in den Passwortmanager legen.
 
+### Weitere Zugänge
+
+Über **Menü → Benutzer & Zugänge** lassen sich weitere Konten anlegen. Das
+läuft über einen **Einladungslink**: die eingeladene Person setzt ihr Passwort
+selbst und richtet danach die Zwei-Faktor-App ein. So wandert nie ein Passwort
+durch einen Chat oder eine Mail.
+
+1. E-Mail eintragen, **Einladen** klicken
+2. Der Link wird **genau einmal** angezeigt – gespeichert ist nur sein Hash.
+   Kopieren und weitergeben (WhatsApp, Signal, persönlich – der Link allein
+   reicht zum Anlegen des Kontos, also nicht öffentlich posten).
+3. Die eingeladene Person öffnet ihn im Heimnetz bzw. über VPN, legt Name und
+   Passwort fest und scannt den QR-Code.
+
+Der Link gilt **sieben Tage** und funktioniert **genau einmal**. Solange er noch
+offen ist, lässt er sich unter „Benutzer & Zugänge" zurückziehen.
+
+Dort lassen sich Konten auch **sperren** (alle Sitzungen enden sofort) oder
+**löschen**. Zwei Sicherungen greifen dabei: das eigene Konto ist geschützt, und
+das letzte aktive Konto lässt sich weder sperren noch löschen – sonst käme
+niemand mehr hinein.
+
+Alle Konten haben dieselben Rechte. Wer bearbeiten darf, darf auch
+veröffentlichen und weitere Personen einladen.
+
 ### Umgebungsvariablen
 
 | Variable | Bedeutung |
@@ -372,6 +397,8 @@ die Vorschau im Worker und `index.html` im Build.
 | „SETUP_TOKEN ist nicht gesetzt" | Die Stack-Variable `SETUP_TOKEN` fehlt im Container |
 | „Anfrage von einer fremden Herkunft wurde abgelehnt" | Die aufgerufene Adresse steht nicht in `ADMIN_ORIGIN`. Die Meldung nennt, was erlaubt wäre – fehlende Adresse dort ergänzen (Komma-getrennt) |
 | „content/site.json wurde in … nicht gefunden" | `GITHUB_BRANCH` zeigt auf einen Branch ohne die Datei. Auf den richtigen Branch stellen oder die Inhalte dorthin mergen |
+| Einladungslink funktioniert nicht | Er gilt sieben Tage und genau einmal. Unter „Benutzer & Zugänge" eine neue Einladung erstellen |
+| Alle Zugänge gesperrt/verloren | Das letzte aktive Konto lässt sich nicht sperren. Hilft das nicht: `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` bzw. direkt in der SQLite-Datei löschen, `npm run setup` |
 | „Das Repository wurde zwischenzeitlich geändert" | Jemand hat parallel committet: Seite neu laden, erneut veröffentlichen |
 | Handy verloren | Mit einem Wiederherstellungscode anmelden, im Menü unter „Konto & Sicherheit" neu einrichten |
 | Alle Zugänge verloren | `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` löschen, `npm run setup` |

@@ -86,3 +86,19 @@ CREATE TABLE IF NOT EXISTS audit_log (
   ip      TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_audit_at ON audit_log(at DESC);
+
+-- Einladungen fuer weitere Admin-Konten. Statt ein Passwort zu verschicken,
+-- bekommt die eingeladene Person einen einmalig gueltigen Link und setzt ihr
+-- Passwort selbst. Gespeichert wird nur der Hash des Tokens.
+CREATE TABLE IF NOT EXISTS invites (
+  id          TEXT PRIMARY KEY,
+  email       TEXT NOT NULL,
+  token_hash  TEXT NOT NULL UNIQUE,
+  role        TEXT NOT NULL DEFAULT 'editor',
+  created_at  INTEGER NOT NULL,
+  created_by  TEXT,
+  expires_at  INTEGER NOT NULL,
+  used_at     INTEGER,
+  used_by     TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_invites_expires ON invites(expires_at);

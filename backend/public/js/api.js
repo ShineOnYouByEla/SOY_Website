@@ -106,6 +106,18 @@ export const api = {
   },
   deleteKatalog: (name) => request("DELETE", `/api/kataloge/${encodeURIComponent(name)}`),
 
+  /* --- Benutzer & Einladungen --- */
+  listUsers: () => request("GET", "/api/users"),
+  invite: (email) => request("POST", "/api/users/invite", { json: { email } }),
+  revokeInvite: (id) => request("DELETE", `/api/users/invite/${encodeURIComponent(id)}`),
+  setUserDisabled: (id, disabled) =>
+    request("POST", `/api/users/${encodeURIComponent(id)}/disabled`, { json: { disabled } }),
+  deleteUser: (id) => request("DELETE", `/api/users/${encodeURIComponent(id)}`),
+
+  checkInvite: (token) => request("GET", `/api/invite/${encodeURIComponent(token)}`),
+  acceptInvite: (token, name, password) =>
+    request("POST", `/api/invite/${encodeURIComponent(token)}`, { json: { name, password } }),
+
   /* --- Sonstiges --- */
   audit: () => request("GET", "/api/audit"),
   health: () => request("GET", "/api/health"),

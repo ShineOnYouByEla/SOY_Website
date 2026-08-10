@@ -41,12 +41,23 @@ let previewTimer = null;
 export async function startEditor(user) {
   $("#topbarUser").textContent = user.email;
 
-  const [content, icons] = await Promise.all([api.getContent(), loadIcons()]);
+  // Zuerst die Werkzeugleiste: lassen sich die Inhalte nicht laden, muss das
+  // Menü trotzdem erreichbar bleiben — sonst kommt man weder zum Abmelden
+  // noch zur Benutzerverwaltung und sieht nur eine Meldung.
+  bindToolbar();
+
+  const [content, icons] = await Promise.all([api.getContent().catch((err) => err), loadIcons()]);
+  setIconOptions(icons);
+
+  if (content instanceof Error) {
+    showLoadError(content);
+    return;
+  }
+
   state.content = content.content;
   state.head = content.head;
   state.siteUrl = content.siteUrl || "";
   setSiteUrl(state.siteUrl);
-  setIconOptions(icons);
 
   const health = await api.health().catch(() => null);
   if (health?.siteUrl) {
@@ -58,10 +69,40 @@ export async function startEditor(user) {
   }
 
   setDirty(content.source === "draft");
-  bindToolbar();
   renderSidebar();
   openPanel(`section:${state.content.sections[0]?.id}`);
   refreshPreview();
+}
+
+/**
+ * Die Inhalte fehlen — meist eine Frage der Konfiguration. Statt einer
+ * verschwindenden Kurzmeldung bleibt die Ursache stehen, und über das Menü
+ * kommt man weiterhin an Konto, Benutzer und Abmelden.
+ */
+function showLoadError(err) {
+  const editor = clear($("#editor"));
+  editor.append(
+    el(
+      "div",
+      { class: "errors" },
+      el("strong", { text: "Die Inhalte konnten nicht geladen werden." }),
+      el("p", { text: err.message }),
+      el("p", {
+        class: "field-note",
+        text:
+          "Häufige Gründe: GITHUB_BRANCH zeigt auf einen Branch ohne content/site.json, " +
+          "oder GITHUB_TOKEN fehlt bzw. ist abgelaufen. Das Menü oben rechts funktioniert weiterhin.",
+      }),
+      el(
+        "div",
+        { class: "row" },
+        el("button", { class: "btn", type: "button", onClick: () => location.reload() }, "Erneut versuchen")
+      )
+    )
+  );
+  $("#btnSave").disabled = true;
+  $("#btnPublish").disabled = true;
+  $("#btnDiscard").disabled = true;
 }
 
 async function loadIcons() {
@@ -422,7 +463,14 @@ function openPanel(key) {
    Werkzeugleiste
    ============================================================ */
 
+let toolbarBound = false;
+
 function bindToolbar() {
+  // Mehrfaches Binden wuerde jeden Klick doppelt ausloesen – das Menue
+  // ginge dann auf und sofort wieder zu.
+  if (toolbarBound) return;
+  toolbarBound = true;
+
   $("#btnSave").addEventListener("click", () => saveDraft());
   $("#btnRefresh").addEventListener("click", refreshPreview);
 
@@ -466,6 +514,7 @@ function bindToolbar() {
     menu.hidden = true;
     if (action === "logout") doLogout();
     if (action === "account") accountDialog();
+    if (action === "users") usersDialog();
     if (action === "history") historyDialog();
     if (action === "audit") auditDialog();
   });
@@ -650,6 +699,193 @@ export function showRecoveryCodes(codes) {
   });
 }
 
+/** Benutzer und offene Einladungen verwalten. */
+async function usersDialog() {
+  return dialog(async (body, close) => {
+    const list = el("ul", { class: "list-plain" });
+    const hint = el("p", { class: "hint" });
+
+    const refresh = async () => {
+      clear(list);
+      let data;
+      try {
+        data = await api.listUsers();
+      } catch (err) {
+        list.append(el("li", { text: err.message }));
+        return;
+      }
+
+      for (const u of data.users) {
+        const status = u.disabled
+          ? "gesperrt"
+          : u.totp_enabled
+            ? `zuletzt angemeldet ${formatDate(u.last_login_at) || "nie"}`
+            : "zweiter Faktor noch nicht eingerichtet";
+
+        list.append(
+          el(
+            "li",
+            {},
+            el(
+              "span",
+              {},
+              el("strong", { text: u.name || u.email }),
+              el("span", { class: "list-meta", text: ` ${u.email} · ${status}${u.self ? " · das bist du" : ""}` })
+            ),
+            u.self
+              ? el("span", { class: "list-meta", text: "—" })
+              : el(
+                  "span",
+                  { class: "row" },
+                  el(
+                    "button",
+                    {
+                      class: "btn btn-sm",
+                      type: "button",
+                      onClick: async () => {
+                        try {
+                          await api.setUserDisabled(u.id, !u.disabled);
+                          await refresh();
+                        } catch (err) {
+                          hint.textContent = err.message;
+                        }
+                      },
+                    },
+                    u.disabled ? "Entsperren" : "Sperren"
+                  ),
+                  el(
+                    "button",
+                    {
+                      class: "btn btn-sm btn-danger",
+                      type: "button",
+                      onClick: async () => {
+                        const yes = await confirmDialog({
+                          title: "Konto löschen?",
+                          text: `„${u.email}" wird endgültig entfernt – samt Sitzungen und Wiederherstellungscodes.`,
+                          confirmLabel: "Löschen",
+                          danger: true,
+                        });
+                        if (!yes) return;
+                        try {
+                          await api.deleteUser(u.id);
+                          await refresh();
+                        } catch (err) {
+                          hint.textContent = err.message;
+                        }
+                      },
+                    },
+                    "Löschen"
+                  )
+                )
+          )
+        );
+      }
+
+      for (const i of data.invites) {
+        list.append(
+          el(
+            "li",
+            {},
+            el(
+              "span",
+              {},
+              el("strong", { text: i.email }),
+              el("span", { class: "list-meta", text: ` eingeladen, gültig bis ${formatDate(i.expires_at)}` })
+            ),
+            el(
+              "button",
+              {
+                class: "btn btn-sm btn-danger",
+                type: "button",
+                onClick: async () => {
+                  try {
+                    await api.revokeInvite(i.id);
+                    await refresh();
+                  } catch (err) {
+                    hint.textContent = err.message;
+                  }
+                },
+              },
+              "Zurückziehen"
+            )
+          )
+        );
+      }
+    };
+
+    let email = "";
+    body.append(
+      el("h2", { text: "Benutzer & Zugänge" }),
+      el("p", {
+        class: "auth-note",
+        text:
+          "Neue Zugänge entstehen über einen Einladungslink. Die eingeladene Person " +
+          "setzt ihr Passwort selbst und richtet danach die Zwei-Faktor-App ein – " +
+          "so wandert nie ein Passwort durch einen Chat.",
+      }),
+      list,
+      field("E-Mail einladen", input("", (v) => (email = v), { type: "email" })),
+      hint,
+      el(
+        "div",
+        { class: "dialog-actions" },
+        el("button", { class: "btn", type: "button", onClick: () => close() }, "Schließen"),
+        el(
+          "button",
+          {
+            class: "btn btn-primary",
+            type: "button",
+            onClick: async () => {
+              hint.textContent = "";
+              try {
+                const res = await api.invite(email.trim());
+                await refresh();
+                showInviteLink(res);
+              } catch (err) {
+                hint.textContent = err.message;
+              }
+            },
+          },
+          "Einladen"
+        )
+      )
+    );
+
+    await refresh();
+  });
+}
+
+/** Der Link wird genau einmal angezeigt – gespeichert ist nur sein Hash. */
+function showInviteLink(invite) {
+  return dialog((body, close) => {
+    body.append(
+      el("h2", { text: "Einladung erstellt" }),
+      el("p", {
+        class: "auth-note",
+        text: `Diesen Link an ${invite.email} weitergeben. Er gilt bis ${formatDate(invite.expiresAt)}, funktioniert genau einmal und lässt sich später nicht noch einmal anzeigen.`,
+      }),
+      el("p", { class: "secret", text: invite.url }),
+      el(
+        "div",
+        { class: "dialog-actions" },
+        el(
+          "button",
+          {
+            class: "btn",
+            type: "button",
+            onClick: async () => {
+              const ok = await copyText(invite.url);
+              toast(ok ? "Link kopiert." : "Kopieren hat nicht geklappt – bitte abschreiben.", ok ? "ok" : "error");
+            },
+          },
+          "Kopieren"
+        ),
+        el("button", { class: "btn btn-primary", type: "button", onClick: () => close() }, "Fertig")
+      )
+    );
+  });
+}
+
 async function historyDialog() {
   const data = await api.contentStatus().catch((err) => ({ error: err.message }));
   return dialog((body, close) => {
@@ -706,6 +942,12 @@ async function auditDialog() {
     katalog_upload: "Katalog hochgeladen",
     katalog_delete: "Katalog gelöscht",
     setup: "Ersteinrichtung",
+    invite_created: "Einladung erstellt",
+    invite_accepted: "Einladung angenommen",
+    invite_revoked: "Einladung zurückgezogen",
+    user_disabled: "Konto gesperrt",
+    user_enabled: "Konto entsperrt",
+    user_deleted: "Konto gelöscht",
   };
 
   return dialog((body, close) => {
