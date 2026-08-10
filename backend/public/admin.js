@@ -79,7 +79,8 @@ async function enterApp(user) {
   try {
     await startEditor(user);
   } catch (err) {
-    toast(`Die Inhalte konnten nicht geladen werden: ${err.message}`, "error");
+    // Kein eigener Präfix: die Meldung aus dem Backend ist bereits vollständig.
+    toast(err.message, "error");
   }
 }
 

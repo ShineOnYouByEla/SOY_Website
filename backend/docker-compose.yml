@@ -28,12 +28,11 @@ services:
     environment:
       - TZ=Europe/Berlin
 
-      # Adresse, unter der das Admin aufgerufen wird – MIT Schema und Port.
-      # Muss exakt der Adresse in der Browserzeile entsprechen, sonst lehnt
-      # der CSRF-Schutz jeden Schreibzugriff ab. Beispiele:
-      #   http://192.168.178.13:8080
-      #   http://admin.shineonyou.de:8080   (lokaler DNS-Eintrag auf .13)
-      - ADMIN_ORIGIN=http://admin.shineonyou.de:8080
+      # Adresse(n), unter denen das Admin aufgerufen wird – MIT Schema und Port.
+      # Mehrere durch Komma trennen: im Heimnetz ist dasselbe Backend meist
+      # sowohl per IP als auch per DNS-Name erreichbar, und beide Wege sollen
+      # funktionieren. Was hier nicht steht, lehnt der CSRF-Schutz ab.
+      - ADMIN_ORIGIN=http://admin.shineonyou.de:8080,http://192.168.178.13:8080
 
       # Ohne TLS im Heimnetz: das Secure-Flag am Cookie muss weg.
       - COOKIE_SECURE=false
@@ -46,6 +45,8 @@ services:
       - PORT=8080
 
       - GITHUB_REPO=ShineOnYouByEla/SOY_Website
+      # Branch, aus dem gelesen und in den veröffentlicht wird. content/site.json
+      # muss dort liegen – sonst meldet das Admin, die Datei sei nicht zu finden.
       - GITHUB_BRANCH=main
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - SITE_URL=https://shineonyou.de

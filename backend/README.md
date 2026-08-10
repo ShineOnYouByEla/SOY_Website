@@ -129,8 +129,20 @@ Unter **Environment variables** eintragen (nicht ins Compose-File schreiben):
 Für die Ersteinrichtung `SETUP_ENABLED` einmalig auf `true` setzen.
 
 **`ADMIN_ORIGIN` muss zur Adresse in der Browserzeile passen** – mit Schema und
-Port. Wer das Admin unter `http://admin.shineonyou.de:8080` aufruft, trägt genau
-das ein. Weicht es ab, lehnt der CSRF-Schutz jeden Schreibzugriff ab.
+Port. Im Heimnetz ist dasselbe Backend meist über zwei Wege erreichbar; dann
+beide eintragen, durch Komma getrennt:
+
+```
+ADMIN_ORIGIN=http://admin.shineonyou.de:8080,http://192.168.178.13:8080
+```
+
+Was hier nicht steht, lehnt der CSRF-Schutz ab – die Fehlermeldung im Admin
+nennt dann, welche Adressen erlaubt wären.
+
+**`GITHUB_BRANCH` muss auf den Branch zeigen, in dem `content/site.json`
+liegt.** Solange die Inhalte nur auf einem Testbranch liegen, meldet das Admin
+beim Öffnen, die Datei sei nicht zu finden. Und: veröffentlicht wird in genau
+diesen Branch – die Live-Seite baut sich nur aus `main`.
 
 ### 5. Erstes Konto anlegen
 
@@ -159,7 +171,7 @@ Wiederherstellungscodes ausdrucken oder in den Passwortmanager legen.
 
 | Variable | Bedeutung |
 |---|---|
-| `ADMIN_ORIGIN` | Adresse, unter der das Admin aufgerufen wird. **Pflicht**, muss exakt stimmen. |
+| `ADMIN_ORIGIN` | Adresse(n), unter denen das Admin aufgerufen wird – mit Schema und Port. **Pflicht**. Mehrere durch Komma trennen. |
 | `COOKIE_SECURE` | `false` beim Betrieb ohne TLS. Standard `true`. |
 | `GITHUB_TOKEN` | Token mit Schreibrecht auf das Repository. |
 | `GITHUB_REPO` / `GITHUB_BRANCH` | Ziel der Veröffentlichung. Standard `ShineOnYouByEla/SOY_Website` / `main`. |
@@ -340,7 +352,8 @@ die Vorschau im Worker und `index.html` im Build.
 | Portainer: „volume soy-admin-data declared as external, but could not be found" | `docker volume create soy-admin-data` fehlt – siehe A.2 |
 | `npm run setup`: „… ist nicht erreichbar" | Meist fehlt der Port. Der Container lauscht auf 8080: `http://admin.shineonyou.de:8080` |
 | „SETUP_TOKEN ist nicht gesetzt" | Die Stack-Variable `SETUP_TOKEN` fehlt im Container |
-| „Anfrage von einer fremden Herkunft wurde abgelehnt" | `ADMIN_ORIGIN` weicht von der aufgerufenen Adresse ab – Schema und Port müssen exakt stimmen |
+| „Anfrage von einer fremden Herkunft wurde abgelehnt" | Die aufgerufene Adresse steht nicht in `ADMIN_ORIGIN`. Die Meldung nennt, was erlaubt wäre – fehlende Adresse dort ergänzen (Komma-getrennt) |
+| „content/site.json wurde in … nicht gefunden" | `GITHUB_BRANCH` zeigt auf einen Branch ohne die Datei. Auf den richtigen Branch stellen oder die Inhalte dorthin mergen |
 | „Das Repository wurde zwischenzeitlich geändert" | Jemand hat parallel committet: Seite neu laden, erneut veröffentlichen |
 | Handy verloren | Mit einem Wiederherstellungscode anmelden, im Menü unter „Konto & Sicherheit" neu einrichten |
 | Alle Zugänge verloren | `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` löschen, `npm run setup` |

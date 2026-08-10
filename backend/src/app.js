@@ -70,6 +70,18 @@ const now = () => Date.now();
 /* Ohne TLS (nur im vertrauenswuerdigen Heimnetz!) darf der Cookie kein
    Secure-Flag tragen — sonst sendet ihn der Browser niemals zurueck. */
 const cookieSecure = (env) => env.COOKIE_SECURE !== "false";
+
+/**
+ * Erlaubte Herkuenfte fuer schreibende Zugriffe.
+ * ADMIN_ORIGIN darf mehrere durch Komma getrennte Adressen enthalten — im
+ * Heimnetz ist dasselbe Backend oft sowohl per IP als auch per DNS-Name
+ * erreichbar, und beide sollen funktionieren.
+ */
+const allowedOrigins = (env) =>
+  String(env.ADMIN_ORIGIN || "")
+    .split(",")
+    .map((o) => o.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
 const clientIp = (c) => c.req.header("CF-Connecting-IP") || c.req.header("X-Forwarded-For") || "";
 const fail = (c, status, message, extra = {}) => c.json({ error: message, ...extra }, status);
 
@@ -141,10 +153,17 @@ app.use("/api/*", async (c, next) => {
   if (method === "GET" || method === "HEAD" || method === "OPTIONS") return next();
 
   const origin = c.req.header("Origin");
-  const expected = c.env.ADMIN_ORIGIN || new URL(c.req.url).origin;
+  const allowed = allowedOrigins(c.env);
   // Zusammen mit SameSite=Strict am Cookie: doppelt abgesichert.
-  if (!origin || origin !== expected) {
-    return fail(c, 403, "Anfrage von einer fremden Herkunft wurde abgelehnt.");
+  if (!origin || !allowed.includes(origin)) {
+    return fail(
+      c,
+      403,
+      "Anfrage von einer fremden Herkunft wurde abgelehnt.",
+      // Der haeufigste Grund ist ein Tippfehler oder eine zweite Adresse
+      // (IP statt DNS-Name). Deshalb sagen wir, was erlaubt waere.
+      { origin: origin || null, allowed }
+    );
   }
   return next();
 });
@@ -507,7 +526,12 @@ async function loadWorking(c) {
     return { content: JSON.parse(draft.content), source: "draft", updatedAt: draft.updated_at, updatedBy: draft.updated_by };
   }
   const file = await gh.getFile(c.env, "content/site.json");
-  if (!file) throw new Error("content/site.json wurde im Repository nicht gefunden.");
+  if (!file) {
+    throw new Error(
+      `content/site.json wurde in ${c.env.GITHUB_REPO} im Branch „${c.env.GITHUB_BRANCH}" nicht gefunden. ` +
+        "Entweder zeigt GITHUB_BRANCH auf den falschen Branch, oder die Datei ist dort noch nicht vorhanden."
+    );
+  }
   return { content: JSON.parse(new TextDecoder().decode(file.bytes)), source: "live", updatedAt: null, updatedBy: null };
 }
 

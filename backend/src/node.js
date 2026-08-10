@@ -41,23 +41,49 @@ const config = {
   COOKIE_SECURE: process.env.COOKIE_SECURE || "true",
 };
 
-if (!config.ADMIN_ORIGIN) {
+/* ADMIN_ORIGIN darf mehrere Adressen enthalten, durch Komma getrennt —
+   im Heimnetz ist dasselbe Backend oft per IP und per DNS-Name erreichbar. */
+const origins = config.ADMIN_ORIGIN.split(",")
+  .map((o) => o.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
+if (!origins.length) {
   console.error(
-    "✗ ADMIN_ORIGIN ist nicht gesetzt. Bitte auf die Adresse setzen, unter der\n" +
-      "  das Admin aufgerufen wird, z. B. http://192.168.178.13:8080 — sonst\n" +
-      "  lehnt der CSRF-Schutz jeden Schreibzugriff ab."
+    "✗ ADMIN_ORIGIN ist nicht gesetzt. Bitte auf die Adresse(n) setzen, unter\n" +
+      "  denen das Admin aufgerufen wird — mit Schema und Port, mehrere durch\n" +
+      "  Komma getrennt, z. B.:\n" +
+      "    ADMIN_ORIGIN=http://admin.shineonyou.de:8080,http://192.168.178.13:8080\n" +
+      "  Sonst lehnt der CSRF-Schutz jeden Schreibzugriff ab."
   );
   process.exit(1);
 }
-if (config.COOKIE_SECURE !== "false" && config.ADMIN_ORIGIN.startsWith("http://")) {
+
+for (const origin of origins) {
+  try {
+    const u = new URL(origin);
+    if (u.origin !== origin) throw new Error();
+  } catch {
+    console.error(
+      `✗ „${origin}" ist keine gültige Herkunft. Erwartet wird Schema, Host und\n` +
+        "  Port ohne Pfad, z. B. http://admin.shineonyou.de:8080"
+    );
+    process.exit(1);
+  }
+}
+
+const insecure = origins.filter((o) => o.startsWith("http://"));
+if (config.COOKIE_SECURE !== "false" && insecure.length) {
   console.error(
-    "✗ ADMIN_ORIGIN ist eine http-Adresse, COOKIE_SECURE steht aber auf true.\n" +
-      "  Der Browser würde den Sitzungs-Cookie nie zurücksenden. Entweder\n" +
-      "  COOKIE_SECURE=false setzen (nur im vertrauenswürdigen Netz!) oder TLS\n" +
-      "  über einen Reverse Proxy davorschalten."
+    `✗ ADMIN_ORIGIN enthält http-Adressen (${insecure.join(", ")}), COOKIE_SECURE\n` +
+      "  steht aber auf true. Der Browser würde den Sitzungs-Cookie nie\n" +
+      "  zurücksenden. Entweder COOKIE_SECURE=false setzen (nur im\n" +
+      "  vertrauenswürdigen Netz!) oder TLS über einen Reverse Proxy davorschalten."
   );
   process.exit(1);
 }
+
+// Normalisiert weiterreichen, damit die App nicht erneut trimmen muss.
+config.ADMIN_ORIGIN = origins.join(",");
 
 /* ---------- Datenbank ---------- */
 

@@ -12,6 +12,8 @@ export class ApiError extends Error {
     /** Liste von Klartextfehlern aus der Inhaltspruefung, falls vorhanden. */
     this.errors = details?.errors || null;
     this.mfaRequired = Boolean(details?.mfaRequired);
+    /* Bei einem 403 wegen fremder Herkunft: was das Backend erlauben würde. */
+    this.allowedOrigins = details?.allowed || null;
   }
 }
 
@@ -48,7 +50,17 @@ async function request(method, path, { json, body, headers } = {}) {
 
   if (!res.ok) {
     if (res.status === 401 && onUnauthorized) onUnauthorized(data);
-    throw new ApiError(data?.error || `Fehler ${res.status}`, res.status, data);
+
+    let message = data?.error || `Fehler ${res.status}`;
+    // Der haeufigste Einrichtungsfehler: das Admin wird unter einer anderen
+    // Adresse aufgerufen, als im Backend hinterlegt ist.
+    if (res.status === 403 && Array.isArray(data?.allowed) && data.allowed.length) {
+      message +=
+        ` Diese Seite läuft unter ${location.origin}, erlaubt ist aber nur ` +
+        `${data.allowed.join(" bzw. ")}. Entweder das Admin unter dieser Adresse aufrufen ` +
+        "oder ADMIN_ORIGIN im Backend erweitern.";
+    }
+    throw new ApiError(message, res.status, data);
   }
   return data;
 }
