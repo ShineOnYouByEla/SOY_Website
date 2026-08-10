@@ -10,6 +10,7 @@ import {
   $,
   clear,
   confirmDialog,
+  copyText,
   dialog,
   el,
   errorBox,
@@ -636,7 +637,10 @@ export function showRecoveryCodes(codes) {
           {
             class: "btn",
             type: "button",
-            onClick: () => navigator.clipboard?.writeText(codes.join("\n")).then(() => toast("Kopiert.", "ok")),
+            onClick: async () => {
+              const ok = await copyText(codes.join("\n"));
+              toast(ok ? "Kopiert." : "Kopieren hat nicht geklappt – bitte abschreiben.", ok ? "ok" : "error");
+            },
           },
           "Kopieren"
         ),

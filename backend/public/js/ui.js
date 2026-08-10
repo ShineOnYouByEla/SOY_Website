@@ -146,6 +146,42 @@ export function checkbox(label, checked, onChange) {
   return el("label", { class: "check" }, box, el("span", { text: label }));
 }
 
+/**
+ * Text in die Zwischenablage legen.
+ * navigator.clipboard gibt es nur in einem "sicheren Kontext" — ueber http
+ * im Heimnetz also nicht. Dann faellt die Funktion auf den alten Weg ueber
+ * ein unsichtbares Textfeld zurueck.
+ * @returns {Promise<boolean>}
+ */
+export async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      /* z. B. abgelehnte Berechtigung – unten weiterversuchen */
+    }
+  }
+
+  const helper = el("textarea", {
+    readonly: true,
+    style: "position:fixed; top:-1000px; left:-1000px; opacity:0",
+  });
+  helper.value = text;
+  document.body.append(helper);
+  helper.select();
+  helper.setSelectionRange(0, text.length);
+
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  helper.remove();
+  return ok;
+}
+
 /** Datumsformat fuer Anzeigen. */
 export function formatDate(value) {
   if (!value) return "";

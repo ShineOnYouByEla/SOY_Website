@@ -1,5 +1,5 @@
 name = "soy-admin"
-main = "src/index.js"
+main = "src/worker.js"
 compatibility_date = "2025-01-15"
 
 # Der Worker laeuft vor der Auslieferung statischer Dateien, damit auch das

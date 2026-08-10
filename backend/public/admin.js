@@ -4,7 +4,7 @@
 
 import { api, setUnauthorizedHandler } from "./js/api.js";
 import { startEditor } from "./js/editor.js";
-import { $, clear, el, toast } from "./js/ui.js";
+import { $, clear, copyText, el, toast } from "./js/ui.js";
 
 const views = {
   auth: () => $("#authView"),
@@ -210,11 +210,13 @@ function showCodes(codes) {
   step("codes");
   clear($("#codeList")).append(...codes.map((c) => el("li", { text: c })));
 
-  $("#copyCodes").onclick = () =>
-    navigator.clipboard?.writeText(codes.join("\n")).then(
-      () => toast("Codes kopiert.", "ok"),
-      () => toast("Kopieren hat nicht geklappt – bitte abschreiben.", "error")
+  $("#copyCodes").onclick = async () => {
+    const ok = await copyText(codes.join("\n"));
+    toast(
+      ok ? "Codes kopiert." : "Kopieren hat nicht geklappt – bitte abschreiben oder drucken.",
+      ok ? "ok" : "error"
     );
+  };
   $("#printCodes").onclick = () => window.print();
 
   $("#codesSaved").onchange = (e) => ($("#codesDone").disabled = !e.target.checked);

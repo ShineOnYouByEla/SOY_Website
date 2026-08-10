@@ -145,22 +145,37 @@ export async function audit(env, { userId, email, action, detail, ip, now }) {
 
 /* ---------- Cookie ---------- */
 
-export function sessionCookie(token, maxAgeSeconds) {
+/**
+ * @param {boolean} secure  false nur fuer den Betrieb ohne TLS im eigenen Netz.
+ *   Ohne dieses Flag wuerde der Browser den Cookie ueber http gar nicht
+ *   zuruecksenden und die Anmeldung schluege still fehl.
+ */
+export function sessionCookie(token, maxAgeSeconds, secure = true) {
   const parts = [
     `${SESSION_COOKIE}=${token}`,
     "Path=/",
     "HttpOnly",
-    "Secure",
+    secure ? "Secure" : null,
     // Strict: der Cookie wird bei Aufrufen von fremden Seiten gar nicht
     // erst mitgeschickt — zusammen mit der Origin-Pruefung der CSRF-Schutz.
+    // Wirkt auch ohne TLS.
     "SameSite=Strict",
     `Max-Age=${maxAgeSeconds}`,
   ];
-  return parts.join("; ");
+  return parts.filter(Boolean).join("; ");
 }
 
-export function clearCookie() {
-  return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
+export function clearCookie(secure = true) {
+  return [
+    `${SESSION_COOKIE}=`,
+    "Path=/",
+    "HttpOnly",
+    secure ? "Secure" : null,
+    "SameSite=Strict",
+    "Max-Age=0",
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
 
 export function readCookie(request, name) {

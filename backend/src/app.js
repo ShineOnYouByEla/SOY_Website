@@ -1,8 +1,14 @@
 /* ============================================================
-   Shine On You — Admin-Backend (Cloudflare Worker)
+   Shine On You — Admin-Backend
    ------------------------------------------------------------
+   Die Anwendung selbst, ohne Bindung an eine Plattform. Sie
+   laeuft sowohl als Cloudflare Worker (src/worker.js) als auch
+   unter Node im Docker-Container (src/node.js). Alles, was sich
+   zwischen beiden unterscheidet, kommt ueber c.env herein:
+     env.DB      Datenbank im Stil der D1-API
+     env.ASSETS  Auslieferung der Dateien aus ./public
    Aufbau:
-     /              Admin-Oberflaeche (statisch aus ./public)
+     /              Admin-Oberflaeche
      /api/auth/*    Anmeldung, zweiter Faktor, Konto
      /api/content   Entwurf laden/speichern/veroeffentlichen
      /api/media     Bilder, /api/kataloge  PDFs
@@ -10,6 +16,8 @@
    ============================================================ */
 
 import { Hono } from "hono";
+
+export { cleanup } from "./auth.js";
 
 import {
   SESSION_COOKIE,
@@ -59,6 +67,9 @@ const MAX_PDF_BYTES = 30_000_000;
 /* ---------- Hilfsfunktionen ---------- */
 
 const now = () => Date.now();
+/* Ohne TLS (nur im vertrauenswuerdigen Heimnetz!) darf der Cookie kein
+   Secure-Flag tragen — sonst sendet ihn der Browser niemals zurueck. */
+const cookieSecure = (env) => env.COOKIE_SECURE !== "false";
 const clientIp = (c) => c.req.header("CF-Connecting-IP") || c.req.header("X-Forwarded-For") || "";
 const fail = (c, status, message, extra = {}) => c.json({ error: message, ...extra }, status);
 
@@ -86,7 +97,11 @@ app.use("*", async (c, next) => {
 
   c.header("X-Content-Type-Options", "nosniff");
   c.header("Referrer-Policy", "no-referrer");
-  c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  // HSTS nur bei TLS – ueber HTTP waere die Ansage wirkungslos und
+  // im Heimnetz sogar hinderlich.
+  if (cookieSecure(c.env)) {
+    c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
   c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
   c.header("X-Frame-Options", "SAMEORIGIN");
 
@@ -260,7 +275,7 @@ app.post("/api/auth/login", async (c) => {
     now: t,
   });
 
-  c.header("Set-Cookie", sessionCookie(session.token, Math.floor((session.expiresAt - t) / 1000)));
+  c.header("Set-Cookie", sessionCookie(session.token, Math.floor((session.expiresAt - t) / 1000), cookieSecure(c.env)));
   await audit(c.env, { userId: user.id, email: user.email, action: "login", ip, now: t });
 
   return c.json({
@@ -279,7 +294,7 @@ app.post("/api/auth/logout", async (c) => {
     await destroySession(c.env, s.id);
     await audit(c.env, { userId: s.user_id, email: s.email, action: "logout", ip: clientIp(c), now: now() });
   }
-  c.header("Set-Cookie", clearCookie());
+  c.header("Set-Cookie", clearCookie(cookieSecure(c.env)));
   return c.json({ ok: true });
 });
 
@@ -352,7 +367,7 @@ app.post("/api/auth/mfa", async (c) => {
   await completeMfa(c.env, s.id, t);
   // Cookie mit der neuen, laengeren Laufzeit erneuern.
   const token = readCookie(c.req.raw, SESSION_COOKIE);
-  c.header("Set-Cookie", sessionCookie(token, Math.floor(SESSION_TTL_MS / 1000)));
+  c.header("Set-Cookie", sessionCookie(token, Math.floor(SESSION_TTL_MS / 1000), cookieSecure(c.env)));
 
   const remaining = await c.env.DB.prepare(
     "SELECT COUNT(*) AS n FROM recovery_codes WHERE user_id = ? AND used_at IS NULL"
@@ -414,7 +429,7 @@ app.post("/api/auth/mfa/activate", async (c) => {
 
   await completeMfa(c.env, s.id, t);
   const token = readCookie(c.req.raw, SESSION_COOKIE);
-  c.header("Set-Cookie", sessionCookie(token, Math.floor(SESSION_TTL_MS / 1000)));
+  c.header("Set-Cookie", sessionCookie(token, Math.floor(SESSION_TTL_MS / 1000), cookieSecure(c.env)));
   await audit(c.env, { userId: user.id, email: user.email, action: "mfa_enabled", ip: clientIp(c), now: t });
 
   // Die Codes gibt es genau einmal im Klartext — danach nur noch Hashes.
@@ -847,6 +862,10 @@ app.get("/api/audit", async (c) => {
   return c.json({ entries: rows.results || [] });
 });
 
+/* Lebenszeichen ohne Anmeldung – für den Healthcheck des Containers.
+   Verrät bewusst nichts über Konfiguration oder Zustand. */
+app.get("/api/ping", (c) => c.json({ ok: true }));
+
 app.get("/api/health", async (c) => {
   const guard = await requireUser(c);
   if (guard) return guard;
@@ -875,11 +894,4 @@ app.get("*", async (c) => {
   return res;
 });
 
-export default {
-  fetch: app.fetch,
-
-  /* Taeglich aufraeumen: abgelaufene Sitzungen, alte Zaehler, altes Protokoll. */
-  async scheduled(event, env, ctx) {
-    ctx.waitUntil(cleanup(env, Date.now()));
-  },
-};
+export default app;

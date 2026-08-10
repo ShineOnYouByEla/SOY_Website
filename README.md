@@ -6,6 +6,8 @@ Gebaut mit reinem HTML, CSS und JavaScript.
 Die Inhalte stehen in **`content/site.json`**; daraus entsteht `index.html`.
 Gepflegt werden sie entweder direkt in der Datei oder bequem über das
 **Admin-Backend** mit Anmeldung und Zwei-Faktor-Bestätigung → [`backend/`](backend/README.md).
+Das läuft wahlweise als Docker-Container im Heimnetz (nicht öffentlich erreichbar)
+oder als Cloudflare Worker.
 
 ## Vorschau / lokal starten
 
