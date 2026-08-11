@@ -13,7 +13,6 @@
     "ogImage": "assets/img/og-image.jpg",
     "ogImageAlt": "Shine On You – Sonne und Welle Logo"
   },
-
   "contact": {
     "email": "prowin.ela@web.de",
     "phone": "+49 1551 0279357",
@@ -22,7 +21,6 @@
     "landlineHref": "+4988617138897",
     "whatsappChannel": "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F"
   },
-
   "services": {
     "web3formsKey": "ee15661a-109f-4c28-aac7-bcb24f223a98",
     "hcaptchaSiteKey": "50b2fe65-b00b-4b9e-ad62-3ba471098be2",
@@ -30,7 +28,6 @@
     "calOrigin": "https://cal.eu",
     "calEmbedJs": "https://app.cal.eu/embed/embed.js"
   },
-
   "business": {
     "name": "Shine On You – proWIN Beratung Manuela Zimmert",
     "description": "Unabhängige proWIN-Beratung in Peiting und Umgebung: natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online.",
@@ -44,11 +41,26 @@
       "country": "DE"
     },
     "areaServed": [
-      { "type": "City", "name": "Peiting" },
-      { "type": "City", "name": "Schongau" },
-      { "type": "City", "name": "Weilheim in Oberbayern" },
-      { "type": "AdministrativeArea", "name": "Landkreis Weilheim-Schongau" },
-      { "type": "AdministrativeArea", "name": "Pfaffenwinkel" }
+      {
+        "type": "City",
+        "name": "Peiting"
+      },
+      {
+        "type": "City",
+        "name": "Schongau"
+      },
+      {
+        "type": "City",
+        "name": "Weilheim in Oberbayern"
+      },
+      {
+        "type": "AdministrativeArea",
+        "name": "Landkreis Weilheim-Schongau"
+      },
+      {
+        "type": "AdministrativeArea",
+        "name": "Pfaffenwinkel"
+      }
     ],
     "offer": {
       "name": "proWINparty & Produktberatung",
@@ -66,7 +78,6 @@
       "https://kontakt.shineonyou.de"
     ]
   },
-
   "header": {
     "brandLabel": "Shine On You – Startseite",
     "channelLabel": "WhatsApp-Kanal folgen – aktuellste Angebote",
@@ -77,9 +88,12 @@
       "width": 640,
       "height": 360
     },
-    "cta": { "href": "#termin", "label": "Termin buchen", "style": "sun" }
+    "cta": {
+      "href": "#termin",
+      "label": "Termin buchen",
+      "style": "sun"
+    }
   },
-
   "sections": [
     {
       "id": "hero",
@@ -94,22 +108,38 @@
           "width": 244,
           "height": 44
         },
-        "headline": ["Natürlich sauber.", "Natürlich du."],
+        "headline": [
+          "Natürlich sauber.",
+          "Natürlich du."
+        ],
         "lead": "Hochwertige Produkte für Haushalt, Reinigung, Kosmetik und Wellness –\nnachhaltig, alltagstauglich und persönlich beraten.\n<br />\nLass uns gemeinsam dein\nZuhause zum Strahlen bringen.",
         "actions": [
-          { "href": "#termin", "label": "Beratungstermin buchen", "style": "sun" },
-          { "href": "#produkte", "label": "Produkte entdecken", "style": "ghost" }
+          {
+            "href": "#termin",
+            "label": "Beratungstermin buchen",
+            "style": "sun"
+          },
+          {
+            "href": "#produkte",
+            "label": "Produkte entdecken",
+            "style": "ghost"
+          }
         ]
       }
     },
-
     {
       "id": "ueber",
       "type": "about",
       "title": "Über mich",
       "navLabel": "Über mich",
       "enabled": true,
-      "glows": [{ "kind": "wave", "parallax": 0.07, "style": "top:0; right:-12%;" }],
+      "glows": [
+        {
+          "kind": "wave",
+          "parallax": 0.07,
+          "style": "top:0; right:-12%;"
+        }
+      ],
       "data": {
         "kicker": "Über mich",
         "heading": "Hallo, schön dass du da bist!",
@@ -131,7 +161,6 @@
         ]
       }
     },
-
     {
       "id": "produkte",
       "type": "cards",
@@ -139,8 +168,16 @@
       "navLabel": "Produkte",
       "enabled": true,
       "glows": [
-        { "kind": "wave", "parallax": 0.08, "style": "top:-12%; right:-10%;" },
-        { "kind": "sun", "parallax": 0.06, "style": "bottom:-16%; left:-12%;" }
+        {
+          "kind": "wave",
+          "parallax": 0.08,
+          "style": "top:-12%; right:-10%;"
+        },
+        {
+          "kind": "sun",
+          "parallax": 0.06,
+          "style": "bottom:-16%; left:-12%;"
+        }
       ],
       "data": {
         "kicker": "Produkte",
@@ -180,17 +217,22 @@
         ]
       }
     },
-
     {
       "id": "kanal",
       "type": "channel",
       "title": "WhatsApp-Kanal",
       "enabled": true,
-      "glows": [{ "kind": "sun", "parallax": 0.06, "style": "top:-40%; right:-8%;" }],
+      "glows": [
+        {
+          "kind": "sun",
+          "parallax": 0.06,
+          "style": "top:-40%; right:-8%;"
+        }
+      ],
       "data": {
         "kicker": "WhatsApp-Kanal",
         "heading": "Angebote zuerst im Kanal",
-        "text": "Aktionen, Neuheiten und freie Party-Termine schicke ich dort zuerst raus –\nein Tipp und du bist dabei.",
+        "text": "Aktionen und Neuheiten schicke ich dort zuerst raus –\nein Tipp oder Scan und du bist dabei.",
         "points": [
           "Angebote als Erste:r erfahren",
           "Wenige Nachrichten im Monat",
@@ -204,7 +246,6 @@
         "qrAlt": "QR-Code zum WhatsApp-Kanal von Shine On You"
       }
     },
-
     {
       "id": "ablauf",
       "type": "flow",
@@ -212,8 +253,16 @@
       "navLabel": "Ablauf",
       "enabled": true,
       "glows": [
-        { "kind": "sun", "parallax": 0.07, "style": "top:6%; left:-14%;" },
-        { "kind": "wave", "parallax": 0.09, "style": "bottom:-10%; right:-12%;" }
+        {
+          "kind": "sun",
+          "parallax": 0.07,
+          "style": "top:6%; left:-14%;"
+        },
+        {
+          "kind": "wave",
+          "parallax": 0.09,
+          "style": "bottom:-10%; right:-12%;"
+        }
       ],
       "data": {
         "kicker": "So läuft's ab",
@@ -226,10 +275,26 @@
             "title": "Party bei dir zuhause",
             "text": "Du lädst ein, ich bringe die Produkte mit – ganz gemütlich.",
             "steps": [
-              { "icon": "calendar", "title": "Termin finden", "text": "Wunschtermin gemeinsam abstimmen." },
-              { "icon": "people", "title": "Gäste einladen", "text": "Freunde, Familie oder Nachbarn dazu holen." },
-              { "icon": "products", "title": "Gemütlich erleben", "text": "Zusammensitzen und die proWIN-Produkte live kennenlernen." },
-              { "icon": "gift", "title": "Bestellen & Prämie", "text": "Bestellen was dir zusagt – als Gastgeber:in Prämien sichern." }
+              {
+                "icon": "calendar",
+                "title": "Termin finden",
+                "text": "Wunschtermin gemeinsam abstimmen."
+              },
+              {
+                "icon": "people",
+                "title": "Gäste einladen",
+                "text": "Freunde, Familie oder Nachbarn dazu holen."
+              },
+              {
+                "icon": "products",
+                "title": "Gemütlich erleben",
+                "text": "Zusammensitzen und die proWIN-Produkte live kennenlernen."
+              },
+              {
+                "icon": "gift",
+                "title": "Bestellen & Prämie",
+                "text": "Bestellen was dir zusagt – als Gastgeber:in Prämien sichern."
+              }
             ]
           },
           {
@@ -238,10 +303,26 @@
             "title": "Party Online",
             "text": "Bequem von überall dabei – einfach per Link einwählen.",
             "steps": [
-              { "icon": "calendar", "title": "Termin finden", "text": "Wunschtermin gemeinsam abstimmen." },
-              { "icon": "devices", "title": "Einwählen", "text": "Per Handy, Tablet oder PC mit einem Klick dazu." },
-              { "icon": "play-screen", "title": "Live erleben", "text": "Bequem von überall die proWIN-Produkte live erleben." },
-              { "icon": "chat", "title": "Austausch & bestellen", "text": "Direkten Austausch genießen und bestellen." }
+              {
+                "icon": "calendar",
+                "title": "Termin finden",
+                "text": "Wunschtermin gemeinsam abstimmen."
+              },
+              {
+                "icon": "devices",
+                "title": "Einwählen",
+                "text": "Per Handy, Tablet oder PC mit einem Klick dazu."
+              },
+              {
+                "icon": "play-screen",
+                "title": "Live erleben",
+                "text": "Bequem von überall die proWIN-Produkte live erleben."
+              },
+              {
+                "icon": "chat",
+                "title": "Austausch & bestellen",
+                "text": "Direkten Austausch genießen und bestellen."
+              }
             ]
           }
         ],
@@ -266,17 +347,25 @@
             "contactReason": "Ich möchte proWIN Produkte erwerben"
           }
         },
-        "downLink": { "href": "#termin", "label": "Weiter zur Terminbuchung" }
+        "downLink": {
+          "href": "#termin",
+          "label": "Weiter zur Terminbuchung"
+        }
       }
     },
-
     {
       "id": "termin",
       "type": "booking",
       "title": "Termin",
       "navLabel": "Termin",
       "enabled": true,
-      "glows": [{ "kind": "wave", "parallax": 0.08, "style": "top:-10%; left:-10%;" }],
+      "glows": [
+        {
+          "kind": "wave",
+          "parallax": 0.08,
+          "style": "top:-10%; left:-10%;"
+        }
+      ],
       "data": {
         "kicker": "Termin",
         "heading": "Beratungstermin vereinbaren",
@@ -286,25 +375,37 @@
         "blocks": [
           {
             "title": "Telefonberatung",
-            "items": ["Dauer: ca. 30 Minuten", "Persönlich, per Telefon oder Video", "100 % unverbindlich"]
+            "items": [
+              "Dauer: ca. 30 Minuten",
+              "Persönlich, per Telefon oder Video",
+              "100 % unverbindlich"
+            ]
           },
           {
             "title": "proWINparty",
-            "items": ["Dauer: ca. 60 Minuten", "Persönlich oder Video"]
+            "items": [
+              "Dauer: ca. 60 Minuten",
+              "Persönlich oder Video"
+            ]
           }
         ],
         "consentButton": "Termin online buchen",
         "consentNote": "Öffnet den Kalender von Cal.com (EU-Region) – dabei wird eine Verbindung\nhergestellt. <a href=\"datenschutz.html\" external>Datenschutz</a>"
       }
     },
-
     {
       "id": "mitmachen",
       "type": "cards",
       "title": "Mitmachen",
       "navLabel": "Mitmachen",
       "enabled": true,
-      "glows": [{ "kind": "wave", "parallax": 0.07, "style": "top:-8%; left:-12%;" }],
+      "glows": [
+        {
+          "kind": "wave",
+          "parallax": 0.07,
+          "style": "top:-8%; left:-12%;"
+        }
+      ],
       "data": {
         "kicker": "Mitmachen",
         "heading": "Lust, selbst durchzustarten?",
@@ -335,22 +436,38 @@
         }
       }
     },
-
     {
       "id": "kontakt",
       "type": "contact",
       "title": "Kontakt",
       "navLabel": "Kontakt",
       "enabled": true,
-      "glows": [{ "kind": "sun", "parallax": 0.07, "style": "bottom:-14%; right:-10%;" }],
+      "glows": [
+        {
+          "kind": "sun",
+          "parallax": 0.07,
+          "style": "bottom:-14%; right:-10%;"
+        }
+      ],
       "data": {
         "kicker": "Kontakt",
         "heading": "Schreib mir – ich freue mich auf dich",
         "intro": "Du hast eine Frage oder möchtest direkt loslegen? Erreiche mich am besten so:",
         "links": [
-          { "kind": "email", "icon": "mail" },
-          { "kind": "phone", "icon": "mobile", "label": "Mobil" },
-          { "kind": "landline", "icon": "phone", "label": "Festnetz" },
+          {
+            "kind": "email",
+            "icon": "mail"
+          },
+          {
+            "kind": "phone",
+            "icon": "mobile",
+            "label": "Mobil"
+          },
+          {
+            "kind": "landline",
+            "icon": "phone",
+            "label": "Festnetz"
+          },
           {
             "kind": "url",
             "icon": "whatsapp",
@@ -384,7 +501,6 @@
       }
     }
   ],
-
   "footer": {
     "partnerText": "Offizielle Beraterin von",
     "partnerLogo": {
