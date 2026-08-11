@@ -213,6 +213,33 @@ export const SECTION_SCHEMA = {
     },
   },
 
+  channel: {
+    title: "WhatsApp-Kanal",
+    description: "Großer Hinweis-Kasten auf den Kanal – Symbol, Text, Vorteile und ein auffälliger Knopf.",
+    fields: [
+      { k: "kicker", label: "Kleine Überzeile", type: "text" },
+      { k: "heading", label: "Überschrift", type: "text" },
+      { k: "text", label: "Text", type: "rich", rows: 3 },
+      { k: "points", label: "Vorteile", type: "lines", rows: 4, note: "Ein Vorteil je Zeile – kurz halten, sie stehen nebeneinander." },
+      { k: "ctaLabel", label: "Beschriftung des Knopfs", type: "text" },
+      { k: "note", label: "Hinweis unter dem Knopf", type: "text" },
+      {
+        k: "qr",
+        label: "QR-Code zum Scannen zeigen",
+        type: "checkbox",
+        note: "Wird aus der Kanal-Adresse erzeugt. Am Handy ausgeblendet – dort führt der Knopf direkt hin.",
+      },
+      { k: "qrLabel", label: "Text unter dem QR-Code", type: "text" },
+      { k: "qrAlt", label: "Beschreibung des QR-Codes", type: "text", note: "Für Screenreader." },
+      {
+        k: "href",
+        label: "Abweichendes Ziel",
+        type: "text",
+        note: "Leer lassen – dann wird der Kanal aus den Kontaktdaten verwendet.",
+      },
+    ],
+  },
+
   booking: {
     title: "Terminbuchung",
     description: "Erklärtext, Leistungsübersicht und der Kalender von Cal.com.",
@@ -374,6 +401,7 @@ export const SETTINGS_PANELS = [
       { k: "logo", label: "Logo", type: "image" },
       { k: "brandLabel", label: "Beschriftung des Logo-Links", type: "text", note: "Für Screenreader." },
       { k: "channelLabel", label: "Beschriftung des WhatsApp-Symbols", type: "text" },
+      { k: "channelCta", label: "Beschriftung des Kanal-Knopfs im Menü", type: "text", note: "Steht im aufgeklappten Menü auf Handy und Tablet." },
       {
         k: "cta",
         label: "Button im Kopfbereich",
