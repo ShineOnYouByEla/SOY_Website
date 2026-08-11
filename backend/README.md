@@ -253,6 +253,11 @@ docker build -f backend/Dockerfile -t soy-admin:latest .
 # danach in Portainer: Stack → Update (Re-pull deaktiviert lassen)
 ```
 
+Wichtig: die Inhalte liest das Admin live aus GitHub, die Eingabemasken stecken
+dagegen im Image. Kommt ein neuer Sektionstyp dazu, muss das Backend also
+aktualisiert werden – sonst meldet der Bereich, dass die Oberfläche seinen Typ
+noch nicht kennt, und das Veröffentlichen scheitert an „unbekannter Typ".
+
 ---
 
 ## Einrichtung B: Cloudflare Worker
@@ -420,6 +425,7 @@ die Vorschau im Worker und `index.html` im Build.
 | „SETUP_TOKEN ist nicht gesetzt" | Die Stack-Variable `SETUP_TOKEN` fehlt im Container |
 | „Anfrage von einer fremden Herkunft wurde abgelehnt" | Die aufgerufene Adresse steht nicht in `ADMIN_ORIGIN`. Die Meldung nennt, was erlaubt wäre – fehlende Adresse dort ergänzen (Komma-getrennt) |
 | „content/site.json wurde in … nicht gefunden" | `GITHUB_BRANCH` zeigt auf einen Branch ohne die Datei. Auf den richtigen Branch stellen oder die Inhalte dorthin mergen |
+| „Diese Oberfläche kennt den Typ … noch nicht" bei einem Bereich | Das laufende Backend ist älter als die Inhalte: die Sektionen kommen live aus GitHub, die Eingabemasken stecken im Image. Neu bauen und den Container ersetzen – siehe A, „Aktualisieren" |
 | Einladungslink funktioniert nicht | Er gilt sieben Tage und genau einmal. Unter „Benutzer & Zugänge" eine neue Einladung erstellen |
 | Alle Zugänge gesperrt/verloren | Das letzte aktive Konto lässt sich nicht sperren. Hilft das nicht: `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` bzw. direkt in der SQLite-Datei löschen, `npm run setup` |
 | „Das Repository wurde zwischenzeitlich geändert" | Jemand hat parallel committet: Seite neu laden, erneut veröffentlichen |
