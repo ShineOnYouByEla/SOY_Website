@@ -919,6 +919,11 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
 .legal-main a { color: var(--wave); }
 .legal-main ul { padding-left: 20px; }
 .legal-main li { margin-bottom: 6px; }
+/* Speicher-/Schluesselnamen in der Datenschutzerklaerung dezent hervorheben. */
+.legal-main code {
+  font-size: .92em; color: var(--cream);
+  background: rgba(233,182,144,.12); border-radius: 5px; padding: 1px 6px;
+}
 .legal-updated { font-size: .85rem; color: #6e827f; }
 .legal-note {
   background: rgba(233,182,144,.12); border: 1px solid var(--sun);
