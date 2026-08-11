@@ -18,6 +18,7 @@ import {
   formatDate,
   input,
   select,
+  textarea,
   toast,
 } from "./ui.js";
 
@@ -363,6 +364,69 @@ function emptyDataFor(type) {
    Formularbereiche
    ============================================================ */
 
+/**
+ * Notbehelf für Bereiche, deren Typ diese Oberfläche nicht kennt.
+ *
+ * Der Grund ist fast immer derselbe: die Inhalte kommen live aus GitHub, die
+ * Oberfläche dagegen steckt im Docker-Image. Kommt ein neuer Sektionstyp
+ * dazu, kennt ein älteres Image ihn noch nicht. Früher stand hier nur „gibt
+ * es keine Bearbeitung“ – Name, Sichtbarkeit und Löschen waren damit
+ * ebenfalls blockiert. Jetzt bleibt der Rahmen bedienbar, und für den Notfall
+ * lassen sich die Rohdaten bearbeiten.
+ */
+function unknownTypeNotice(section) {
+  const hint = el("p", { class: "hint" });
+
+  const box = textarea(JSON.stringify(section.data ?? {}, null, 2), (value) => {
+    let parsed;
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      hint.textContent = "Noch kein gültiges JSON – die Eingabe wird nicht übernommen.";
+      return;
+    }
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      hint.textContent = "Die Inhalte eines Bereichs müssen ein Objekt sein, also mit { beginnen.";
+      return;
+    }
+    hint.textContent = "";
+    section.data = parsed;
+    markChanged();
+  }, { rows: 18, class: "raw-json", spellcheck: "false" });
+
+  return el(
+    "div",
+    { class: "group" },
+    el(
+      "div",
+      { class: "notice" },
+      el("strong", { text: `Diese Oberfläche kennt den Typ „${section.type}“ noch nicht.` }),
+      el("p", {
+        text:
+          "Die Inhalte werden live aus GitHub gelesen, die Eingabemasken stecken dagegen " +
+          "im Admin-Backend. Der Bereich ist also neuer als das laufende Backend. " +
+          "Sobald das Image aus dem aktuellen Stand neu gebaut und der Container ersetzt " +
+          "wurde, erscheint hier die passende Maske.",
+      }),
+      el("p", {
+        class: "field-note",
+        text: "Name, Navigation, Sichtbarkeit, Reihenfolge und Löschen funktionieren in der Zwischenzeit weiter.",
+      })
+    ),
+    el(
+      "details",
+      { class: "raw-details" },
+      el("summary", { text: "Rohdaten bearbeiten (nur im Notfall)" }),
+      el("p", {
+        class: "field-note",
+        text: "Die Inhalte des Bereichs als JSON. Wird nur übernommen, solange die Schreibweise gültig ist.",
+      }),
+      box,
+      hint
+    )
+  );
+}
+
 function openPanel(key) {
   state.panel = key;
   renderSidebar();
@@ -374,17 +438,13 @@ function openPanel(key) {
     const section = state.content.sections.find((s) => s.id === id);
     if (!section) return;
     const schema = SECTION_SCHEMA[section.type];
-    if (!schema) {
-      editor.append(el("p", { text: `Für den Typ „${section.type}“ gibt es keine Bearbeitung.` }));
-      return;
-    }
 
     editor.append(
       el(
         "div",
         { class: "editor-head" },
         el("h2", { text: section.title || section.id }),
-        el("p", { text: schema.description })
+        el("p", { text: schema ? schema.description : `Bereich vom Typ „${section.type}“.` })
       )
     );
 
@@ -400,13 +460,17 @@ function openPanel(key) {
       })
     );
 
-    /* Die eigentlichen Inhalte – ueber die Umwandlung des Schemas. */
-    const formData = schema.toForm ? schema.toForm(section.data || {}) : { ...(section.data || {}) };
-    const commit = () => {
-      section.data = schema.fromForm ? schema.fromForm(formData) : formData;
-      markChanged();
-    };
-    editor.append(...renderFields(schema.fields, formData, commit));
+    if (schema) {
+      /* Die eigentlichen Inhalte – ueber die Umwandlung des Schemas. */
+      const formData = schema.toForm ? schema.toForm(section.data || {}) : { ...(section.data || {}) };
+      const commit = () => {
+        section.data = schema.fromForm ? schema.fromForm(formData) : formData;
+        markChanged();
+      };
+      editor.append(...renderFields(schema.fields, formData, commit));
+    } else {
+      editor.append(unknownTypeNotice(section));
+    }
 
     if (section.type !== "hero") {
       editor.append(
