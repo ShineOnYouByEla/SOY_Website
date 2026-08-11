@@ -92,8 +92,13 @@ export async function listDirectory(env, path) {
 }
 
 /**
- * Mehrere Dateien in einem Commit schreiben.
- * @param {Array<{path: string, content: string, encoding?: "utf-8"|"base64"}>} files
+ * Mehrere Dateien in einem Commit schreiben, verschieben oder loeschen.
+ * Pro Eintrag genau eine der drei Formen:
+ *   { path, content, encoding }  neue oder geaenderte Datei
+ *   { path, sha }                vorhandenen Inhalt an diesen Pfad legen
+ *                                (Umbenennen, ohne die Datei erneut zu laden)
+ *   { path, remove: true }       Datei entfernen
+ * @param {Array<{path: string, content?: string, encoding?: "utf-8"|"base64", sha?: string, remove?: boolean}>} files
  * @param {{message: string, author?: {name: string, email: string}, expectedHead?: string}} opts
  */
 export async function commitFiles(env, files, opts) {
@@ -112,9 +117,18 @@ export async function commitFiles(env, files, opts) {
 
   const headCommit = await gh(env, `/repos/${repo}/git/commits/${headSha}`);
 
-  // Fuer jede Datei erst einen Blob anlegen …
+  // Fuer jede neue Datei erst einen Blob anlegen …
   const blobs = [];
   for (const file of files) {
+    if (file.remove) {
+      // sha: null im Baum bedeutet "Pfad entfernen".
+      blobs.push({ path: file.path, mode: "100644", type: "blob", sha: null });
+      continue;
+    }
+    if (file.sha) {
+      blobs.push({ path: file.path, mode: "100644", type: "blob", sha: file.sha });
+      continue;
+    }
     const encoding = file.encoding || "utf-8";
     const blob = await gh(env, `/repos/${repo}/git/blobs`, {
       method: "POST",
@@ -146,23 +160,6 @@ export async function commitFiles(env, files, opts) {
   });
 
   return { sha: commit.sha, url: commit.html_url || `https://github.com/${repo}/commit/${commit.sha}` };
-}
-
-/** Dateien loeschen (eigener Commit je Aufruf). */
-export async function deleteFile(env, path, message, author) {
-  const existing = await gh(
-    env,
-    `/repos/${env.GITHUB_REPO}/contents/${encodeURI(path)}?ref=${encodeURIComponent(env.GITHUB_BRANCH)}`
-  );
-  return gh(env, `/repos/${env.GITHUB_REPO}/contents/${encodeURI(path)}`, {
-    method: "DELETE",
-    body: JSON.stringify({
-      message,
-      sha: existing.sha,
-      branch: env.GITHUB_BRANCH,
-      ...(author ? { author } : {}),
-    }),
-  });
 }
 
 /** Letzte Commits, die content/site.json beruehrt haben. */

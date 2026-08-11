@@ -1004,6 +1004,8 @@ async function auditDialog() {
     publish: "Veröffentlicht",
     draft_discarded: "Entwurf verworfen",
     katalog_upload: "Katalog hochgeladen",
+    katalog_update: "Katalog geändert",
+    katalog_order: "Katalog-Reihenfolge geändert",
     katalog_delete: "Katalog gelöscht",
     setup: "Ersteinrichtung",
     invite_created: "Einladung erstellt",
