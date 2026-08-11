@@ -10,9 +10,11 @@ import {
   katalogPath,
   mediaPath,
   previewHtml,
+  publishFiles,
   renderOrThrow,
   validateContent,
 } from "../src/content.js";
+import { renderConfigJs, renderPage } from "../../shared/render.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const live = () => JSON.parse(readFileSync(join(root, "content", "site.json"), "utf8"));
@@ -115,6 +117,24 @@ test("renderOrThrow erzeugt eine vollständige Seite", () => {
   assert.ok(configJs.includes("window.SOY_CONFIG"));
   /* Der QR-Code des Kanals steckt als Inline-SVG in der Seite. */
   assert.ok(html.includes('class="channel-qr-code"'));
+});
+
+test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
+  const content = live();
+  const files = publishFiles(content);
+  assert.deepEqual(
+    files.map((f) => f.path),
+    ["content/site.json", "index.html", "js/config.js"]
+  );
+
+  // Byte-gleich mit dem, was scripts/build-site.mjs schreibt. Weicht es ab,
+  // meldet die CI nach jeder Veröffentlichung „Gebaute Dateien sind aktuell"
+  // als Fehler.
+  const byPath = Object.fromEntries(files.map((f) => [f.path, f.content]));
+  assert.equal(byPath["index.html"], renderPage(content));
+  assert.equal(byPath["js/config.js"], renderConfigJs(content));
+  assert.deepEqual(JSON.parse(byPath["content/site.json"]), content);
+  assert.ok(files.every((f) => f.encoding === "utf-8"));
 });
 
 test("Ausgeblendete Bereiche verschwinden samt Navigationspunkt", () => {

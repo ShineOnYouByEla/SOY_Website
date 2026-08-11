@@ -53,7 +53,7 @@ import {
   katalogPath,
   mediaPath,
   previewHtml,
-  renderOrThrow,
+  publishFiles,
   validateContent,
 } from "./content.js";
 
@@ -627,19 +627,13 @@ app.post("/api/content/publish", async (c) => {
     if (source !== "draft") return fail(c, 400, "Es gibt keine ungespeicherten Änderungen zum Veröffentlichen.");
 
     assertValid(content);
-    // Der Renderer muss durchlaufen, bevor irgendetwas committet wird.
-    renderOrThrow(content);
 
     const body = await c.req.json().catch(() => ({}));
     const note = String(body.message || "").trim().slice(0, 120);
 
-    const files = [
-      {
-        path: "content/site.json",
-        content: JSON.stringify(content, null, 2) + "\n",
-        encoding: "utf-8",
-      },
-    ];
+    // site.json plus das daraus erzeugte index.html und js/config.js. Der
+    // Renderer laeuft dabei durch, bevor irgendetwas committet wird.
+    const files = publishFiles(content);
 
     // Bilder aus dem Entwurf gehen im selben Commit mit raus.
     const pending = await c.env.DB.prepare("SELECT path, data_base64 FROM pending_media").all();
