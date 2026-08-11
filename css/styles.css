@@ -573,10 +573,14 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   font-size: clamp(1.6rem, 3vw, 2.1rem);
 }
 .channel-banner-text { margin: 0; color: var(--cream-dim); }
+/* Zwei Spalten erst, wenn der Kasten breit genug ist – sonst umbricht jeder
+   Vorteil und die Liste wird unruhig. */
 .channel-points {
   list-style: none; padding: 0; margin: 16px 0 0;
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 22px;
+  display: grid; grid-template-columns: 1fr; gap: 8px 22px;
+}
+@media (min-width: 1001px) {
+  .channel-points { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .channel-points li {
   position: relative; padding-left: 26px;
@@ -589,6 +593,16 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   transform: rotate(-45deg);
 }
 .channel-banner-action { text-align: center; }
+/* QR-Code: nur am Rechner sinnvoll – am Handy führt der Knopf direkt hin. */
+.channel-qr { margin: 0 0 16px; }
+.channel-qr-code {
+  display: block; width: 132px; height: 132px; margin: 0 auto;
+  border-radius: 10px;
+  border: 1px solid rgba(233, 182, 144, .45);
+}
+.channel-qr figcaption {
+  margin-top: 8px; font-size: .82rem; color: var(--cream-dim);
+}
 .channel-cta { font-size: 1.06rem; padding: .95em 1.9em; }
 .channel-cta svg { flex: none; }
 .channel-banner-note {
@@ -608,12 +622,10 @@ h3 { font-size: 1.2rem; font-weight: 600; }
     grid-template-columns: 1fr;
     justify-items: center; text-align: center;
   }
-  .channel-points {
-    grid-template-columns: 1fr;
-    justify-content: center; text-align: left;
-  }
+  .channel-points { justify-content: center; text-align: left; }
   .channel-banner-action { width: 100%; }
   .channel-cta { width: 100%; }
+  .channel-qr { display: none; }
 }
 
 /* ===== Cards ===== */

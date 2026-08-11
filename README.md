@@ -28,6 +28,7 @@ python3 -m http.server 8000
 ├── content/site.json # ALLE Inhalte: Texte, Kontaktdaten, Bilder, Sektionen
 ├── shared/render.mjs # erzeugt daraus das HTML (läuft in Node und im Worker)
 ├── shared/icons.mjs  # die Inline-SVGs unter sprechenden Namen
+├── shared/qrcode.mjs # erzeugt den QR-Code zum WhatsApp-Kanal (ohne fremden Dienst)
 ├── scripts/          # Build-Skripte und Qualitätsprüfungen
 ├── backend/          # Admin-Backend (Cloudflare Worker) – siehe backend/README.md
 ├── index.html        # ERZEUGT aus content/site.json – nicht von Hand ändern

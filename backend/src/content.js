@@ -9,7 +9,7 @@
 import { ICONS } from "../../shared/icons.mjs";
 import { renderPage, renderConfigJs } from "../../shared/render.mjs";
 
-const SECTION_TYPES = new Set(["hero", "about", "cards", "flow", "booking", "contact"]);
+const SECTION_TYPES = new Set(["hero", "about", "cards", "flow", "channel", "booking", "contact"]);
 const MAX_CONTENT_BYTES = 512 * 1024;
 
 /* Bilder duerfen nur hierhin. Verhindert, dass ueber einen praeparierten
@@ -174,6 +174,14 @@ export function validateContent(content) {
           (b?.steps || []).forEach((st, j) => checkIcon(st?.icon, `${where}, Ablauf ${k + 1}, Schritt ${j + 1}`, errors));
         });
         if (d.perks) checkIcon(d.perks.icon, `${where}, Prämien`, errors);
+      }
+
+      if (s.type === "channel") {
+        /* Das Ziel landet auch im QR-Code – ein kaputter Link faellt dort
+           niemandem auf, bis jemand vergeblich scannt. */
+        if (isStr(d.href) && d.href.trim() && !/^https?:\/\//i.test(d.href)) {
+          errors.push(`${where}: der Link muss mit http:// oder https:// beginnen.`);
+        }
       }
 
       if (s.type === "contact") {

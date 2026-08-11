@@ -8,6 +8,7 @@
    ============================================================ */
 
 import { icon } from "./icons.mjs";
+import { qrSvg } from "./qrcode.mjs";
 
 /* ---------- Text- und HTML-Helfer ---------- */
 
@@ -346,6 +347,22 @@ const SECTIONS = {
       "</a>",
     ]);
 
+    /* QR-Code zum Abscannen mit dem Handy. Er wird beim Bauen aus der
+       Kanal-Adresse erzeugt – kein externer Dienst, kein Bild im Repo.
+       Auf schmalen Bildschirmen blendet das CSS ihn aus: wer die Seite
+       schon am Handy liest, tippt den Knopf. */
+    const svg = d.qr === false ? "" : qrSvg(href, {
+      attrs: `class="channel-qr-code" role="img" aria-label="${esc(d.qrAlt || "QR-Code zum WhatsApp-Kanal")}"`,
+    });
+    const qr = svg
+      ? join([
+          '<figure class="channel-qr">',
+          "  " + svg,
+          `  <figcaption>${esc(d.qrLabel || "Mit der Handykamera scannen")}</figcaption>`,
+          "</figure>",
+        ])
+      : "";
+
     return join([
       '<div class="container">',
       '  <div class="channel-banner">',
@@ -361,6 +378,7 @@ const SECTIONS = {
       "    </div>",
       "",
       '    <div class="channel-banner-action">',
+      qr ? indent(qr, 6) : "",
       indent(cta, 6),
       d.note ? `      <p class="channel-banner-note">${rich(d.note)}</p>` : "",
       "    </div>",

@@ -93,6 +93,12 @@ test("Bilder von fremden Servern werden abgelehnt", () => {
   assert.ok(validateContent(content).some((e) => e.includes("aus dem Projekt")));
 });
 
+test("Ein Kanal-Link ohne http(s) fällt auf", () => {
+  const content = live();
+  content.sections.find((s) => s.type === "channel").data.href = "whatsapp.com/channel/abc";
+  assert.ok(validateContent(content).some((e) => e.includes("http")));
+});
+
 test("Alle Sektionen ausgeblendet ist nicht erlaubt", () => {
   const content = live();
   content.sections.forEach((s) => (s.enabled = false));
@@ -107,6 +113,8 @@ test("renderOrThrow erzeugt eine vollständige Seite", () => {
   assert.ok(html.includes("</html>"));
   assert.ok(html.includes("Natürlich sauber."));
   assert.ok(configJs.includes("window.SOY_CONFIG"));
+  /* Der QR-Code des Kanals steckt als Inline-SVG in der Seite. */
+  assert.ok(html.includes('class="channel-qr-code"'));
 });
 
 test("Ausgeblendete Bereiche verschwinden samt Navigationspunkt", () => {
