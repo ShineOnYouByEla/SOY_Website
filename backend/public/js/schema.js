@@ -224,6 +224,14 @@ export const SECTION_SCHEMA = {
       { k: "ctaLabel", label: "Beschriftung des Knopfs", type: "text" },
       { k: "note", label: "Hinweis unter dem Knopf", type: "text" },
       {
+        k: "qr",
+        label: "QR-Code zum Scannen zeigen",
+        type: "checkbox",
+        note: "Wird aus der Kanal-Adresse erzeugt. Am Handy ausgeblendet – dort führt der Knopf direkt hin.",
+      },
+      { k: "qrLabel", label: "Text unter dem QR-Code", type: "text" },
+      { k: "qrAlt", label: "Beschreibung des QR-Codes", type: "text", note: "Für Screenreader." },
+      {
         k: "href",
         label: "Abweichendes Ziel",
         type: "text",

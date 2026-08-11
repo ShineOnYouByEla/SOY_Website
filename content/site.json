@@ -198,7 +198,10 @@
           "Jederzeit abbestellbar"
         ],
         "ctaLabel": "Kanal jetzt folgen",
-        "note": "Kostenlos · öffnet WhatsApp"
+        "note": "Kostenlos · öffnet WhatsApp",
+        "qr": true,
+        "qrLabel": "Oder mit der Handykamera scannen",
+        "qrAlt": "QR-Code zum WhatsApp-Kanal von Shine On You"
       }
     },
 
