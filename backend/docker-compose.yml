@@ -1,0 +1,91 @@
+# ============================================================
+# Shine On You — Admin-Backend
+#
+# WICHTIG: Dieser Stack baut das Image NICHT. Ein Portainer-Stack
+# aus dem Web-Editor liegt unter /data/compose/<id>/ und hat keinen
+# Quellcode neben sich – ein build:-Block schlägt dort zwangsläufig
+# fehl ("lstat /data/compose/backend: no such file or directory").
+#
+# Deshalb vorher auf s-lx04-docker einmal bauen:
+#
+#   git clone https://github.com/ShineOnYouByEla/SOY_Website.git
+#   cd SOY_Website
+#   docker build -f backend/Dockerfile -t soy-admin:latest .
+#
+# Der Build-Kontext ist das Repo-Wurzelverzeichnis (der Punkt am
+# Ende), nicht backend/ – der Renderer unter shared/ muss mit ins
+# Image. Erst danach diesen Stack deployen.
+#
+# Alternative ohne manuelles Bauen: Portainer-Stack vom Typ
+# "Repository" anlegen, Compose-Pfad backend/docker-compose.build.yml.
+# Portainer klont dann selbst und baut mit.
+# ============================================================
+
+services:
+  soy-admin:
+    image: soy-admin:latest
+    container_name: s-lx04-soy-admin
+    environment:
+      - TZ=Europe/Berlin
+
+      # Adresse(n), unter denen das Admin aufgerufen wird – MIT Schema und Port.
+      # Mehrere durch Komma trennen: im Heimnetz ist dasselbe Backend meist
+      # sowohl per IP als auch per DNS-Name erreichbar, und beide Wege sollen
+      # funktionieren. Was hier nicht steht, lehnt der CSRF-Schutz ab.
+      - ADMIN_ORIGIN=http://admin.shineonyou.de,http://192.168.178.13
+
+      # Ohne TLS im Heimnetz: das Secure-Flag am Cookie muss weg.
+      - COOKIE_SECURE=false
+
+      # Port im Container. 80 spart das ":8080" beim Aufrufen – der Container
+      # hat auf macvlan eine eigene IP, der Port ist also frei. Das Image bringt
+      # die nötige Berechtigung mit (setcap auf der node-Binary), es läuft
+      # trotzdem als normaler Nutzer.
+      - PORT=80
+
+      - GITHUB_REPO=ShineOnYouByEla/SOY_Website
+      # Branch, aus dem gelesen und in den veröffentlicht wird. content/site.json
+      # muss dort liegen – sonst meldet das Admin, die Datei sei nicht zu finden.
+      - GITHUB_BRANCH=main
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - SITE_URL=https://shineonyou.de
+      - PBKDF2_ITERATIONS=600000
+
+      # Nur für die Ersteinrichtung auf true, danach zurückstellen.
+      - SETUP_ENABLED=false
+      - SETUP_TOKEN=${SETUP_TOKEN}
+
+    # Falls Port 80 auf diesem Host trotzdem scheitern sollte (manche
+    # Storage-Treiber verlieren Datei-Capabilities), hilft stattdessen:
+    # sysctls:
+    #   - net.ipv4.ip_unprivileged_port_start=0
+
+    volumes:
+      - soy-admin-data:/data
+    networks:
+      FritzNetz:
+        ipv4_address: 192.168.178.13
+        mac_address: 3A:42:5B:0D:11:13
+    hostname: s-lx04-soy
+    domainname: fritz.box
+    dns:
+      - 192.168.178.254
+    healthcheck:
+      # Shell-Form, damit ein geändertes PORT auch hier greift.
+      test: ["CMD-SHELL", "wget -qO- \"http://127.0.0.1:${PORT:-80}/api/ping\" >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: always
+    # Kein Watchtower-Label: das Image wird selbst gebaut,
+    # es gibt also nichts zu ziehen.
+
+volumes:
+  # Vorher anlegen:  docker volume create soy-admin-data
+  soy-admin-data:
+    external: true
+
+networks:
+  FritzNetz:
+    external: true
