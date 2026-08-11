@@ -159,6 +159,17 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   color: var(--sun); border-color: var(--sun);
   background: rgba(233, 182, 144, .08); transform: translateY(-1px);
 }
+/* Der Kanal-Knopf ist gefuellt – er soll im Kopf sofort ins Auge fallen. */
+.header-channel-wa {
+  width: 44px; height: 44px;
+  background: var(--sun); color: var(--btn-ink); border-color: transparent;
+  box-shadow: 0 10px 20px -12px rgba(233, 182, 144, .9);
+}
+.header-channel-wa svg { width: 24px; height: 24px; }
+.header-channel-wa:hover,
+.header-channel-wa.is-hinted {
+  background: var(--sun-deep); color: var(--btn-ink); border-color: transparent;
+}
 
 /* ===== Hinweis auf den WhatsApp-Kanal =====
    Kleine Sprechblase, die beim ersten Besuch kurz nach dem Laden unter dem
@@ -379,6 +390,9 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 .mobile-nav a { color: var(--cream); font-family: var(--font-head); padding: 10px 0; }
 .mobile-nav a.btn { color: var(--btn-ink); text-align: center; margin-top: 8px; }
 .mobile-nav.open { display: flex; }
+/* Kanal-Knopf im aufgeklappten Menue – mit Beschriftung statt nur Symbol */
+.mobile-nav a.mobile-channel { color: var(--btn-ink-wave); gap: .6em; }
+.mobile-channel svg { flex: none; }
 
 /* ===== Hero ===== */
 .hero {
@@ -520,6 +534,87 @@ h3 { font-size: 1.2rem; font-weight: 600; }
           mask: radial-gradient(circle, transparent 4px, #000 5px);
 }
 .checklist.small li { margin-bottom: 8px; font-size: .96rem; color: var(--cream-dim); }
+
+/* ===== WhatsApp-Kanal – Banner mitten auf der Seite =====
+   Bewusst gross und kontrastreich: der Kanal ist der schnellste Draht
+   zu Angeboten und soll beim Scrollen nicht zu uebersehen sein. */
+.channel-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(20px, 3vw, 38px);
+  padding: clamp(26px, 4vw, 44px);
+  border-radius: calc(var(--radius) + 8px);
+  background:
+    radial-gradient(130% 150% at 0% 0%, rgba(233, 182, 144, .18), transparent 58%),
+    var(--petrol-card);
+  border: 1px solid rgba(233, 182, 144, .5);
+  box-shadow: var(--shadow);
+}
+.channel-banner-badge {
+  position: relative;
+  flex: none; width: 88px; height: 88px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(140deg, var(--sun), var(--sun-deep));
+  color: var(--btn-ink);
+  box-shadow: 0 16px 30px -14px rgba(233, 182, 144, .9);
+}
+/* Ruhiger Puls, damit das Symbol den Blick fängt */
+.channel-banner-badge::after {
+  content: "";
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1.5px solid var(--sun);
+  animation: channel-pulse 2.6s ease-out infinite;
+  pointer-events: none;
+}
+.channel-banner-body { position: relative; }
+.channel-banner-body h2 {
+  margin-bottom: .35em;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+}
+.channel-banner-text { margin: 0; color: var(--cream-dim); }
+.channel-points {
+  list-style: none; padding: 0; margin: 16px 0 0;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 22px;
+}
+.channel-points li {
+  position: relative; padding-left: 26px;
+  font-size: .96rem; color: var(--cream);
+}
+.channel-points li::before {
+  content: ""; position: absolute; left: 0; top: .52em;
+  width: 14px; height: 8px;
+  border-left: 2px solid var(--sun); border-bottom: 2px solid var(--sun);
+  transform: rotate(-45deg);
+}
+.channel-banner-action { text-align: center; }
+.channel-cta { font-size: 1.06rem; padding: .95em 1.9em; }
+.channel-cta svg { flex: none; }
+.channel-banner-note {
+  margin: 10px 0 0; font-size: .86rem; color: var(--cream-dim);
+}
+
+:root[data-theme="light"] .channel-banner {
+  background:
+    radial-gradient(130% 150% at 0% 0%, rgba(180, 95, 22, .1), transparent 58%),
+    var(--petrol-card);
+  border-color: rgba(180, 95, 22, .4);
+}
+:root[data-theme="light"] .channel-banner-badge { box-shadow: 0 14px 26px -14px rgba(180, 95, 22, .8); }
+
+@media (max-width: 860px) {
+  .channel-banner {
+    grid-template-columns: 1fr;
+    justify-items: center; text-align: center;
+  }
+  .channel-points {
+    grid-template-columns: 1fr;
+    justify-content: center; text-align: left;
+  }
+  .channel-banner-action { width: 100%; }
+  .channel-cta { width: 100%; }
+}
 
 /* ===== Cards ===== */
 .cards {
@@ -861,6 +956,7 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
   .channel-tip { opacity: 0; transform: none; }
   .channel-tip.open { opacity: 1; transform: none; animation: none; }
   .header-channel.is-hinted::after { animation: none; }
+  .channel-banner-badge::after { animation: none; }
 }
 
 /* ===== Layout-Optionen aus dem Admin =====

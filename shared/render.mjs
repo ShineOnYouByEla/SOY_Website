@@ -324,6 +324,51 @@ const SECTIONS = {
     ]);
   },
 
+  /* ---- Grosser Hinweis auf den WhatsApp-Kanal ---- */
+  channel(s, content) {
+    const d = s.data || {};
+    /* Ziel kommt aus den Kontaktdaten – ein eigener Link uebersteuert das. */
+    const href = d.href || content.contact?.whatsappChannel || "";
+    if (!href) return "";
+
+    const points = (d.points || []).length
+      ? join([
+          '<ul class="channel-points">',
+          ...(d.points || []).map((p) => `  <li>${rich(p)}</li>`),
+          "</ul>",
+        ])
+      : "";
+
+    const cta = join([
+      `<a href="${esc(href)}" class="btn btn-sun channel-cta" target="_blank" rel="noopener">`,
+      "  " + icon("whatsapp", { size: 22 }),
+      `  <span>${esc(d.ctaLabel || "Kanal abonnieren")}</span>`,
+      "</a>",
+    ]);
+
+    return join([
+      '<div class="container">',
+      '  <div class="channel-banner">',
+      '    <span class="channel-banner-badge" aria-hidden="true">',
+      "      " + icon("whatsapp", { size: 46 }),
+      "    </span>",
+      "",
+      '    <div class="channel-banner-body">',
+      d.kicker ? `      <p class="section-kicker">${esc(d.kicker)}</p>` : "",
+      d.heading ? `      <h2>${rich(d.heading)}</h2>` : "",
+      d.text ? `      <p class="channel-banner-text">\n${indent(rich(d.text), 8)}\n      </p>` : "",
+      points ? indent(points, 6) : "",
+      "    </div>",
+      "",
+      '    <div class="channel-banner-action">',
+      indent(cta, 6),
+      d.note ? `      <p class="channel-banner-note">${rich(d.note)}</p>` : "",
+      "    </div>",
+      "  </div>",
+      "</div>",
+    ]);
+  },
+
   /* ---- Terminbuchung ---- */
   booking(s, content) {
     const d = s.data || {};
@@ -641,9 +686,19 @@ function renderHeader(content) {
 
   const channel = c.whatsappChannel
     ? join([
-        `<a class="header-channel" href="${esc(c.whatsappChannel)}" target="_blank" rel="noopener"` +
+        `<a class="header-channel header-channel-wa" href="${esc(c.whatsappChannel)}" target="_blank" rel="noopener"` +
           ` aria-label="${esc(h.channelLabel || "WhatsApp-Kanal folgen")}">`,
         "  " + icon("whatsapp"),
+        "</a>",
+      ])
+    : "";
+
+  /* Im aufgeklappten Menue bekommt der Kanal einen eigenen, beschrifteten Knopf. */
+  const mobileChannel = c.whatsappChannel
+    ? join([
+        `<a class="btn btn-wave mobile-channel" href="${esc(c.whatsappChannel)}" target="_blank" rel="noopener">`,
+        "  " + icon("whatsapp", { size: 20 }),
+        `  <span>${esc(h.channelCta || h.channelLabel || "WhatsApp-Kanal folgen")}</span>`,
         "</a>",
       ])
     : "";
@@ -687,6 +742,7 @@ function renderHeader(content) {
     '  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile Navigation">',
     indent(navLinks.join("\n"), 4),
     h.cta ? "    " + renderAction(h.cta) : "",
+    mobileChannel ? indent(mobileChannel, 4) : "",
     "  </nav>",
     "</header>",
   ]);

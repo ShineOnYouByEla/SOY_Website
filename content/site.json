@@ -70,6 +70,7 @@
   "header": {
     "brandLabel": "Shine On You – Startseite",
     "channelLabel": "WhatsApp-Kanal folgen – aktuellste Angebote",
+    "channelCta": "WhatsApp-Kanal folgen",
     "logo": {
       "src": "assets/img/wordmark.webp",
       "alt": "Shine On You",
@@ -177,6 +178,27 @@
             "text": "Lerne die Produkte in einem live Event zuhause oder Online kennen."
           }
         ]
+      }
+    },
+
+    {
+      "id": "kanal",
+      "type": "channel",
+      "title": "WhatsApp-Kanal",
+      "enabled": true,
+      "glows": [{ "kind": "sun", "parallax": 0.06, "style": "top:-40%; right:-8%;" }],
+      "data": {
+        "kicker": "WhatsApp-Kanal",
+        "heading": "Angebote zuerst im Kanal",
+        "text": "Aktionen, Neuheiten und freie Party-Termine schicke ich dort zuerst raus –\nein Tipp und du bist dabei.",
+        "points": [
+          "Angebote als Erste:r erfahren",
+          "Wenige Nachrichten im Monat",
+          "Niemand sieht deine Nummer",
+          "Jederzeit abbestellbar"
+        ],
+        "ctaLabel": "Kanal jetzt folgen",
+        "note": "Kostenlos · öffnet WhatsApp"
       }
     },
 
