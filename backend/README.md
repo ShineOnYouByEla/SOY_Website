@@ -336,7 +336,7 @@ und neu deployen.
 | Bereich aus-/einblenden | Auge-Symbol in der Seitenleiste |
 | Reihenfolge ändern | Bereich am Griff `⠿` nach oben oder unten ziehen |
 | Bild tauschen | Im Bildfeld auf „Bild wählen" – wird beim Hochladen automatisch verkleinert |
-| Katalog-PDF verwalten | Seitenleiste unten unter „Dateien" |
+| Katalog-PDF verwalten | Seitenleiste unten unter „Dateien" → „Kataloge (PDF)" |
 | Änderungen sichern | „Speichern" (passiert auch automatisch) |
 | Änderungen zurücknehmen | „Verwerfen" – setzt auf den veröffentlichten Stand zurück |
 | Live schalten | „Veröffentlichen" |
@@ -348,10 +348,34 @@ unschädlich gemacht – auch dann, wenn der Zugang kompromittiert wäre.
 **Kataloge sind die Ausnahme:** PDF-Uploads gehen sofort live, weil sie nicht
 zum Seitenentwurf gehören.
 
+### Kataloge (PDF)
+
+Unter „Dateien → Kataloge (PDF)" liegt die vollständige Verwaltung:
+
+| Aufgabe | Wirkung |
+|---|---|
+| Hochladen | PDF landet in `kataloge/`, optional gleich mit Anzeigename |
+| Umbenennen | Anzeigename und/oder Dateiname – beides in einem Commit |
+| `↑` / `↓` | Reihenfolge auf der Katalogseite |
+| Aus-/Einblenden | Katalog verschwindet von der Seite, die PDF bleibt liegen |
+| Löschen | PDF **und** ihr Eintrag in `titel.json` verschwinden zusammen |
+
+Die Liste selbst (`kataloge/manifest.json`) schreibt das Admin bewusst
+**nicht** – sie entsteht beim Deploy aus den vorhandenen PDFs und
+`kataloge/titel.json` (`scripts/build-katalog-manifest.mjs`). Das Admin
+pflegt also nur diese beiden Dinge und benutzt für die Anzeige dieselbe
+Logik wie der Build (`shared/kataloge.mjs`) – was im Admin steht, steht
+danach auch auf der Seite. Mehr dazu in [`kataloge/README.md`](../kataloge/README.md).
+
+Der Anzeigename hängt am Dateinamen, die `id` für Direktlinks
+(`katalog.html?katalog=<id>`) ebenfalls. Anzeigename und Reihenfolge zu
+ändern lässt geteilte Links deshalb unberührt – die Datei umzubenennen
+nicht; davor warnt das Admin.
+
 ## Entwicklung
 
 ```bash
-npm test          # 37 Tests: TOTP, Passwort-Hashing, Inhaltsprüfung, Rendern
+npm test          # 74 Tests: TOTP, Passwort-Hashing, Inhaltsprüfung, Rendern, Kataloge
 ```
 
 **Node-Variante lokal** (ab Node 22.13 ohne Flag; auf Node 22 gibt es noch

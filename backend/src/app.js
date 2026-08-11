@@ -46,6 +46,7 @@ import {
 } from "./totp.js";
 import * as gh from "./github.js";
 import { iconChoices } from "../../shared/icons.mjs";
+import { TITEL_DATEI, baueKataloge, katalogBase, serialisiereEintraege } from "../../shared/kataloge.mjs";
 import {
   ValidationError,
   assertValid,
@@ -772,29 +773,86 @@ app.delete("/api/media/pending/:path{.+}", async (c) => {
    ------------------------------------------------------------
    Anders als Bilder gehen PDFs sofort ins Repository: sie sind zu
    gross fuer den Entwurf und haengen nicht an der Seitenstruktur.
+
+   Die Katalogliste selbst (kataloge/manifest.json) wird nicht hier
+   geschrieben, sondern beim Deploy aus den vorhandenen PDFs und
+   kataloge/titel.json erzeugt. Das Admin pflegt deshalb nur die
+   Dateien und titel.json — und benutzt dafuer dieselbe Logik wie
+   das Build-Skript (shared/kataloge.mjs), damit die Anzeige hier
+   der spaeteren Live-Seite entspricht.
    ============================================================ */
+
+const KATALOG_PREFIX = "kataloge/";
+const MAX_TITEL_LAENGE = 120;
+
+/** Ordnerinhalt und titel.json einlesen und zur fertigen Liste verbinden. */
+async function katalogStand(env) {
+  const [dateien, titelDatei] = await Promise.all([
+    gh.listDirectory(env, "kataloge"),
+    gh.getFile(env, TITEL_DATEI).catch(() => null),
+  ]);
+
+  let overrides = {};
+  if (titelDatei) {
+    try {
+      overrides = JSON.parse(new TextDecoder().decode(titelDatei.bytes)) || {};
+    } catch {
+      overrides = {};
+    }
+  }
+
+  const meta = new Map(dateien.map((f) => [f.name, f]));
+  const eintraege = baueKataloge(
+    dateien.map((f) => f.name),
+    overrides
+  ).map((e) => ({ ...e, size: meta.get(e.name)?.size ?? 0, sha: meta.get(e.name)?.sha || null }));
+
+  return { eintraege, overrides };
+}
+
+/**
+ * titel.json aus der Liste neu schreiben. Nebenbei verschwinden Eintraege
+ * zu Dateien, die es nicht mehr gibt — sonst sammeln sich dort Leichen an.
+ */
+function titelDateiEintrag(eintraege) {
+  return {
+    path: TITEL_DATEI,
+    content: JSON.stringify(serialisiereEintraege(eintraege), null, 2) + "\n",
+    encoding: "utf-8",
+  };
+}
+
+/** Ein einzelner Katalog anhand seines Dateinamens. */
+function findeKatalog(eintraege, name) {
+  const gesucht = String(name || "")
+    .split(/[\\/]/)
+    .pop();
+  return eintraege.find((e) => e.name === gesucht) || null;
+}
 
 app.get("/api/kataloge", async (c) => {
   const guard = await requireUser(c);
   if (guard) return guard;
 
-  const files = await gh.listDirectory(c.env, "kataloge");
-  const titles = await gh.getFile(c.env, "kataloge/titel.json").catch(() => null);
-  let titleMap = {};
-  if (titles) {
-    try {
-      titleMap = JSON.parse(new TextDecoder().decode(titles.bytes));
-    } catch {
-      titleMap = {};
-    }
+  try {
+    const { eintraege } = await katalogStand(c.env);
+    return c.json({
+      files: eintraege.map((e) => ({
+        name: e.name,
+        path: e.datei,
+        id: e.id,
+        size: e.size,
+        title: e.titel,
+        customTitle: e.eigenerTitel,
+        autoTitle: e.autoTitel,
+        hidden: e.versteckt,
+      })),
+      siteUrl: c.env.SITE_URL,
+    });
+  } catch (err) {
+    if (err instanceof gh.GitHubError) return fail(c, 502, err.message);
+    return fail(c, 500, `Katalogliste nicht lesbar: ${err.message}`);
   }
-
-  return c.json({
-    files: files
-      .filter((f) => f.name.toLowerCase().endsWith(".pdf"))
-      .map((f) => ({ name: f.name, path: f.path, size: f.size, title: titleMap[f.name] || "" })),
-    titles: titleMap,
-  });
 });
 
 app.post("/api/kataloge", async (c) => {
@@ -823,26 +881,25 @@ app.post("/api/kataloge", async (c) => {
       bin += String.fromCharCode(...buf.subarray(i, i + CHUNK));
     }
 
+    const name = path.slice(KATALOG_PREFIX.length);
     const files = [{ path, content: btoa(bin), encoding: "base64" }];
 
-    // Anzeigename mit ablegen, falls einer mitgeschickt wurde.
-    const title = String(form.get("title") || "").trim();
-    if (title) {
-      const existing = await gh.getFile(c.env, "kataloge/titel.json");
-      let titles = {};
-      if (existing) {
-        try {
-          titles = JSON.parse(new TextDecoder().decode(existing.bytes));
-        } catch {
-          titles = {};
-        }
-      }
-      titles[path.slice("kataloge/".length)] = title.slice(0, 120);
-      files.push({ path: "kataloge/titel.json", content: JSON.stringify(titles, null, 2) + "\n", encoding: "utf-8" });
+    /* Anzeigename mit ablegen, falls einer mitgeschickt wurde. Der Schluessel
+       in titel.json ist der Dateiname OHNE .pdf — genau so liest ihn das
+       Build-Skript. */
+    const titel = String(form.get("title") || "").trim().slice(0, MAX_TITEL_LAENGE);
+    const { eintraege } = await katalogStand(c.env);
+    const vorhanden = findeKatalog(eintraege, name);
+
+    if (titel || vorhanden) {
+      const liste = vorhanden
+        ? eintraege.map((e) => (e.name === name ? { ...e, eigenerTitel: titel || e.eigenerTitel } : e))
+        : [...eintraege, { base: katalogBase(name), eigenerTitel: titel, position: null, versteckt: false }];
+      files.push(titelDateiEintrag(liste));
     }
 
     const result = await gh.commitFiles(c.env, files, {
-      message: `Katalog ${path.slice("kataloge/".length)} hinzugefügt\n\nHochgeladen über den Website-Admin von ${s.email}.`,
+      message: `Katalog ${name} ${vorhanden ? "ersetzt" : "hinzugefügt"}\n\nHochgeladen über den Website-Admin von ${s.email}.`,
       author: authorLine(s),
     });
 
@@ -855,6 +912,125 @@ app.post("/api/kataloge", async (c) => {
   }
 });
 
+/**
+ * Anzeigename aendern, ein-/ausblenden und die Datei umbenennen — alles in
+ * einem Commit, damit die Seite nie mit halbem Stand deployt wird.
+ */
+app.patch("/api/kataloge/:name", async (c) => {
+  const guard = await requireUser(c);
+  if (guard) return guard;
+  const s = c.get("session");
+
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const { eintraege } = await katalogStand(c.env);
+    const katalog = findeKatalog(eintraege, c.req.param("name"));
+    if (!katalog) return fail(c, 404, "Diesen Katalog gibt es nicht (mehr).");
+
+    let name = katalog.name;
+    const dateien = [];
+
+    /* --- Datei umbenennen --- */
+    if (body.filename !== undefined) {
+      const neuerPfad = katalogPath(body.filename);
+      if (!isEditablePath(neuerPfad)) return fail(c, 400, "Unzulässiger Pfad.");
+      const neuerName = neuerPfad.slice(KATALOG_PREFIX.length);
+
+      if (neuerName !== katalog.name) {
+        if (eintraege.some((e) => e.name !== katalog.name && e.name.toLowerCase() === neuerName.toLowerCase())) {
+          return fail(c, 409, `„${neuerName}" gibt es bereits. Bitte einen anderen Dateinamen wählen.`);
+        }
+        if (!katalog.sha) return fail(c, 500, "Die Datei konnte im Repository nicht gefunden werden.");
+        // Der vorhandene Blob wandert nur an einen neuen Pfad — die PDF muss
+        // dafuer nicht erneut hochgeladen werden.
+        dateien.push({ path: neuerPfad, sha: katalog.sha });
+        dateien.push({ path: `${KATALOG_PREFIX}${katalog.name}`, remove: true });
+        name = neuerName;
+      }
+    }
+
+    const geaendert = {
+      ...katalog,
+      name,
+      base: katalogBase(name),
+      eigenerTitel:
+        body.title === undefined
+          ? katalog.eigenerTitel
+          : String(body.title || "").trim().slice(0, MAX_TITEL_LAENGE),
+      versteckt: body.hidden === undefined ? katalog.versteckt : Boolean(body.hidden),
+    };
+
+    const liste = eintraege.map((e) => (e.name === katalog.name ? geaendert : e));
+    dateien.push(titelDateiEintrag(liste));
+
+    const teile = [];
+    if (name !== katalog.name) teile.push(`in ${name} umbenannt`);
+    if (body.title !== undefined && geaendert.eigenerTitel !== katalog.eigenerTitel) teile.push("Anzeigename geändert");
+    if (body.hidden !== undefined && geaendert.versteckt !== katalog.versteckt) {
+      teile.push(geaendert.versteckt ? "ausgeblendet" : "eingeblendet");
+    }
+    if (!teile.length) return c.json({ ok: true, name, unchanged: true });
+
+    const commit = await gh.commitFiles(c.env, dateien, {
+      message: `Katalog ${katalog.name}: ${teile.join(", ")}\n\nGeändert über den Website-Admin von ${s.email}.`,
+      author: authorLine(s),
+    });
+
+    await audit(c.env, {
+      userId: s.user_id,
+      email: s.email,
+      action: "katalog_update",
+      detail: `${katalog.name}: ${teile.join(", ")}`,
+      ip: clientIp(c),
+      now: now(),
+    });
+    return c.json({ ok: true, name, commit });
+  } catch (err) {
+    if (err instanceof ValidationError) return fail(c, 400, err.message);
+    if (err instanceof gh.GitHubError) return fail(c, 502, err.message);
+    return fail(c, 500, `Ändern fehlgeschlagen: ${err.message}`);
+  }
+});
+
+/** Reihenfolge festlegen: die Dateinamen in der gewuenschten Abfolge. */
+app.put("/api/kataloge/reihenfolge", async (c) => {
+  const guard = await requireUser(c);
+  if (guard) return guard;
+  const s = c.get("session");
+
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const namen = Array.isArray(body.names) ? body.names.map((n) => String(n)) : null;
+    if (!namen || !namen.length) return fail(c, 400, "Es wurde keine Reihenfolge übermittelt.");
+
+    const { eintraege } = await katalogStand(c.env);
+    const unbekannt = namen.filter((n) => !eintraege.some((e) => e.name === n));
+    if (unbekannt.length) return fail(c, 409, "Die Liste hat sich zwischenzeitlich geändert. Bitte neu laden.");
+
+    // Nicht mitgeschickte Kataloge hinten anhaengen, damit keiner verloren geht.
+    const reihenfolge = [...namen, ...eintraege.filter((e) => !namen.includes(e.name)).map((e) => e.name)];
+    const liste = reihenfolge.map((n, i) => ({ ...eintraege.find((e) => e.name === n), position: i + 1 }));
+
+    const commit = await gh.commitFiles(c.env, [titelDateiEintrag(liste)], {
+      message: `Katalog-Reihenfolge geändert\n\nGeändert über den Website-Admin von ${s.email}.`,
+      author: authorLine(s),
+    });
+
+    await audit(c.env, {
+      userId: s.user_id,
+      email: s.email,
+      action: "katalog_order",
+      detail: reihenfolge.join(", ").slice(0, 300),
+      ip: clientIp(c),
+      now: now(),
+    });
+    return c.json({ ok: true, commit });
+  } catch (err) {
+    if (err instanceof gh.GitHubError) return fail(c, 502, err.message);
+    return fail(c, 500, `Reihenfolge speichern fehlgeschlagen: ${err.message}`);
+  }
+});
+
 app.delete("/api/kataloge/:name", async (c) => {
   const guard = await requireUser(c);
   if (guard) return guard;
@@ -864,10 +1040,24 @@ app.delete("/api/kataloge/:name", async (c) => {
     const path = katalogPath(c.req.param("name"));
     if (!isEditablePath(path)) return fail(c, 400, "Unzulässiger Pfad.");
 
-    await gh.deleteFile(c.env, path, `Katalog ${path.slice("kataloge/".length)} entfernt`, authorLine(s));
+    const name = path.slice(KATALOG_PREFIX.length);
+    const { eintraege } = await katalogStand(c.env);
+    if (!findeKatalog(eintraege, name)) return fail(c, 404, "Diesen Katalog gibt es nicht (mehr).");
+
+    // PDF und der zugehoerige Eintrag in titel.json verschwinden zusammen.
+    await gh.commitFiles(
+      c.env,
+      [{ path, remove: true }, titelDateiEintrag(eintraege.filter((e) => e.name !== name))],
+      {
+        message: `Katalog ${name} entfernt\n\nGelöscht über den Website-Admin von ${s.email}.`,
+        author: authorLine(s),
+      }
+    );
+
     await audit(c.env, { userId: s.user_id, email: s.email, action: "katalog_delete", detail: path, ip: clientIp(c), now: now() });
     return c.json({ ok: true });
   } catch (err) {
+    if (err instanceof ValidationError) return fail(c, 400, err.message);
     if (err instanceof gh.GitHubError) return fail(c, 502, err.message);
     return fail(c, 500, `Löschen fehlgeschlagen: ${err.message}`);
   }

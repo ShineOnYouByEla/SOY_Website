@@ -46,22 +46,50 @@ export function toast(message, kind = "") {
 
 /* ---------- Dialoge ---------- */
 
+/* Es gibt nur ein <dialog>-Element. Damit sich trotzdem ein Dialog aus einem
+   Dialog heraus oeffnen laesst (z. B. die Rueckfrage vor dem Loeschen), legen
+   wir den Inhalt der darunterliegenden Ebene beiseite und holen ihn zurueck,
+   sobald die obere Ebene fertig ist. */
+const ebenen = [];
+
 /** Zeigt einen Dialog. `build` bekommt close(result) und fuellt den Inhalt. */
 export function dialog(build) {
   const dlg = $("#dialog");
-  const body = clear($("#dialogBody"));
+  const body = $("#dialogBody");
+
+  if (!dlg.dataset.bound) {
+    dlg.dataset.bound = "1";
+    // Esc schliesst das Element selbst – dann sind alle Ebenen weg.
+    dlg.addEventListener("close", () => {
+      while (ebenen.length) ebenen.pop().abbrechen();
+    });
+  }
+
+  const darunter = Array.from(body.childNodes);
+  clear(body);
 
   return new Promise((resolve) => {
     let settled = false;
-    const close = (result) => {
+
+    const beende = (result, zurueckblaettern) => {
       if (settled) return;
       settled = true;
-      dlg.close();
+      const i = ebenen.indexOf(ebene);
+      if (i >= 0) ebenen.splice(i, 1);
+
+      if (zurueckblaettern) {
+        clear(body);
+        if (ebenen.length) body.append(...darunter);
+        else dlg.close();
+      }
       resolve(result);
     };
-    dlg.addEventListener("close", () => close(undefined), { once: true });
-    build(body, close);
-    dlg.showModal();
+
+    const ebene = { abbrechen: () => beende(undefined, false) };
+    ebenen.push(ebene);
+
+    build(body, (result) => beende(result, true));
+    if (ebenen.length === 1) dlg.showModal();
   });
 }
 

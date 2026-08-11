@@ -104,6 +104,10 @@ export const api = {
     if (title) form.append("title", title);
     return request("POST", "/api/kataloge", { body: form });
   },
+  /** Anzeigename, Dateiname oder Sichtbarkeit ändern (nur mitgeschickte Felder). */
+  updateKatalog: (name, changes) => request("PATCH", `/api/kataloge/${encodeURIComponent(name)}`, { json: changes }),
+  /** Reihenfolge festlegen: Dateinamen in der gewünschten Abfolge. */
+  orderKataloge: (names) => request("PUT", "/api/kataloge/reihenfolge", { json: { names } }),
   deleteKatalog: (name) => request("DELETE", `/api/kataloge/${encodeURIComponent(name)}`),
 
   /* --- Benutzer & Einladungen --- */
