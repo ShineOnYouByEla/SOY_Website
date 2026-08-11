@@ -232,6 +232,25 @@ export function renderOrThrow(content) {
   return { html, configJs };
 }
 
+/**
+ * Die Dateien, die eine Veroeffentlichung in einem Commit schreibt.
+ *
+ * index.html und js/config.js entstehen aus site.json — genau das macht auch
+ * scripts/build-site.mjs im CI und beim Deploy. Sie gehen trotzdem mit ins
+ * Repository, damit der dortige Stand jederzeit zu den Inhalten passt: sonst
+ * schlaegt die CI-Pruefung „Gebaute Dateien sind aktuell" nach jedem Publish
+ * an, und ein Blick ins Repository zeigt eine Seite, die es so nicht mehr gibt.
+ * Die Inhalte muessen vorher durch assertValid gegangen sein.
+ */
+export function publishFiles(content) {
+  const { html, configJs } = renderOrThrow(content);
+  return [
+    { path: "content/site.json", content: JSON.stringify(content, null, 2) + "\n", encoding: "utf-8" },
+    { path: "index.html", content: html, encoding: "utf-8" },
+    { path: "js/config.js", content: configJs, encoding: "utf-8" },
+  ];
+}
+
 /** Wirft, wenn die Inhalte nicht in Ordnung sind. */
 export function assertValid(content) {
   const errors = validateContent(content);

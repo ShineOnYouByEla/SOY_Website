@@ -29,10 +29,20 @@ Homelab-Variante **keine öffentliche Erreichbarkeit**. Ausgehend muss der
 Container nur die GitHub-API erreichen.
 
 Beim Bearbeiten landet alles zunächst als **Entwurf** in der Datenbank – die
-Live-Seite bleibt unberührt. Erst „Veröffentlichen" schreibt `content/site.json`
-(und neu hochgeladene Bilder) in **einem Commit** ins Repository. Der bestehende
-Pages-Workflow baut daraus `index.html` und stellt sie online; das dauert etwa
-eine Minute.
+Live-Seite bleibt unberührt. Erst „Veröffentlichen" schreibt in **einem Commit**
+ins Repository:
+
+- `content/site.json` – die Inhalte selbst,
+- `index.html` und `js/config.js` – daraus erzeugt, damit der Stand im
+  Repository jederzeit zu den Inhalten passt,
+- neu hochgeladene Bilder.
+
+Der Pages-Workflow baut `index.html` beim Deploy noch einmal aus
+`content/site.json` und stellt die Seite online; das dauert etwa eine Minute.
+
+**Live wird die Seite nur aus `main`.** Zeigt `GITHUB_BRANCH` auf einen anderen
+Branch, endet das Veröffentlichen dort als Commit – bis dieser Branch nach
+`main` gemergt ist, ändert sich an der Live-Seite nichts.
 
 Daraus ergeben sich zwei angenehme Eigenschaften:
 
@@ -51,7 +61,7 @@ Daraus ergeben sich zwei angenehme Eigenschaften:
 | Sitzungen | Serverseitig in der Datenbank, jederzeit widerrufbar; Cookie `HttpOnly` + `SameSite=Strict` (+ `Secure`, sofern TLS) |
 | Passwort-Raten | Sperre nach 8 Fehlversuchen je E-Mail **und** je IP, 15 Minuten |
 | CSRF | `SameSite=Strict` plus Prüfung des `Origin`-Headers bei jedem Schreibzugriff |
-| Schreibrechte | Nur `content/site.json`, `assets/img/` und `kataloge/` – Workflows und Skripte sind unerreichbar |
+| Schreibrechte | Nur `content/site.json` samt der daraus erzeugten `index.html`/`js/config.js`, dazu `assets/img/` und `kataloge/` – Workflows und Skripte sind unerreichbar. Hochgeladene Dateien landen ausschließlich in den beiden Ordnern, nie auf einem der erzeugten Pfade |
 | Protokoll | Anmeldungen, Fehlversuche und Veröffentlichungen landen im Audit-Log |
 
 > **Zum CPU-Limit (nur Cloudflare):** 600 000 PBKDF2-Runden brauchen den
@@ -258,6 +268,12 @@ dagegen im Image. Kommt ein neuer Sektionstyp dazu, muss das Backend also
 aktualisiert werden – sonst meldet der Bereich, dass die Oberfläche seinen Typ
 noch nicht kennt, und das Veröffentlichen scheitert an „unbekannter Typ".
 
+Dasselbe gilt für den Seitenaufbau: `index.html` entsteht beim Veröffentlichen
+mit dem Renderer aus dem Image. Ist der älter als der im Repository, meckert die
+CI mit „Gebaute Dateien sind aktuell". Die Live-Seite bleibt davon unberührt –
+der Deploy baut sie ohnehin neu –, aber es ist das Signal, den Container zu
+aktualisieren.
+
 ---
 
 ## Einrichtung B: Cloudflare Worker
@@ -375,7 +391,7 @@ nicht; davor warnt das Admin.
 ## Entwicklung
 
 ```bash
-npm test          # 74 Tests: TOTP, Passwort-Hashing, Inhaltsprüfung, Rendern, Kataloge
+npm test          # 75 Tests: TOTP, Passwort-Hashing, Inhaltsprüfung, Rendern, Kataloge
 ```
 
 **Node-Variante lokal** (ab Node 22.13 ohne Flag; auf Node 22 gibt es noch
