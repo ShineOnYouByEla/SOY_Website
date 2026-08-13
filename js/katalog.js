@@ -19,7 +19,10 @@
   }
   pdfjsLib.GlobalWorkerOptions.workerSrc = "js/vendor/pdf.worker.min.js";
 
-  const stageEl   = document.getElementById("flipbook");
+  // Die Bühne (.catalog-stage) bleibt immer stehen und trägt die Bedienung.
+  // Das #flipbook darin wird pro Katalog neu angelegt – siehe neueBuehne().
+  const stageHost = document.querySelector(".catalog-stage");
+  let   stageEl   = document.getElementById("flipbook");
   const tabsEl    = document.getElementById("catalogTabs");
   const statusEl  = document.getElementById("catalogStatus");
   const indicEl   = document.getElementById("pageIndicator");
@@ -45,12 +48,17 @@
   if (nextBtn) nextBtn.addEventListener("click", () => pageFlip && pageFlip.flipNext());
   if (zoomBtn) zoomBtn.addEventListener("click", () => openZoom());
   // Doppeltipp/Doppelklick auf die Seite öffnet ebenfalls die Zoom-Ansicht
-  if (stageEl) {
-    stageEl.addEventListener("dblclick", () => openZoom());
+  // Die Bedienung hängt an der Bühne, nicht am #flipbook: Letzteres wird bei
+  // jedem Katalogwechsel ausgetauscht und würde seine Ereignisse verlieren.
+  // „Gemeint ist das Buch“ prüfen wir über das aktuelle #flipbook.
+  const aufSeite = (e) => !!stageEl && stageEl.contains(e.target);
+
+  if (stageHost) {
+    stageHost.addEventListener("dblclick", (e) => { if (aufSeite(e)) openZoom(); });
     // Am Handy feuert kein dblclick – Doppeltipp selbst erkennen
     let tapTime = 0, tapX = 0, tapY = 0;
-    stageEl.addEventListener("pointerup", (e) => {
-      if (e.pointerType !== "touch") return;
+    stageHost.addEventListener("pointerup", (e) => {
+      if (e.pointerType !== "touch" || !aufSeite(e)) return;
       const now = Date.now();
       if (now - tapTime < 320 && Math.hypot(e.clientX - tapX, e.clientY - tapY) < 30) {
         tapTime = 0;
@@ -157,9 +165,8 @@
     if (emptyEl) emptyEl.hidden = true;
     if (viewerEl) viewerEl.hidden = false;
 
-    // alten Blätterer entfernen
-    if (pageFlip) { try { pageFlip.destroy(); } catch (e) {} pageFlip = null; }
-    stageEl.innerHTML = "";
+    // alten Blätterer entfernen und eine frische Bühne einhängen
+    neueBuehne();
     resetMagnifier();   // Lupen-Zwischenspeicher leeren, Lupe ausblenden
 
     let pdf;
@@ -241,6 +248,23 @@
     setBusy(false);
     setStatus("");
     if (toolbarEl) toolbarEl.hidden = false;
+  }
+
+  /* Frisches #flipbook für den nächsten Katalog einhängen.
+
+     Wichtig: destroy() der Blätter-Bibliothek räumt nicht nur auf, sondern
+     nimmt auch den Container mit, den man ihr übergeben hat – das #flipbook
+     ist danach nicht mehr im Dokument. Ohne diesen Neuaufbau würde der
+     zweite Katalog in ein losgelöstes Element gezeichnet und die Bühne
+     bliebe leer: Genau daran scheiterte bisher jeder Katalogwechsel. */
+  function neueBuehne() {
+    if (pageFlip) { try { pageFlip.destroy(); } catch (e) {} pageFlip = null; }
+    if (stageEl) stageEl.remove();
+    stageEl = document.createElement("div");
+    stageEl.id = "flipbook";
+    stageEl.className = "flipbook";
+    if (stageHost) stageHost.appendChild(stageEl);
+    return stageEl;
   }
 
   /* Eine Katalogseite als Blätter-Element (weißes Blatt mit Bild) aufbauen */
@@ -609,16 +633,16 @@
     window.matchMedia("(hover: hover) and (pointer: fine)").matches);
 
   if (magBtn) {
-    if (!canHover) {
+    if (!canHover || !stageHost) {
       magBtn.hidden = true;
     } else {
       magBtn.hidden = false;
       magBtn.addEventListener("click", () => setMagnifier(!magnifierOn));
-      stageEl.addEventListener("pointermove", (e) => {
+      stageHost.addEventListener("pointermove", (e) => {
         if (magnifierOn && e.pointerType !== "touch") moveLens(e.clientX, e.clientY);
       });
-      stageEl.addEventListener("pointerleave", hideLens);
-      stageEl.addEventListener("wheel", (e) => {
+      stageHost.addEventListener("pointerleave", hideLens);
+      stageHost.addEventListener("wheel", (e) => {
         if (!magnifierOn || !lensVisible) return;
         e.preventDefault();
         LENS_ZOOM = Math.min(4, Math.max(1.6, LENS_ZOOM + (e.deltaY < 0 ? 0.2 : -0.2)));
@@ -650,11 +674,12 @@
   function showLens() {
     if (!lensVisible) { ensureLensEl().classList.add("is-visible"); lensVisible = true; }
     // Solange die Lupe sichtbar ist, ersetzt sie den Mauszeiger
-    if (stageEl) stageEl.classList.add("lens-show");
+    // (die Regel dazu hängt am .catalog-stage, siehe css/katalog.css)
+    if (stageHost) stageHost.classList.add("lens-show");
   }
   function hideLens() {
     if (lensVisible && lensEl) { lensEl.classList.remove("is-visible"); lensVisible = false; }
-    if (stageEl) stageEl.classList.remove("lens-show");
+    if (stageHost) stageHost.classList.remove("lens-show");
   }
 
   function resetMagnifier() {
