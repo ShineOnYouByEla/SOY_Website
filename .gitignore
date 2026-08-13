@@ -7,3 +7,9 @@ node_modules/
 
 # Lighthouse-CI-Reports (lokale Läufe)
 .lighthouseci/
+
+# Die gerenderten Katalogseiten entstehen beim Veröffentlichen aus den PDFs
+# (scripts/build-katalog-seiten.mjs) und gehören nicht ins Repository: Es
+# sind rund 55 MB, die sich bei jedem neuen Katalog erneut ansammeln würden.
+# In GitHub Actions übernimmt das ein Cache, der an den PDF-Dateien hängt.
+/kataloge/seiten/

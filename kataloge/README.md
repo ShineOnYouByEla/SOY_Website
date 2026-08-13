@@ -70,13 +70,49 @@ automatisch erzeugten Datei `manifest.json` – und im Admin hinter
 „auf der Seite ansehen". Die `id` hängt nur am Dateinamen: Anzeigename und
 Reihenfolge zu ändern lässt vorhandene Links also unberührt.
 
+## Was beim Veröffentlichen mit den PDFs passiert
+
+Auf der Seite selbst wird **keine PDF mehr geöffnet**. Beim Veröffentlichen
+werden die Seiten einmal zu Bildern gerendert; die Besucher bekommen nur
+noch diese Bilder – und davon nur die Seiten, die sie wirklich ansehen.
+
+Vorher rechnete jedes Endgerät die Seiten selbst aus der PDF. Beim
+56-Seiten-Magazin dauerte das auf einem Mittelklasse-Handy rund 51 Sekunden,
+dazu 16 Sekunden für die 24 MB große Datei. Jetzt ist die erste Seite nach
+etwa einer halben Sekunde da.
+
+Zwei Schritte laufen dafür automatisch in GitHub Actions:
+
+| Skript | Was es tut |
+|---|---|
+| `scripts/build-katalog-seiten.mjs` | rendert jede PDF-Seite nach `kataloge/seiten/<id>/` – einmal für die Buchansicht (1500 px) und einmal für Vollbild und Lupe (2400 px), beides als WebP |
+| `scripts/build-katalog-manifest.mjs` | schreibt `manifest.json` mit Titeln, Reihenfolge, Seitenzahl und den Adressen der Bilder |
+
+Der Ordner `kataloge/seiten/` liegt **nicht** im Repository – er entsteht beim
+Veröffentlichen. Gerendert wird nur, was sich geändert hat: `info.json` merkt
+sich den Hash der PDF, und GitHub Actions hebt die fertigen Seiten zwischen
+zwei Läufen auf. Ein Deploy ohne neuen Katalog kostet dadurch nichts, ein
+Katalog mit 56 Seiten etwa zwei Minuten.
+
+### Lokal ausprobieren
+
+```bash
+npm ci --prefix scripts          # einmalig
+node scripts/build-katalog-seiten.mjs
+node scripts/build-katalog-manifest.mjs
+```
+
+Ohne diese beiden Schritte zeigt `katalog.html` den Hinweis, dass der Katalog
+gerade aufbereitet wird. Mit `--force` wird alles neu gerendert, auch
+Unverändertes.
+
 ## Hinweise
 
 - Der Bereich ist **nicht indexiert** (taucht nicht bei Google auf) und ist
   nicht im Menü verlinkt – erreichbar nur über den direkten Link.
-- `manifest.json` wird beim Veröffentlichen **automatisch** aus den PDFs und
-  `titel.json` erzeugt (`node scripts/build-katalog-manifest.mjs`) und muss
+- `manifest.json` wird beim Veröffentlichen **automatisch** erzeugt und muss
   nicht von Hand gepflegt werden.
-- Für flüssiges Blättern sind PDFs bis ~30–40 Seiten ideal. Sehr große
-  Dateien brauchen beim ersten Laden etwas länger. Über das Admin sind
-  maximal 30 MB pro Datei möglich.
+- Seitenzahl und Dateigröße sind für die Besucher inzwischen kaum noch
+  spürbar – sie laden ja nur die Seiten, die sie ansehen. Lange Kataloge
+  verlängern vor allem das Veröffentlichen. Über das Admin sind maximal
+  30 MB pro Datei möglich.

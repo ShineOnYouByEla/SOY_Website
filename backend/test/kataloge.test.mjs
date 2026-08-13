@@ -7,6 +7,7 @@ import {
   katalogId,
   katalogTitel,
   manifestVon,
+  seitenMuster,
   serialisiereEintraege,
 } from "../../shared/kataloge.mjs";
 
@@ -89,6 +90,41 @@ test("manifestVon lässt ausgeblendete Kataloge weg", () => {
   assert.deepEqual(manifestVon(liste), {
     kataloge: [{ id: "a", titel: "A", datei: "kataloge/a.pdf" }],
   });
+});
+
+test("manifestVon nimmt Seitenzahl, Verhältnis und Bildmuster auf", () => {
+  const liste = baueKataloge(["a.pdf"]);
+  const { kataloge } = manifestVon(liste, { a: { seiten: 12, ratio: 0.7071 } });
+  assert.deepEqual(kataloge, [{
+    id: "a",
+    titel: "A",
+    datei: "kataloge/a.pdf",
+    seiten: 12,
+    ratio: 0.7071,
+    bild: "kataloge/seiten/a/s-{nnn}.webp",
+    bildGross: "kataloge/seiten/a/s-{nnn}@gross.webp",
+  }]);
+});
+
+test("manifestVon ignoriert unbrauchbare Seitenangaben", () => {
+  const liste = baueKataloge(["a.pdf", "b.pdf"]);
+  const { kataloge } = manifestVon(liste, { a: { seiten: 0 }, b: { seiten: "keine Zahl" } });
+  // ohne Seitenzahl bleibt der Eintrag schlank – die Seite merkt daran,
+  // dass der Katalog noch nicht aufbereitet ist
+  assert.deepEqual(Object.keys(kataloge[0]), ["id", "titel", "datei"]);
+  assert.deepEqual(Object.keys(kataloge[1]), ["id", "titel", "datei"]);
+});
+
+test("manifestVon setzt ein Ersatzverhältnis, wenn nur die Seitenzahl taugt", () => {
+  const { kataloge } = manifestVon(baueKataloge(["a.pdf"]), { a: { seiten: 4, ratio: "krumm" } });
+  assert.equal(kataloge[0].seiten, 4);
+  assert.ok(kataloge[0].ratio > 0.7 && kataloge[0].ratio < 0.71, "DIN-A-Verhältnis als Rückfall");
+});
+
+test("seitenMuster passt zu den Namen aus dem Render-Skript", () => {
+  // s-001.webp / s-001@gross.webp – so legt build-katalog-seiten.mjs ab
+  assert.equal(seitenMuster("abc").replace("{nnn}", "001"), "kataloge/seiten/abc/s-001.webp");
+  assert.equal(seitenMuster("abc", true).replace("{nnn}", "056"), "kataloge/seiten/abc/s-056@gross.webp");
 });
 
 test("kaputte oder fremde Einträge in titel.json stören nicht", () => {
