@@ -43,6 +43,55 @@
   let isFlipping = false;     // gerade eine Blätter-Animation aktiv?
   let currentRatio = 1;       // Seitenverhältnis (Breite/Höhe) der Katalogseiten
 
+  /* ============================================================
+     Vorrat fertig gerenderter Kataloge
+     ------------------------------------------------------------
+     Jede Katalogseite muss aus dem PDF erst zu einem Bild gerechnet
+     werden – beim 56-Seiten-Magazin dauert das spürbar. Wer zwischen den
+     Katalogen hin- und herspringt, soll das nur einmal abwarten müssen:
+     Ein fertig aufbereiteter Katalog bleibt deshalb liegen und wird beim
+     nächsten Mal sofort wieder aufgebaut.
+
+     Der Vorrat ist gedeckelt, denn die Bilder sind nicht klein. Gemessen
+     an dieser Seite: die beiden Flyer je ~4 MB, das Magazin ~19 MB – am
+     Handy, wo mit höherer Auflösung gerendert wird, eher das Doppelte.
+     Reicht der Platz nicht, fliegt der am längsten nicht mehr benutzte
+     Katalog heraus (der gerade gezeigte nie).
+     ============================================================ */
+  const VORRAT_MAX = (navigator.deviceMemory && navigator.deviceMemory <= 4 ? 40 : 80) * 1024 * 1024;
+  const vorrat    = new Map();   // Katalog-id -> {pdf, pageCount, ratio, images, bytes}
+  const vorratLRU = [];          // Reihenfolge fürs Verdrängen (ältestes zuerst)
+  let   vorratBytes = 0;
+
+  function vorratBenutzt(id) {
+    const p = vorratLRU.indexOf(id);
+    if (p >= 0) vorratLRU.splice(p, 1);
+    vorratLRU.push(id);
+  }
+
+  function vorratFreigeben(id) {
+    const e = vorrat.get(id);
+    if (!e) return;
+    vorrat.delete(id);
+    const p = vorratLRU.indexOf(id);
+    if (p >= 0) vorratLRU.splice(p, 1);
+    vorratBytes -= e.bytes;
+    e.images.forEach(gibBildFrei);
+    if (e.pdf !== currentPdf) { try { e.pdf.destroy(); } catch (err) {} }
+  }
+
+  function vorratAufnehmen(id, eintrag) {
+    vorratFreigeben(id);                 // alten Stand desselben Katalogs ersetzen
+    vorrat.set(id, eintrag);
+    vorratBytes += eintrag.bytes;
+    vorratBenutzt(id);
+    // Platz schaffen – den gerade gezeigten Katalog behalten wir immer
+    for (const alt of [...vorratLRU]) {
+      if (vorratBytes <= VORRAT_MAX) break;
+      if (alt !== id) vorratFreigeben(alt);
+    }
+  }
+
   /* ---- Steuerung verdrahten (unabhängig von den Daten) ---- */
   if (prevBtn) prevBtn.addEventListener("click", () => pageFlip && pageFlip.flipPrev());
   if (nextBtn) nextBtn.addEventListener("click", () => pageFlip && pageFlip.flipNext());
@@ -169,6 +218,14 @@
     neueBuehne();
     resetMagnifier();   // Lupen-Zwischenspeicher leeren, Lupe ausblenden
 
+    // Schon einmal aufbereitet? Dann sofort wieder aufbauen.
+    const fertig = vorrat.get(katalog.id);
+    if (fertig) {
+      vorratBenutzt(katalog.id);
+      zeigeKatalog(fertig);
+      return;
+    }
+
     let pdf;
     try {
       pdf = await pdfjsLib.getDocument(katalog.datei).promise;
@@ -181,12 +238,9 @@
     }
 
     const pageCount = pdf.numPages;
-    currentPdf = pdf;                 // für die Zoom-Ansicht merken
-    currentPageCount = pageCount;
     // Seitenverhältnis der ersten Seite als Maß für das Buch
     const firstVp = (await pdf.getPage(1)).getViewport({ scale: 1 });
     const ratio = firstVp.width / firstVp.height;
-    currentRatio = ratio;             // für die Vollbild-Ansicht merken
 
     // Alle Seiten als Bilder rendern.
     // Renderbreite an die Bildschirmdichte anpassen, damit die Seiten auch
@@ -194,19 +248,47 @@
     // in die Vollbild-Ansicht scharf bleiben. Nach oben gedeckelt, damit große
     // Kataloge nicht zu viel Speicher/Ladezeit brauchen (Schärfe vs. Speicher).
     const images = [];
+    let bytes = 0;
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
     const targetW = Math.max(1100, Math.min(1800, Math.round(1100 * dpr)));
+    /* Abbrechen heißt hier: Der Besucher hat inzwischen einen anderen Katalog
+       gewählt. Das halb Gerenderte kommt nicht in den Vorrat und wird
+       weggeräumt – sonst blieben die Bilder ohne Besitzer liegen. */
+    const abbrechen = () => {
+      images.forEach(gibBildFrei);
+      try { pdf.destroy(); } catch (err) {}
+    };
     for (let i = 1; i <= pageCount; i++) {
-      if (token !== renderToken) return; // Katalog wurde inzwischen gewechselt
+      if (token !== renderToken) return abbrechen();
       setStatus("Seite " + i + " von " + pageCount + " wird vorbereitet …");
       try {
-        images.push(await renderPageToImage(pdf, i, targetW));
+        const seite = await renderPageToImage(pdf, i, targetW);
+        images.push(seite.url);
+        bytes += seite.bytes;
       } catch (err) {
-        if (token !== renderToken) return;
+        if (token !== renderToken) return abbrechen();
+        abbrechen();
         return showError("Beim Aufbereiten der Seiten ist ein Fehler aufgetreten.");
       }
     }
-    if (token !== renderToken) return;
+    if (token !== renderToken) return abbrechen();
+
+    // fertig aufbereitet: anzeigen und für den nächsten Besuch aufheben.
+    // Erst anzeigen, dann aufnehmen: vorratAufnehmen() schont beim
+    // Verdrängen das gerade gezeigte PDF – und das ist erst nach
+    // zeigeKatalog() dieses hier und nicht mehr das des Vorgängers.
+    const eintrag = { pdf, pageCount, ratio, images, bytes };
+    zeigeKatalog(eintrag);
+    vorratAufnehmen(katalog.id, eintrag);
+  }
+
+  /* Einen fertig aufbereiteten Katalog auf die Bühne bringen. Der Weg ist
+     derselbe, egal ob die Seiten gerade gerendert wurden oder aus dem
+     Vorrat kommen. */
+  function zeigeKatalog({ pdf, pageCount, ratio, images }) {
+    currentPdf = pdf;                 // für die Zoom-Ansicht merken
+    currentPageCount = pageCount;
+    currentRatio = ratio;             // für die Vollbild-Ansicht merken
 
     // Blätterer aufbauen
     const baseH = 760;
@@ -280,7 +362,14 @@
     return holder;
   }
 
-  /* PDF-Seite auf ein Canvas rendern und als Bild-URL zurückgeben */
+  /* PDF-Seite auf ein Canvas rendern und als Bild-URL zurückgeben.
+     Ergebnis: { url, bytes } – die Größe brauchen wir für den Vorrat.
+
+     Die Seiten werden als Blob abgelegt und über eine blob:-Adresse
+     eingebunden, nicht als data:-Adresse. Der Unterschied zählt, seit die
+     Seiten aufgehoben werden: Eine data:-Adresse ist eine Zeichenkette im
+     Arbeitsspeicher der Seite (und durch die Base64-Kodierung ein Drittel
+     größer), ein Blob verwaltet der Browser selbst. */
   async function renderPageToImage(pdf, pageNumber, targetW) {
     const page = await pdf.getPage(pageNumber);
     const unscaled = page.getViewport({ scale: 1 });
@@ -295,9 +384,20 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     await page.render({ canvasContext: ctx, viewport }).promise;
     // Etwas höhere JPEG-Qualität – feine Schrift bleibt so besser lesbar.
-    const url = canvas.toDataURL("image/jpeg", 0.92);
+    const blob = await new Promise((ok, fehler) => {
+      canvas.toBlob((b) => (b ? ok(b) : fehler(new Error("Seite konnte nicht als Bild abgelegt werden"))),
+        "image/jpeg", 0.92);
+    });
     page.cleanup();
-    return url;
+    // Canvas sofort klein machen: sonst hält der Browser die Zeichenfläche
+    // (Breite × Höhe × 4 Byte) bis zum Aufräumen fest.
+    canvas.width = canvas.height = 0;
+    return { url: URL.createObjectURL(blob), bytes: blob.size };
+  }
+
+  /* Eine Bild-Adresse freigeben. Nur blob:-Adressen belegen etwas. */
+  function gibBildFrei(url) {
+    if (typeof url === "string" && url.startsWith("blob:")) URL.revokeObjectURL(url);
   }
 
   /* ---- Anzeige der aktuellen Seite ---- */
@@ -439,8 +539,9 @@
     if (zoomCache.has(idx)) { touchZoomCache(idx); return Promise.resolve(zoomCache.get(idx)); }
     const ratio = currentRatio || 0.707;
     const w = Math.min(ZOOM_READ_W, Math.floor(MAX_CANVAS_DIM * ratio), Math.floor(MAX_CANVAS_DIM));
-    return renderPageToImage(pdf, idx + 1, w).then((url) => {
+    return renderPageToImage(pdf, idx + 1, w).then(({ url }) => {
       if (pdf === currentPdf) rememberZoomImage(idx, url);
+      else gibBildFrei(url);   // Katalog inzwischen gewechselt: nicht liegen lassen
       return url;
     });
   }
@@ -453,7 +554,11 @@
   function rememberZoomImage(idx, url) {
     zoomCache.set(idx, url);
     touchZoomCache(idx);
-    while (zoomCacheLRU.length > ZOOM_CACHE_MAX) zoomCache.delete(zoomCacheLRU.shift());
+    while (zoomCacheLRU.length > ZOOM_CACHE_MAX) {
+      const raus = zoomCacheLRU.shift();
+      gibBildFrei(zoomCache.get(raus));
+      zoomCache.delete(raus);
+    }
   }
   function touchZoomCache(idx) {
     const p = zoomCacheLRU.indexOf(idx);
@@ -473,7 +578,9 @@
     if (zoomViewport) zoomViewport.style.removeProperty("--zoom-side-x");
     if (zoomFlipEl) zoomFlipEl.innerHTML = "";
     zoomImgEl = null;
-    // scharfe Seiten wieder freigeben (Speicher)
+    // scharfe Seiten wieder freigeben (Speicher). Das <img> hängt oben
+    // bereits nicht mehr im Dokument, die Adressen dürfen also weg.
+    zoomCache.forEach(gibBildFrei);
     zoomCache.clear(); zoomCacheLRU.length = 0;
     // normalen Blätterer an die zuletzt gesehene Seite setzen
     if (pageFlip) { try { pageFlip.turnToPage(idx); } catch (e) {} }
@@ -683,6 +790,7 @@
   }
 
   function resetMagnifier() {
+    lensHiRes.forEach(gibBildFrei);   // Einträge können noch null sein („wird geladen")
     lensHiRes.clear();
     hideLens();
   }
@@ -758,8 +866,8 @@
     if (lensHiRes.has(pageNum) || !currentPdf) return;
     lensHiRes.set(pageNum, null); // als „wird geladen" markieren
     const pdf = currentPdf;
-    renderPageToImage(pdf, pageNum, LENS_HIRES_W).then((url) => {
-      if (pdf !== currentPdf) { lensHiRes.delete(pageNum); return; }
+    renderPageToImage(pdf, pageNum, LENS_HIRES_W).then(({ url }) => {
+      if (pdf !== currentPdf) { lensHiRes.delete(pageNum); gibBildFrei(url); return; }
       lensHiRes.set(pageNum, url);
       // Wenn die Maus noch auf dieser Seite steht: scharf nachziehen
       if (magnifierOn && lastClient) moveLens(lastClient.x, lastClient.y);
