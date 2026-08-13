@@ -1,0 +1,15 @@
+{
+  "name": "soy-website-scripts",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Werkzeuge für die Veröffentlichung: rendert die Katalog-PDFs zu Seitenbildern. Die Seite selbst braucht kein npm – deshalb liegt das hier und nicht im Wurzelverzeichnis.",
+  "type": "module",
+  "scripts": {
+    "kataloge": "node build-katalog-seiten.mjs"
+  },
+  "dependencies": {
+    "canvas": "^3.1.0",
+    "pdfjs-dist": "3.11.174",
+    "sharp": "^0.34.2"
+  }
+}

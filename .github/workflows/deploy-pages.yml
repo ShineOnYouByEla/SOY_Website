@@ -39,6 +39,22 @@ jobs:
         with:
           node-version: 22
 
+      # Die Katalogseiten werden hier einmal zu Bildern gerendert, damit die
+      # Endgeraete das nicht mehr selbst tun muessen. Der Cache haengt an den
+      # PDF-Dateien: Solange sich keine aendert, faellt das Rendern weg.
+      - name: Werkzeuge fuer das Rendern installieren
+        run: npm ci --prefix scripts
+
+      - name: Gerenderte Katalogseiten wiederverwenden
+        uses: actions/cache@v4
+        with:
+          path: kataloge/seiten
+          key: katalogseiten-${{ hashFiles('kataloge/*.pdf') }}
+          restore-keys: katalogseiten-
+
+      - name: Katalogseiten als Bilder rendern
+        run: node scripts/build-katalog-seiten.mjs
+
       - name: Katalog-Liste aus PDFs erzeugen
         run: node scripts/build-katalog-manifest.mjs
 

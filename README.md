@@ -37,7 +37,7 @@ python3 -m http.server 8000
 ├── css/styles.css    # Styles & Markenfarben
 ├── js/script.js      # Mobile-Menü, Terminbuchung (.ics), Formulare
 ├── assets/img/       # aus dem Iconset abgeleitete Logos & Favicons
-└── kataloge/         # PDF-Kataloge
+└── kataloge/         # PDF-Kataloge (+ seiten/: daraus erzeugte Seitenbilder)
 ```
 
 ## Anpassen

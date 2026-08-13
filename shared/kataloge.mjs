@@ -23,6 +23,20 @@
 
 export const KATALOG_DIR = "kataloge";
 export const TITEL_DATEI = "kataloge/titel.json";
+/** Hier legt scripts/build-katalog-seiten.mjs die gerenderten Seiten ab. */
+export const SEITEN_DIR = "kataloge/seiten";
+
+/**
+ * Adressmuster der Seitenbilder eines Katalogs. `{nnn}` steht für die
+ * dreistellige Seitenzahl (s-001, s-002 …).
+ *
+ * Das Muster wandert ins manifest.json, statt dass katalog.html den
+ * Dateinamen selbst zusammenbaut: Ändert sich das Schema hier, folgt die
+ * Seite von allein — sie liest ja nur, was im Manifest steht.
+ */
+export function seitenMuster(id, gross = false) {
+  return `${SEITEN_DIR}/${id}/s-{nnn}${gross ? "@gross" : ""}.webp`;
+}
 
 /** Dateiname (ohne .pdf) -> kurze, url-sichere id. */
 export function katalogId(base) {
@@ -141,12 +155,33 @@ export function baueKataloge(dateinamen, overrides = {}) {
   });
 }
 
-/** Die Liste, die katalog.html liest — ohne die ausgeblendeten Kataloge. */
-export function manifestVon(eintraege) {
+/**
+ * Die Liste, die katalog.html liest — ohne die ausgeblendeten Kataloge.
+ *
+ * `seitenInfos` ordnet jeder Katalog-id die Angaben aus
+ * kataloge/seiten/<id>/info.json zu (Seitenzahl und Seitenverhältnis).
+ * Wo sie vorliegen, kommen Seitenzahl, Verhältnis und die Adressmuster der
+ * Bilder mit ins Manifest — daraus baut die Seite den Blätterer, ohne eine
+ * einzige PDF anzufassen. Fehlen sie, bleibt der Eintrag wie früher.
+ */
+export function manifestVon(eintraege, seitenInfos = {}) {
+  const infos = seitenInfos && typeof seitenInfos === "object" ? seitenInfos : {};
   return {
     kataloge: eintraege
       .filter((e) => !e.versteckt)
-      .map((e) => ({ id: e.id, titel: e.titel, datei: e.datei })),
+      .map((e) => {
+        const eintrag = { id: e.id, titel: e.titel, datei: e.datei };
+        const info = infos[e.id];
+        const seiten = Number(info && info.seiten);
+        if (Number.isFinite(seiten) && seiten > 0) {
+          const ratio = Number(info.ratio);
+          eintrag.seiten = seiten;
+          eintrag.ratio = Number.isFinite(ratio) && ratio > 0 ? ratio : 1 / Math.SQRT2;
+          eintrag.bild = seitenMuster(e.id);
+          eintrag.bildGross = seitenMuster(e.id, true);
+        }
+        return eintrag;
+      }),
   };
 }
 

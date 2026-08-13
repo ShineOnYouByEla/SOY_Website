@@ -10,14 +10,25 @@
 
    Schöneren Anzeigenamen vergeben (optional): in kataloge/titel.json
    einen Eintrag ergänzen – siehe kataloge/README.md.
+
+   ------------------------------------------------------------
+   Wie die Seiten hierher kommen:
+
+   Diese Datei rechnet nichts mehr aus PDFs aus. Das erledigt beim
+   Veröffentlichen einmal scripts/build-katalog-seiten.mjs und legt fertige
+   WebP-Bilder unter kataloge/seiten/<id>/ ab. Hier werden nur noch Bilder
+   angezeigt – und zwar nur die, die gerade gebraucht werden.
+
+   Der Grund: Auf einem Mittelklasse-Handy dauerte das Rechnen beim
+   56-Seiten-Magazin rund 51 Sekunden, dazu 16 Sekunden für die 24 MB
+   große PDF. Jetzt lädt die erste Seite als ~190 KB großes Bild.
    ============================================================ */
 (function () {
   "use strict";
 
-  if (typeof pdfjsLib === "undefined" || typeof St === "undefined") {
-    return showError("Die benötigten Bibliotheken konnten nicht geladen werden.");
+  if (typeof St === "undefined") {
+    return showError("Die benötigte Bibliothek konnte nicht geladen werden.");
   }
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "js/vendor/pdf.worker.min.js";
 
   // Die Bühne (.catalog-stage) bleibt immer stehen und trägt die Bedienung.
   // Das #flipbook darin wird pro Katalog neu angelegt – siehe neueBuehne().
@@ -36,61 +47,18 @@
 
   let KATALOGE = [];
   let pageFlip = null;
-  let renderToken = 0; // bricht veraltete Render-Vorgänge ab
-  let currentPdf = null;      // aktuell geladenes PDF (für die Zoom-Ansicht)
+  let currentKatalog = null;  // gerade gezeigter Eintrag aus dem Manifest
   let currentPageCount = 0;
-  let pageImages = [];        // Vorschau-Bilder der Seiten (für Lupe & Vollbild)
-  let isFlipping = false;     // gerade eine Blätter-Animation aktiv?
   let currentRatio = 1;       // Seitenverhältnis (Breite/Höhe) der Katalogseiten
+  let seitenImgs = [];        // die <img> der Seiten, Reihenfolge = Seitenfolge
+  let isFlipping = false;     // gerade eine Blätter-Animation aktiv?
 
-  /* ============================================================
-     Vorrat fertig gerenderter Kataloge
-     ------------------------------------------------------------
-     Jede Katalogseite muss aus dem PDF erst zu einem Bild gerechnet
-     werden – beim 56-Seiten-Magazin dauert das spürbar. Wer zwischen den
-     Katalogen hin- und herspringt, soll das nur einmal abwarten müssen:
-     Ein fertig aufbereiteter Katalog bleibt deshalb liegen und wird beim
-     nächsten Mal sofort wieder aufgebaut.
-
-     Der Vorrat ist gedeckelt, denn die Bilder sind nicht klein. Gemessen
-     an dieser Seite: die beiden Flyer je ~4 MB, das Magazin ~19 MB – am
-     Handy, wo mit höherer Auflösung gerendert wird, eher das Doppelte.
-     Reicht der Platz nicht, fliegt der am längsten nicht mehr benutzte
-     Katalog heraus (der gerade gezeigte nie).
-     ============================================================ */
-  const VORRAT_MAX = (navigator.deviceMemory && navigator.deviceMemory <= 4 ? 40 : 80) * 1024 * 1024;
-  const vorrat    = new Map();   // Katalog-id -> {pdf, pageCount, ratio, images, bytes}
-  const vorratLRU = [];          // Reihenfolge fürs Verdrängen (ältestes zuerst)
-  let   vorratBytes = 0;
-
-  function vorratBenutzt(id) {
-    const p = vorratLRU.indexOf(id);
-    if (p >= 0) vorratLRU.splice(p, 1);
-    vorratLRU.push(id);
-  }
-
-  function vorratFreigeben(id) {
-    const e = vorrat.get(id);
-    if (!e) return;
-    vorrat.delete(id);
-    const p = vorratLRU.indexOf(id);
-    if (p >= 0) vorratLRU.splice(p, 1);
-    vorratBytes -= e.bytes;
-    e.images.forEach(gibBildFrei);
-    if (e.pdf !== currentPdf) { try { e.pdf.destroy(); } catch (err) {} }
-  }
-
-  function vorratAufnehmen(id, eintrag) {
-    vorratFreigeben(id);                 // alten Stand desselben Katalogs ersetzen
-    vorrat.set(id, eintrag);
-    vorratBytes += eintrag.bytes;
-    vorratBenutzt(id);
-    // Platz schaffen – den gerade gezeigten Katalog behalten wir immer
-    for (const alt of [...vorratLRU]) {
-      if (vorratBytes <= VORRAT_MAX) break;
-      if (alt !== id) vorratFreigeben(alt);
-    }
-  }
+  /* Nicht alle Seiten auf einmal laden: Beim Magazin wären das 56 Bilder
+     und rund 10 MB, von denen man die meisten nie ansieht. Geladen wird ein
+     Fenster um die aktuelle Seite – nach vorn großzügiger, weil dorthin
+     geblättert wird. */
+  const VORLAUF_VOR     = 5;
+  const VORLAUF_ZURUECK = 2;
 
   /* ---- Steuerung verdrahten (unabhängig von den Daten) ---- */
   if (prevBtn) prevBtn.addEventListener("click", () => pageFlip && pageFlip.flipPrev());
@@ -141,7 +109,7 @@
         const data = await res.json();
         const list = Array.isArray(data) ? data : (data && data.kataloge) || [];
         // nur gültige Einträge übernehmen
-        KATALOGE = list.filter((k) => k && k.id && k.datei);
+        KATALOGE = list.filter((k) => k && k.id);
       }
     } catch (e) {
       /* Manifest fehlt/fehlerhaft → leerer Zustand */
@@ -181,9 +149,9 @@
   }
 
   /* ============================================================
-     Katalog auswählen & laden
+     Katalog auswählen & aufbauen
      ============================================================ */
-  async function selectCatalog(id, updateUrl) {
+  function selectCatalog(id, updateUrl) {
     const katalog = KATALOGE.find((k) => k.id === id) || KATALOGE[0];
 
     // aktiven Tab markieren
@@ -199,16 +167,24 @@
       history.replaceState(null, "", url);
     }
 
-    await renderCatalog(katalog);
+    zeigeKatalog(katalog);
+  }
+
+  /**
+   * Adresse eines Seitenbildes aus dem Muster im Manifest.
+   * `{nnn}` ist die dreistellige Seitenzahl – siehe shared/kataloge.mjs.
+   */
+  function bildAdresse(muster, nummer) {
+    if (!muster) return "";
+    return encodeURI(String(muster).replace("{nnn}", String(nummer).padStart(3, "0")));
   }
 
   /* ============================================================
-     PDF rendern und Blätterer aufbauen
+     Den Blätterer aufbauen. Das geht sofort: Seitenzahl und
+     Seitenverhältnis stehen im Manifest, die Bilder kommen nach.
      ============================================================ */
-  async function renderCatalog(katalog) {
-    const token = ++renderToken;
+  function zeigeKatalog(katalog) {
     setBusy(true);
-    setStatus("Katalog wird geladen …");
     if (statusEl) statusEl.classList.remove("is-error");
     if (toolbarEl) toolbarEl.hidden = true;
     if (emptyEl) emptyEl.hidden = true;
@@ -218,81 +194,28 @@
     neueBuehne();
     resetMagnifier();   // Lupen-Zwischenspeicher leeren, Lupe ausblenden
 
-    // Schon einmal aufbereitet? Dann sofort wieder aufbauen.
-    const fertig = vorrat.get(katalog.id);
-    if (fertig) {
-      vorratBenutzt(katalog.id);
-      zeigeKatalog(fertig);
-      return;
-    }
-
-    let pdf;
-    try {
-      pdf = await pdfjsLib.getDocument(katalog.datei).promise;
-    } catch (err) {
-      if (token !== renderToken) return;
+    const pageCount = Number(katalog.seiten);
+    if (!katalog.bild || !Number.isFinite(pageCount) || pageCount < 1) {
+      // Kein Seitenbild vorhanden: Der Katalog ist noch nicht aufbereitet.
+      currentKatalog = null;
+      currentPageCount = 0;
       return showError(
-        'Der Katalog „' + (katalog.titel || katalog.id) + "“ konnte nicht geladen werden. " +
-        "Bitte prüfe, ob die Datei unter „" + katalog.datei + "“ vorhanden ist."
+        'Der Katalog „' + (katalog.titel || katalog.id) + "“ wird gerade aufbereitet. " +
+        "Bitte schau in ein paar Minuten noch einmal vorbei."
       );
     }
 
-    const pageCount = pdf.numPages;
-    // Seitenverhältnis der ersten Seite als Maß für das Buch
-    const firstVp = (await pdf.getPage(1)).getViewport({ scale: 1 });
-    const ratio = firstVp.width / firstVp.height;
-
-    // Alle Seiten als Bilder rendern.
-    // Renderbreite an die Bildschirmdichte anpassen, damit die Seiten auch
-    // auf hochauflösenden Handys (device-pixel-ratio 2–3) und beim Reinzoomen
-    // in die Vollbild-Ansicht scharf bleiben. Nach oben gedeckelt, damit große
-    // Kataloge nicht zu viel Speicher/Ladezeit brauchen (Schärfe vs. Speicher).
-    const images = [];
-    let bytes = 0;
-    const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    const targetW = Math.max(1100, Math.min(1800, Math.round(1100 * dpr)));
-    /* Abbrechen heißt hier: Der Besucher hat inzwischen einen anderen Katalog
-       gewählt. Das halb Gerenderte kommt nicht in den Vorrat und wird
-       weggeräumt – sonst blieben die Bilder ohne Besitzer liegen. */
-    const abbrechen = () => {
-      images.forEach(gibBildFrei);
-      try { pdf.destroy(); } catch (err) {}
-    };
-    for (let i = 1; i <= pageCount; i++) {
-      if (token !== renderToken) return abbrechen();
-      setStatus("Seite " + i + " von " + pageCount + " wird vorbereitet …");
-      try {
-        const seite = await renderPageToImage(pdf, i, targetW);
-        images.push(seite.url);
-        bytes += seite.bytes;
-      } catch (err) {
-        if (token !== renderToken) return abbrechen();
-        abbrechen();
-        return showError("Beim Aufbereiten der Seiten ist ein Fehler aufgetreten.");
-      }
-    }
-    if (token !== renderToken) return abbrechen();
-
-    // fertig aufbereitet: anzeigen und für den nächsten Besuch aufheben.
-    // Erst anzeigen, dann aufnehmen: vorratAufnehmen() schont beim
-    // Verdrängen das gerade gezeigte PDF – und das ist erst nach
-    // zeigeKatalog() dieses hier und nicht mehr das des Vorgängers.
-    const eintrag = { pdf, pageCount, ratio, images, bytes };
-    zeigeKatalog(eintrag);
-    vorratAufnehmen(katalog.id, eintrag);
-  }
-
-  /* Einen fertig aufbereiteten Katalog auf die Bühne bringen. Der Weg ist
-     derselbe, egal ob die Seiten gerade gerendert wurden oder aus dem
-     Vorrat kommen. */
-  function zeigeKatalog({ pdf, pageCount, ratio, images }) {
-    currentPdf = pdf;                 // für die Zoom-Ansicht merken
+    currentKatalog = katalog;
     currentPageCount = pageCount;
-    currentRatio = ratio;             // für die Vollbild-Ansicht merken
+    currentRatio = Number(katalog.ratio) > 0 ? Number(katalog.ratio) : 1 / Math.SQRT2;
 
-    // Blätterer aufbauen
+    // Seiten als leere Blätter anlegen; die Bilder kommen über das Fenster
+    seitenImgs = [];
+    const blaetter = [];
+    for (let i = 1; i <= pageCount; i++) blaetter.push(createPageElement(i));
+
     const baseH = 760;
-    const baseW = Math.round(baseH * ratio);
+    const baseW = Math.round(baseH * currentRatio);
     pageFlip = new St.PageFlip(stageEl, {
       width: baseW,
       height: baseH,
@@ -311,11 +234,12 @@
       swipeDistance: 30,
     });
 
-    pageFlip.on("flip", () => updateIndicator(pageCount));
+    pageFlip.on("flip", () => { ladeUmgebung(); updateIndicator(pageCount); });
     pageFlip.on("changeState", (e) => {
       // Lupe nur im Ruhezustand zeigen, nicht während des Blätterns
       isFlipping = e && e.data && e.data !== "read";
       if (isFlipping) hideLens();
+      ladeUmgebung();
       updateIndicator(pageCount);
     });
     // Wichtig für die Schärfe: die Seiten als echte <img>-Elemente einhängen
@@ -323,9 +247,9 @@
     // lassen (loadFromImages). Das Canvas arbeitet nur in CSS-Pixeln und ist
     // dadurch auf Handys mit hoher Pixeldichte zwangsläufig unscharf – Bilder
     // skaliert der Browser dagegen in echter Geräteauflösung.
-    pageFlip.loadFromHTML(images.map(createPageElement));
+    pageFlip.loadFromHTML(blaetter);
 
-    pageImages = images;       // Bildquellen für die Lupe merken
+    ladeUmgebung();
     updateIndicator(pageCount);
     setBusy(false);
     setStatus("");
@@ -346,58 +270,41 @@
     stageEl.id = "flipbook";
     stageEl.className = "flipbook";
     if (stageHost) stageHost.appendChild(stageEl);
+    seitenImgs = [];
     return stageEl;
   }
 
-  /* Eine Katalogseite als Blätter-Element (weißes Blatt mit Bild) aufbauen */
-  function createPageElement(src) {
+  /* Eine Katalogseite als Blätter-Element (weißes Blatt mit Bild) aufbauen.
+     Das Bild bekommt seine Adresse erst, wenn die Seite in die Nähe der
+     aktuellen rückt – siehe ladeUmgebung(). */
+  function createPageElement(nummer) {
     const holder = document.createElement("div");
     holder.className = "flip-page";
     const img = document.createElement("img");
-    img.src = src;
     img.alt = "";
     img.draggable = false;
     img.decoding = "async";
     holder.appendChild(img);
+    seitenImgs[nummer - 1] = img;
     return holder;
   }
 
-  /* PDF-Seite auf ein Canvas rendern und als Bild-URL zurückgeben.
-     Ergebnis: { url, bytes } – die Größe brauchen wir für den Vorrat.
-
-     Die Seiten werden als Blob abgelegt und über eine blob:-Adresse
-     eingebunden, nicht als data:-Adresse. Der Unterschied zählt, seit die
-     Seiten aufgehoben werden: Eine data:-Adresse ist eine Zeichenkette im
-     Arbeitsspeicher der Seite (und durch die Base64-Kodierung ein Drittel
-     größer), ein Blob verwaltet der Browser selbst. */
-  async function renderPageToImage(pdf, pageNumber, targetW) {
-    const page = await pdf.getPage(pageNumber);
-    const unscaled = page.getViewport({ scale: 1 });
-    const scale = targetW / unscaled.width;
-    const viewport = page.getViewport({ scale });
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = Math.ceil(viewport.width);
-    canvas.height = Math.ceil(viewport.height);
-    // weißer Hintergrund (PDFs ohne eigenen Hintergrund)
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    await page.render({ canvasContext: ctx, viewport }).promise;
-    // Etwas höhere JPEG-Qualität – feine Schrift bleibt so besser lesbar.
-    const blob = await new Promise((ok, fehler) => {
-      canvas.toBlob((b) => (b ? ok(b) : fehler(new Error("Seite konnte nicht als Bild abgelegt werden"))),
-        "image/jpeg", 0.92);
-    });
-    page.cleanup();
-    // Canvas sofort klein machen: sonst hält der Browser die Zeichenfläche
-    // (Breite × Höhe × 4 Byte) bis zum Aufräumen fest.
-    canvas.width = canvas.height = 0;
-    return { url: URL.createObjectURL(blob), bytes: blob.size };
+  /** Ein einzelnes Seitenbild anfordern (nur beim ersten Mal). */
+  function ladeSeite(index) {
+    const img = seitenImgs[index];
+    if (!img || img.dataset.geholt || !currentKatalog) return;
+    img.dataset.geholt = "1";
+    img.src = bildAdresse(currentKatalog.bild, index + 1);
   }
 
-  /* Eine Bild-Adresse freigeben. Nur blob:-Adressen belegen etwas. */
-  function gibBildFrei(url) {
-    if (typeof url === "string" && url.startsWith("blob:")) URL.revokeObjectURL(url);
+  /** Die aktuelle Seite und ihre Nachbarn laden. */
+  function ladeUmgebung() {
+    if (!pageFlip || !currentPageCount) return;
+    let mitte = 0;
+    try { mitte = pageFlip.getCurrentPageIndex(); } catch (e) { mitte = 0; }
+    const von = Math.max(0, mitte - VORLAUF_ZURUECK);
+    const bis = Math.min(currentPageCount - 1, mitte + VORLAUF_VOR);
+    for (let i = von; i <= bis; i++) ladeSeite(i);
   }
 
   /* ---- Anzeige der aktuellen Seite ---- */
@@ -420,10 +327,9 @@
   }
 
   /* ============================================================
-     Vollbild-Ansicht: ein zweiter, großer Blätterer mit demselben
-     schönen Blätter-Effekt. Zum Vergrößern kann man die ganze Bühne
-     zoomen (Mausrad/Doppelklick bzw. zwei Finger) und verschieben.
-     Geblättert wird mit den Pfeilen, den Pfeiltasten oder per Wischen.
+     Vollbild-Ansicht: die Seite in der großen Fassung, zum
+     Reinzoomen und Verschieben. Geblättert wird mit den Pfeilen,
+     den Pfeiltasten oder per Wischen.
      ============================================================ */
   const zoomOverlay  = document.getElementById("zoomOverlay");
   const zoomViewport = document.getElementById("zoomViewport");
@@ -439,24 +345,13 @@
 
   let zoomOpen = false;
   let zoomIndex = 0;              // aktuell gezeigte Seite (0-basiert)
-  let zoomImgEl = null;           // <img> mit der aktuellen Seite in hoher Auflösung
-  let zoomRenderToken = 0;        // bricht veraltete Seiten-Renderings ab
+  let zoomImgEl = null;           // <img> mit der aktuellen Seite in großer Fassung
   const Z_MIN = 1, Z_MAX = 4;     // Zoom-Grenzen der Vollbild-Bühne
   let zScale = 1, ztx = 0, zty = 0;
   const zPointers = new Map();
   let zPinch = null;
   let zDown = null;               // Start eines Einzelzeigers (Wischen/Tippen)
   let zLastTapTime = 0, zLastTapX = 0, zLastTapY = 0;
-
-  /* Scharfe Vollbild-Seiten: Jede Seite wird für die Vollbild-Ansicht einzeln
-     in hoher Auflösung als Bild gerendert (nicht über die Blätter-Bibliothek,
-     die intern nur in CSS-Pixeln zeichnet und dadurch auf Handys unscharf
-     bliebe). So bleibt auch die feine Schrift beim Reinzoomen lesbar. */
-  const MAX_CANVAS_DIM = 4000;    // sichere Canvas-Kante (iOS-Limit ~4096)
-  const ZOOM_READ_W    = 2800;    // Ziel-Renderbreite der scharfen Seiten
-  const ZOOM_CACHE_MAX = 8;       // max. gemerkte scharfe Seiten (Speicher)
-  const zoomCache = new Map();    // Seiten-Index (0-basiert) -> scharfe Bild-URL
-  const zoomCacheLRU = [];        // Reihenfolge fürs Verdrängen (ältestes zuerst)
 
   if (zoomClose) zoomClose.addEventListener("click", closeZoom);
   zoomPrevBtns.forEach((b) => wireZoomFlipButton(b, -1));
@@ -487,7 +382,7 @@
   }
 
   function openZoom(pageNum) {
-    if (zoomOpen || !currentPdf || !currentPageCount) return;
+    if (zoomOpen || !currentKatalog || !currentPageCount) return;
     hideLens(); // Lupe ausblenden, solange die Vollbild-Ansicht offen ist
     let n = pageNum;
     if (!n && pageFlip) n = pageFlip.getCurrentPageIndex() + 1; // aktuelle Seite
@@ -498,78 +393,46 @@
     zoomOverlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("zoom-lock");
 
-    // <img> für die scharfe Seite anlegen (einmalig)
+    // <img> für die große Seite anlegen (einmalig)
     if (zoomFlipEl) {
       zoomFlipEl.innerHTML = "";
       zoomImgEl = document.createElement("img");
       zoomImgEl.className = "zoom-page";
       zoomImgEl.alt = "";
       zoomImgEl.decoding = "async";
-      // Sobald die Seite ihre endgültige Größe hat: Pfeile daneben setzen
-      zoomImgEl.addEventListener("load", placeZoomSideArrows);
+      zoomImgEl.addEventListener("load", () => {
+        if (zoomLoading) zoomLoading.hidden = true;
+        placeZoomSideArrows();   // Pfeile an die Seitenkanten setzen
+      });
+      zoomImgEl.addEventListener("error", () => {
+        if (zoomLoading) { zoomLoading.hidden = false; zoomLoading.textContent = "Seite konnte nicht geladen werden."; }
+      });
       zoomFlipEl.appendChild(zoomImgEl);
     }
     showZoomPage(zoomIndex);
   }
 
-  /* Eine Seite in hoher Auflösung rendern und im Vollbild scharf anzeigen. */
+  /* Eine Seite in der großen Fassung anzeigen. Um das Zwischenspeichern
+     kümmert sich der Browser – es sind ganz normale Bilder. */
   function showZoomPage(idx) {
-    if (!currentPdf) return;
+    if (!currentKatalog || !zoomImgEl) return;
     zoomIndex = Math.min(Math.max(idx, 0), currentPageCount - 1);
     resetZoomTransform();          // beim Seitenwechsel wieder die ganze Seite zeigen
     updateZoomIndicator();
     if (zoomLoading) { zoomLoading.hidden = false; zoomLoading.textContent = "Seite wird geladen …"; }
 
-    const token = ++zoomRenderToken;
-    const pdf = currentPdf;
-    getZoomImage(pdf, zoomIndex).then((url) => {
-      if (token !== zoomRenderToken || pdf !== currentPdf || !zoomOpen || !zoomImgEl) return;
-      zoomImgEl.src = url;
-      if (zoomLoading) zoomLoading.hidden = true;
-      prefetchZoomImage(pdf, zoomIndex + 1); // nächste Seite im Hintergrund vorbereiten
-    }).catch(() => {
-      if (token !== zoomRenderToken) return;
-      if (zoomLoading) { zoomLoading.hidden = false; zoomLoading.textContent = "Seite konnte nicht geladen werden."; }
-    });
-  }
+    zoomImgEl.src = bildAdresse(currentKatalog.bildGross, zoomIndex + 1);
+    if (zoomImgEl.complete && zoomImgEl.naturalWidth > 0 && zoomLoading) zoomLoading.hidden = true;
 
-  /* Scharfe Seite (gemerkt) holen oder neu rendern. Breite so gedeckelt, dass
-     die Canvas-Kante das Geräte-Limit (iOS ~4096) nicht überschreitet. */
-  function getZoomImage(pdf, idx) {
-    if (zoomCache.has(idx)) { touchZoomCache(idx); return Promise.resolve(zoomCache.get(idx)); }
-    const ratio = currentRatio || 0.707;
-    const w = Math.min(ZOOM_READ_W, Math.floor(MAX_CANVAS_DIM * ratio), Math.floor(MAX_CANVAS_DIM));
-    return renderPageToImage(pdf, idx + 1, w).then(({ url }) => {
-      if (pdf === currentPdf) rememberZoomImage(idx, url);
-      else gibBildFrei(url);   // Katalog inzwischen gewechselt: nicht liegen lassen
-      return url;
-    });
-  }
-
-  function prefetchZoomImage(pdf, idx) {
-    if (idx < 0 || idx >= currentPageCount || zoomCache.has(idx)) return;
-    getZoomImage(pdf, idx).catch(() => {});
-  }
-
-  function rememberZoomImage(idx, url) {
-    zoomCache.set(idx, url);
-    touchZoomCache(idx);
-    while (zoomCacheLRU.length > ZOOM_CACHE_MAX) {
-      const raus = zoomCacheLRU.shift();
-      gibBildFrei(zoomCache.get(raus));
-      zoomCache.delete(raus);
+    // nächste Seite im Hintergrund anstoßen
+    if (zoomIndex + 1 < currentPageCount) {
+      new Image().src = bildAdresse(currentKatalog.bildGross, zoomIndex + 2);
     }
-  }
-  function touchZoomCache(idx) {
-    const p = zoomCacheLRU.indexOf(idx);
-    if (p >= 0) zoomCacheLRU.splice(p, 1);
-    zoomCacheLRU.push(idx);
   }
 
   function closeZoom() {
     if (!zoomOpen) return;
     zoomOpen = false;
-    zoomRenderToken++;             // laufende Renderings verwerfen
     const idx = zoomIndex;
     zoomOverlay.hidden = true;
     zoomOverlay.setAttribute("aria-hidden", "true");
@@ -578,10 +441,6 @@
     if (zoomViewport) zoomViewport.style.removeProperty("--zoom-side-x");
     if (zoomFlipEl) zoomFlipEl.innerHTML = "";
     zoomImgEl = null;
-    // scharfe Seiten wieder freigeben (Speicher). Das <img> hängt oben
-    // bereits nicht mehr im Dokument, die Adressen dürfen also weg.
-    zoomCache.forEach(gibBildFrei);
-    zoomCache.clear(); zoomCacheLRU.length = 0;
     // normalen Blätterer an die zuletzt gesehene Seite setzen
     if (pageFlip) { try { pageFlip.turnToPage(idx); } catch (e) {} }
   }
@@ -725,14 +584,13 @@
      (Nur an Geräten mit Maus/Trackpad sinnvoll – am Handy bleibt die
      Vollbild-Ansicht zum Zoomen.)
      ============================================================ */
-  const LENS_SIZE     = 240;   // Durchmesser der Lupe in Pixeln
-  const LENS_HIRES_W  = 1800;  // Renderbreite der scharfen Lupen-Vorlage
-  let   LENS_ZOOM     = 2.2;   // Vergrößerungsfaktor (mit Mausrad änderbar)
+  const LENS_SIZE = 240;       // Durchmesser der Lupe in Pixeln
+  let   LENS_ZOOM = 2.2;       // Vergrößerungsfaktor (mit Mausrad änderbar)
 
   let magnifierOn = false;
   let lensVisible = false;
   let lastClient  = null;            // zuletzt bekannte Mausposition
-  const lensHiRes = new Map();       // Seite (1-basiert) → scharfe Bild-URL
+  const lensGross = new Map();       // Seite (1-basiert) → große Bildadresse, sobald geladen
   let lensEl = null;
 
   // Lupe gibt es nur, wenn ein echter Zeiger (Maus/Trackpad) vorhanden ist
@@ -790,8 +648,7 @@
   }
 
   function resetMagnifier() {
-    lensHiRes.forEach(gibBildFrei);   // Einträge können noch null sein („wird geladen")
-    lensHiRes.clear();
+    lensGross.clear();
     hideLens();
   }
 
@@ -844,9 +701,11 @@
 
     lastClient = { x: clientX, y: clientY };
     const idx = info.pageNum - 1;
-    const src = lensHiRes.get(info.pageNum) || pageImages[idx];
+    const klein = seitenImgs[idx] && seitenImgs[idx].getAttribute("src");
+    // Solange die große Fassung noch lädt, zeigt die Lupe die kleine
+    const src = lensGross.get(info.pageNum) || klein;
     if (!src) { hideLens(); return; }
-    ensureHiRes(info.pageNum); // schärfere Vorlage im Hintergrund nachladen
+    ensureGross(info.pageNum); // größere Vorlage im Hintergrund holen
 
     const el = ensureLensEl();
     const bgW = info.pw * LENS_ZOOM;
@@ -860,18 +719,22 @@
     showLens();
   }
 
-  /* Seite einmalig in hoher Auflösung rendern und merken – damit die
-     Lupe so scharf ist wie die Vollbild-Ansicht. */
-  function ensureHiRes(pageNum) {
-    if (lensHiRes.has(pageNum) || !currentPdf) return;
-    lensHiRes.set(pageNum, null); // als „wird geladen" markieren
-    const pdf = currentPdf;
-    renderPageToImage(pdf, pageNum, LENS_HIRES_W).then(({ url }) => {
-      if (pdf !== currentPdf) { lensHiRes.delete(pageNum); gibBildFrei(url); return; }
-      lensHiRes.set(pageNum, url);
-      // Wenn die Maus noch auf dieser Seite steht: scharf nachziehen
+  /* Die große Fassung einer Seite holen – damit die Lupe so scharf ist wie
+     die Vollbild-Ansicht. Erst wenn sie da ist, wird umgeschaltet. */
+  function ensureGross(pageNum) {
+    if (lensGross.has(pageNum) || !currentKatalog) return;
+    lensGross.set(pageNum, null); // als „wird geholt“ markieren
+    const katalog = currentKatalog;
+    const url = bildAdresse(katalog.bildGross, pageNum);
+    const img = new Image();
+    img.addEventListener("load", () => {
+      if (katalog !== currentKatalog) { lensGross.delete(pageNum); return; }
+      lensGross.set(pageNum, url);
+      // Wenn die Maus noch auf dieser Seite steht: schärfer nachziehen
       if (magnifierOn && lastClient) moveLens(lastClient.x, lastClient.y);
-    }).catch(() => { lensHiRes.delete(pageNum); });
+    });
+    img.addEventListener("error", () => { lensGross.delete(pageNum); });
+    img.src = url;
   }
 
   window.addEventListener("resize", () => { if (magnifierOn) hideLens(); });
