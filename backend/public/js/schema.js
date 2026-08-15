@@ -29,6 +29,7 @@ const actionFields = [
     type: "text",
     note: "Optional. Muss genau einem Eintrag der Auswahlliste im Kontaktformular entsprechen.",
   },
+  { k: "external", label: "In neuem Tab öffnen", type: "checkbox", note: "Für Links auf fremde Seiten." },
 ];
 
 /* ---------- Sektionstypen ---------- */
@@ -41,6 +42,12 @@ export const SECTION_SCHEMA = {
       { k: "partnerText", label: "Zeile über der Überschrift", type: "text" },
       { k: "headline", label: "Überschrift", type: "lines", rows: 3, note: "Eine Zeile je Feld. Ab der zweiten Zeile wird in Sonnengelb hervorgehoben." },
       { k: "lead", label: "Einleitungstext", type: "rich", rows: 5 },
+      {
+        k: "partnerHref",
+        label: "Ziel des Partner-Logos",
+        type: "text",
+        note: "Optional. Leer lassen, wenn das Logo nicht verlinkt sein soll.",
+      },
       { k: "partnerLogo", label: "Partner-Logo", type: "image" },
       {
         k: "actions",
@@ -110,19 +117,44 @@ export const SECTION_SCHEMA = {
         ],
       },
       {
-        k: "cta",
-        label: "Button unter den Karten",
+        k: "actions",
+        label: "Buttons unter den Karten",
         type: "list",
         singular: "Button",
-        note: "Maximal einer. Leer lassen, wenn kein Button gewünscht ist.",
+        note: "Leer lassen, wenn kein Button gewünscht ist. Mehrere stehen nebeneinander.",
         itemLabel: (a) => a.label || "Button",
-        newItem: () => ({ label: "", href: "#kontakt", style: "sun", note: "" }),
-        item: [...actionFields, { k: "note", label: "Hinweis unter dem Button", type: "text" }],
+        newItem: () => ({ label: "", href: "#kontakt", style: "sun" }),
+        item: actionFields,
+      },
+      { k: "actionsNote", label: "Hinweis unter den Buttons", type: "text" },
+      {
+        k: "link",
+        label: "Textlink unter den Karten",
+        type: "list",
+        singular: "Link",
+        note: "Maximal einer – erscheint als Textzeile, z. B. „oder gleich Online bestellen“.",
+        itemLabel: (l) => l.label || "Link",
+        newItem: () => ({ label: "", href: "https://", external: true }),
+        item: [
+          { k: "label", label: "Beschriftung", type: "text" },
+          { k: "href", label: "Ziel", type: "text" },
+          { k: "external", label: "In neuem Tab öffnen", type: "checkbox" },
+        ],
       },
     ],
-    /* cta ist im JSON ein einzelnes Objekt, in der Oberflaeche eine Liste. */
-    toForm: (d) => ({ ...d, cta: d.cta ? [d.cta] : [] }),
-    fromForm: (d) => ({ ...d, cta: d.cta?.[0] || undefined }),
+    /* Einzelobjekte liegen in der Oberflaeche als Liste vor. „cta“ ist die
+       alte Schreibweise fuer einen einzelnen Button – sie wird uebernommen. */
+    toForm: (d) => {
+      const { note, ...legacy } = d.cta || {};
+      return {
+        ...d,
+        cta: undefined,
+        actions: (d.actions || []).length ? d.actions : d.cta ? [legacy] : [],
+        actionsNote: d.actionsNote ?? note,
+        link: d.link ? [d.link] : [],
+      };
+    },
+    fromForm: (d) => ({ ...d, cta: undefined, link: d.link?.[0] || undefined }),
   },
 
   flow: {
@@ -422,6 +454,12 @@ export const SETTINGS_PANELS = [
     description: "Der Bereich ganz unten mit Impressum und Datenschutz.",
     fields: [
       { k: "partnerText", label: "Text vor dem Partner-Logo", type: "text" },
+      {
+        k: "partnerHref",
+        label: "Ziel des Partner-Logos",
+        type: "text",
+        note: "Optional. Leer lassen, wenn das Logo nicht verlinkt sein soll.",
+      },
       { k: "partnerLogo", label: "Partner-Logo", type: "image" },
       { k: "legal", label: "Rechtszeile", type: "rich", rows: 3 },
       { k: "review", label: "Hinweis zur redaktionellen Prüfung", type: "rich", rows: 2 },
