@@ -216,11 +216,14 @@
             "text": "Lerne die Produkte in einem live Event zuhause oder Online kennen."
           }
         ],
-        "link": {
-          "label": "oder gleich Online bestellen",
-          "href": "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
-          "external": true
-        }
+        "actions": [
+          {
+            "href": "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
+            "label": "Oder gleich online bestellen",
+            "style": "sun",
+            "external": true
+          }
+        ]
       }
     },
     {
