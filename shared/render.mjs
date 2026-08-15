@@ -115,6 +115,22 @@ function columnClass(d) {
   return n >= 2 && n <= 4 ? ` cols-${n}` : "";
 }
 
+/* Partner-Logo (proWIN) – auf Wunsch als Link auf die Partnerseite. */
+function partnerLogo(logo, href, { className = "", lazy = false } = {}) {
+  if (!logo?.src) return "";
+  const cls = className ? ` class="${esc(className)}"` : "";
+  const loading = lazy ? ' loading="lazy" decoding="async"' : "";
+  const img =
+    `<img src="${esc(logo.src)}" alt="${esc(logo.alt)}"${cls}` +
+    ` width="${esc(logo.width)}" height="${esc(logo.height)}"${loading} />`;
+  if (!href) return img;
+  return join([
+    `<a href="${esc(href)}" class="partner-link" target="_blank" rel="noopener">`,
+    "  " + img,
+    "</a>",
+  ]);
+}
+
 /* Ein Button/Link mit optionaler Vorauswahl des Kontaktgrunds. */
 function renderAction(a, extraClass = "") {
   const cls = ["btn", a.style === "ghost" ? "btn-ghost" : a.style === "wave" ? "btn-wave" : "btn-sun"];
@@ -131,14 +147,12 @@ const SECTIONS = {
     const headline = (d.headline || [])
       .map((line, i) => (i === 0 ? esc(line) : `<span class="accent-sun">${esc(line)}</span>`))
       .join("<br />");
+    const logo = partnerLogo(d.partnerLogo, d.partnerHref);
     const partner = d.partnerText
       ? join([
           '<p class="hero-partner">',
           `  <span>${esc(d.partnerText)}</span>`,
-          d.partnerLogo
-            ? `  <img src="${esc(d.partnerLogo.src)}" alt="${esc(d.partnerLogo.alt)}"` +
-              ` width="${esc(d.partnerLogo.width)}" height="${esc(d.partnerLogo.height)}" />`
-            : "",
+          logo ? indent(logo, 2) : "",
           "</p>",
         ])
       : "";
@@ -210,14 +224,28 @@ const SECTIONS = {
       )
       .join("\n\n");
 
-    const cta = d.cta
-      ? join([
-          '<div class="team-cta">',
-          "  " + renderAction(d.cta),
-          d.cta.note ? `  <p class="team-cta-note">${rich(d.cta.note)}</p>` : "",
-          "</div>",
-        ])
-      : "";
+    /* Unter den Karten koennen mehrere Buttons stehen. Frueher war das ein
+       einzelnes Objekt (cta) – Inhalte in dieser Form bleiben gueltig. */
+    const actions = (d.actions || []).length ? d.actions : d.cta ? [d.cta] : [];
+    const note = d.actionsNote || d.cta?.note || "";
+    const link =
+      d.link?.href && d.link?.label
+        ? `<p class="team-cta-link"><a href="${esc(d.link.href)}"` +
+          `${d.link.external === false ? "" : ' target="_blank" rel="noopener"'}>${esc(d.link.label)}</a></p>`
+        : "";
+
+    const cta =
+      actions.length || note || link
+        ? join([
+            '<div class="team-cta">',
+            actions.length
+              ? `  <div class="team-cta-actions">\n${indent(actions.map((a) => renderAction(a)).join("\n"), 4)}\n  </div>`
+              : "",
+            link ? "  " + link : "",
+            note ? `  <p class="team-cta-note">${rich(note)}</p>` : "",
+            "</div>",
+          ])
+        : "";
 
     return join([
       '<div class="container">',
@@ -778,8 +806,7 @@ function renderFooter(content) {
       ? join([
           '    <p class="footer-partner">',
           `      <span>${esc(f.partnerText)}</span>`,
-          `      <img src="${esc(f.partnerLogo?.src)}" alt="${esc(f.partnerLogo?.alt)}" class="footer-prowin"` +
-            ` width="${esc(f.partnerLogo?.width)}" height="${esc(f.partnerLogo?.height)}" loading="lazy" decoding="async" />`,
+          indent(partnerLogo(f.partnerLogo, f.partnerHref, { className: "footer-prowin", lazy: true }), 6),
           "    </p>",
         ])
       : "",

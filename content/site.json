@@ -108,6 +108,7 @@
           "width": 244,
           "height": 44
         },
+        "partnerHref": "https://prowin.net/de/vertrieb/m.zimmert",
         "headline": [
           "Natürlich sauber.",
           "Natürlich du."
@@ -214,7 +215,12 @@
             "title": "proWINparty & Beratung",
             "text": "Lerne die Produkte in einem live Event zuhause oder Online kennen."
           }
-        ]
+        ],
+        "link": {
+          "label": "oder gleich Online bestellen",
+          "href": "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
+          "external": true
+        }
       }
     },
     {
@@ -427,13 +433,21 @@
             "text": "Produkte, hinter denen du stehen kannst – das macht das Weitergeben leicht."
           }
         ],
-        "cta": {
-          "href": "#kontakt",
-          "label": "Erzähl mir mehr davon",
-          "style": "sun",
-          "contactReason": "Ich möchte mit dir in einem Team arbeiten",
-          "note": "Unverbindlich – wir schauen einfach, ob es zu dir passt."
-        }
+        "actions": [
+          {
+            "href": "#kontakt",
+            "label": "Erzähl mir mehr davon",
+            "style": "sun",
+            "contactReason": "Ich möchte mit dir in einem Team arbeiten"
+          },
+          {
+            "href": "https://prowin.net/de/erfolgreich?name=m.zimmert",
+            "label": "Mit mir durchstarten",
+            "style": "ghost",
+            "external": true
+          }
+        ],
+        "actionsNote": "Unverbindlich – wir schauen einfach, ob es zu dir passt."
       }
     },
     {
@@ -509,6 +523,7 @@
       "width": 244,
       "height": 44
     },
+    "partnerHref": "https://prowin.net/de/vertrieb/m.zimmert",
     "legal": "Manuela Zimmert · unabhängige proWIN‑Vertriebsberaterin · 86971 Peiting · <a href=\"impressum.html\">Impressum</a> · <a href=\"datenschutz.html\">Datenschutz</a>",
     "review": "Texte und Grafiken dieser Website wurden von Manuela Zimmert redaktionell geprüft.",
     "fine": "Shine On You · Seit 2026 <br />„proWIN“ ist eine Marke der proWIN International. Diese Seite ist ein unabhängiges Angebot."

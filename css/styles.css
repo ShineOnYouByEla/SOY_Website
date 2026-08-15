@@ -439,6 +439,9 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   color: var(--wave);
 }
 .hero-partner img { height: 22px; width: auto; opacity: .95; transform: translateY(-1px); }
+/* Partner-Logo als Link auf die proWIN-Seite */
+.partner-link { display: inline-flex; align-items: center; transition: opacity .2s ease; }
+.partner-link:hover { opacity: .75; }
 
 /* dezente Wellenkante unten am Hero */
 .hero-wave {
@@ -772,7 +775,12 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 
 /* ===== Mitmachen / Team ===== */
 .team-cta { text-align: center; margin-top: clamp(28px, 5vw, 40px); }
+.team-cta-actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
 .team-cta-note { color: var(--cream-dim); font-size: .9rem; margin: 12px 0 0; }
+/* Textlink unter den Karten, z. B. „oder gleich Online bestellen“ */
+.team-cta-link { margin: 14px 0 0; font-family: var(--font-head); font-size: .95rem; }
+.team-cta-link a { color: var(--sun); text-decoration: underline; text-underline-offset: 4px; }
+.team-cta-link a:hover { color: var(--sun-deep); }
 
 /* Pfeil nach unten zur Terminbuchung */
 .flow-down {

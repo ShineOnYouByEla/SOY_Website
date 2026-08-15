@@ -84,6 +84,19 @@ function checkIcon(name, where, errors) {
   if (name !== undefined && !ICONS[name]) errors.push(`${where}: unbekanntes Symbol „${name}“.`);
 }
 
+function checkAction(a, where, errors) {
+  if (!isStr(a?.label) || !a.label.trim()) errors.push(`${where}: Beschriftung fehlt.`);
+  if (!isStr(a?.href) || !a.href.trim()) errors.push(`${where}: Ziel fehlt.`);
+}
+
+/* Links auf fremde Seiten – etwa hinter dem proWIN-Logo – brauchen ein
+   vollstaendiges Ziel, sonst landen sie relativ auf der eigenen Seite. */
+function checkExternalHref(href, where, errors) {
+  if (isStr(href) && href.trim() && !/^https?:\/\//i.test(href)) {
+    errors.push(`${where}: der Link muss mit http:// oder https:// beginnen.`);
+  }
+}
+
 /**
  * Prueft die Struktur. Gibt eine Liste von Klartextfehlern zurueck —
  * die landen unveraendert in der Oberflaeche.
@@ -119,6 +132,11 @@ export function validateContent(content) {
     }
   }
 
+  /* --- Fussbereich --- */
+  if (isObj(content.footer)) {
+    checkExternalHref(content.footer.partnerHref, "Fußbereich, Partner-Logo", errors);
+  }
+
   /* --- Sektionen --- */
   if (!isArr(content.sections) || content.sections.length === 0) {
     errors.push("Es muss mindestens eine Sektion geben.");
@@ -146,10 +164,8 @@ export function validateContent(content) {
       if (s.type === "hero") {
         if (!isArr(d.headline) || d.headline.length === 0) errors.push(`${where}: Überschrift fehlt.`);
         checkImage(d.partnerLogo, where, errors);
-        (d.actions || []).forEach((a, k) => {
-          if (!isStr(a?.label) || !a.label.trim()) errors.push(`${where}, Button ${k + 1}: Beschriftung fehlt.`);
-          if (!isStr(a?.href) || !a.href.trim()) errors.push(`${where}, Button ${k + 1}: Ziel fehlt.`);
-        });
+        checkExternalHref(d.partnerHref, `${where}, Partner-Logo`, errors);
+        (d.actions || []).forEach((a, k) => checkAction(a, `${where}, Button ${k + 1}`, errors));
       }
 
       if (s.type === "about") {
@@ -166,6 +182,9 @@ export function validateContent(content) {
         if (d.columns !== undefined && ![2, 3, 4].includes(Number(d.columns))) {
           errors.push(`${where}: Spaltenzahl muss 2, 3 oder 4 sein.`);
         }
+        (d.actions || []).forEach((a, k) => checkAction(a, `${where}, Button ${k + 1}`, errors));
+        if (d.cta) checkAction(d.cta, `${where}, Button`, errors);
+        if (d.link) checkAction(d.link, `${where}, Textlink`, errors);
       }
 
       if (s.type === "flow") {
