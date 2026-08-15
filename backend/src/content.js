@@ -184,7 +184,6 @@ export function validateContent(content) {
         }
         (d.actions || []).forEach((a, k) => checkAction(a, `${where}, Button ${k + 1}`, errors));
         if (d.cta) checkAction(d.cta, `${where}, Button`, errors);
-        if (d.link) checkAction(d.link, `${where}, Textlink`, errors);
       }
 
       if (s.type === "flow") {

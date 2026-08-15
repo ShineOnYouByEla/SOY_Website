@@ -228,20 +228,14 @@ const SECTIONS = {
        einzelnes Objekt (cta) – Inhalte in dieser Form bleiben gueltig. */
     const actions = (d.actions || []).length ? d.actions : d.cta ? [d.cta] : [];
     const note = d.actionsNote || d.cta?.note || "";
-    const link =
-      d.link?.href && d.link?.label
-        ? `<p class="team-cta-link"><a href="${esc(d.link.href)}"` +
-          `${d.link.external === false ? "" : ' target="_blank" rel="noopener"'}>${esc(d.link.label)}</a></p>`
-        : "";
 
     const cta =
-      actions.length || note || link
+      actions.length || note
         ? join([
             '<div class="team-cta">',
             actions.length
               ? `  <div class="team-cta-actions">\n${indent(actions.map((a) => renderAction(a)).join("\n"), 4)}\n  </div>`
               : "",
-            link ? "  " + link : "",
             note ? `  <p class="team-cta-note">${rich(note)}</p>` : "",
             "</div>",
           ])

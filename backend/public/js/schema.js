@@ -127,23 +127,9 @@ export const SECTION_SCHEMA = {
         item: actionFields,
       },
       { k: "actionsNote", label: "Hinweis unter den Buttons", type: "text" },
-      {
-        k: "link",
-        label: "Textlink unter den Karten",
-        type: "list",
-        singular: "Link",
-        note: "Maximal einer – erscheint als Textzeile, z. B. „oder gleich Online bestellen“.",
-        itemLabel: (l) => l.label || "Link",
-        newItem: () => ({ label: "", href: "https://", external: true }),
-        item: [
-          { k: "label", label: "Beschriftung", type: "text" },
-          { k: "href", label: "Ziel", type: "text" },
-          { k: "external", label: "In neuem Tab öffnen", type: "checkbox" },
-        ],
-      },
     ],
-    /* Einzelobjekte liegen in der Oberflaeche als Liste vor. „cta“ ist die
-       alte Schreibweise fuer einen einzelnen Button – sie wird uebernommen. */
+    /* „cta“ ist die alte Schreibweise fuer einen einzelnen Button –
+       sie wird in die Buttonliste uebernommen. */
     toForm: (d) => {
       const { note, ...legacy } = d.cta || {};
       return {
@@ -151,10 +137,9 @@ export const SECTION_SCHEMA = {
         cta: undefined,
         actions: (d.actions || []).length ? d.actions : d.cta ? [legacy] : [],
         actionsNote: d.actionsNote ?? note,
-        link: d.link ? [d.link] : [],
       };
     },
-    fromForm: (d) => ({ ...d, cta: undefined, link: d.link?.[0] || undefined }),
+    fromForm: (d) => ({ ...d, cta: undefined }),
   },
 
   flow: {
