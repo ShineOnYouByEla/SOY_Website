@@ -30,7 +30,34 @@ import { KATALOG_DIR, TITEL_DATEI, baueKataloge } from "../shared/kataloge.mjs";
 const require = createRequire(import.meta.url);
 const { createCanvas } = require("canvas");
 const sharp = require("sharp");
-const pdfjs = require("pdfjs-dist/legacy/build/pdf.js");
+// pdfjs-dist 4.x ships ESM-only; the legacy CJS build/pdf.js path is gone.
+const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+
+/* pdfjs' built-in NodeCanvasFactory creates its internal (transparency-
+   group) canvases via @napi-rs/canvas, which our own `canvas`-backed
+   rendering context then rejects ("Image or Canvas expected"). Supplying
+   our own factory keeps every canvas in the pipeline on the same
+   `canvas` package. */
+class NodeCanvasFactory {
+  create(width, height) {
+    if (width <= 0 || height <= 0) throw new Error("Invalid canvas size");
+    const canvas = createCanvas(width, height);
+    return { canvas, context: canvas.getContext("2d") };
+  }
+  reset(canvasAndContext, width, height) {
+    if (!canvasAndContext.canvas) throw new Error("Canvas is not specified");
+    if (width <= 0 || height <= 0) throw new Error("Invalid canvas size");
+    canvasAndContext.canvas.width = width;
+    canvasAndContext.canvas.height = height;
+  }
+  destroy(canvasAndContext) {
+    if (!canvasAndContext.canvas) throw new Error("Canvas is not specified");
+    canvasAndContext.canvas.width = 0;
+    canvasAndContext.canvas.height = 0;
+    canvasAndContext.canvas = null;
+    canvasAndContext.context = null;
+  }
+}
 
 /* ---------- Einstellungen ----------
    Gerendert wird einmal in der großen Breite; die kleine entsteht daraus
@@ -74,7 +101,10 @@ async function rendereKatalog(eintrag, pdfBytes, hash, ziel) {
   rmSync(ziel, { recursive: true, force: true });
   mkdirSync(ziel, { recursive: true });
 
-  const pdf = await pdfjs.getDocument({ data: new Uint8Array(pdfBytes) }).promise;
+  const pdf = await pdfjs.getDocument({
+    data: new Uint8Array(pdfBytes),
+    CanvasFactory: NodeCanvasFactory,
+  }).promise;
   const anzahl = pdf.numPages;
   let ratio = 1 / Math.SQRT2;
 
