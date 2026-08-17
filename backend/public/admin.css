@@ -96,6 +96,8 @@ input:disabled, textarea:disabled, select:disabled { opacity: .55; }
   transition: background .15s ease, border-color .15s ease, opacity .15s ease;
 }
 .btn:hover:not(:disabled) { border-color: var(--sun); }
+/* Der Link auf die Testseite sieht aus wie ein Knopf – ohne Unterstreichung. */
+a.btn { text-decoration: none; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn-primary { background: var(--sun); border-color: var(--sun); color: #2a1a05; }
 .btn-primary:hover:not(:disabled) { background: var(--sun-dark); border-color: var(--sun-dark); }

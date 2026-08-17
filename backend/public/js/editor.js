@@ -30,6 +30,9 @@ const state = {
   /** Kennung des offenen Bereichs, z. B. "section:ueber" oder "settings:seo". */
   panel: null,
   siteUrl: "",
+  /** Branch der Testseite – null, wenn keine eingerichtet ist. */
+  testingBranch: null,
+  testingUrl: "",
 };
 
 let saveTimer = null;
@@ -65,6 +68,9 @@ export async function startEditor(user) {
     state.siteUrl = health.siteUrl;
     setSiteUrl(health.siteUrl);
   }
+  state.testingBranch = health?.testingBranch || null;
+  state.testingUrl = health?.testingUrl || "";
+  showTestingLink();
   if (health?.github?.error) {
     toast(`GitHub-Zugriff nicht möglich: ${health.github.error}`, "error");
   }
@@ -126,7 +132,12 @@ function setDirty(value) {
   $("#btnPublish").disabled = !value;
 }
 
-/** Nach jeder Aenderung: kurz warten, dann speichern und Vorschau erneuern. */
+/**
+ * Nach jeder Aenderung: kurz warten, dann speichern und Vorschau erneuern.
+ * Das laeuft im Hintergrund und legt den Entwurf nur in der Datenbank ab —
+ * auf die Testseite kommt er erst, wenn jemand ausdruecklich auf „Speichern"
+ * klickt. Sonst entstuende bei jedem Tippen ein Commit.
+ */
 function markChanged() {
   setDirty(true);
   clearTimeout(saveTimer);
@@ -136,6 +147,11 @@ function markChanged() {
   previewTimer = setTimeout(refreshPreview, 1600);
 }
 
+/**
+ * Speichert den Entwurf. Beim ausdruecklichen Speichern (Knopf oder Strg+S)
+ * wandert er anschliessend auf den Testing-Branch, damit die Testseite im
+ * Heimnetz den neuen Stand zeigt.
+ */
 async function saveDraft({ silent = false } = {}) {
   if (state.saving) return false;
   state.saving = true;
@@ -144,8 +160,8 @@ async function saveDraft({ silent = false } = {}) {
   try {
     await api.saveDraft(state.content);
     setDirty(true);
-    if (!silent) toast("Entwurf gespeichert.", "ok");
     showErrors(null);
+    if (!silent) await stelleAufTestseite();
     return true;
   } catch (err) {
     if (err instanceof ApiError && err.errors) {
@@ -158,6 +174,44 @@ async function saveDraft({ silent = false } = {}) {
   } finally {
     state.saving = false;
     $("#btnSave").disabled = false;
+  }
+}
+
+/**
+ * Den gespeicherten Entwurf auf die Testseite stellen. Klappt das nicht, ist
+ * der Entwurf trotzdem sicher — deshalb bleibt es bei einer Meldung, und der
+ * Rueckgabewert von saveDraft aendert sich dadurch nicht.
+ */
+async function stelleAufTestseite() {
+  if (!state.testingBranch) {
+    toast("Entwurf gespeichert.", "ok");
+    return;
+  }
+
+  toast("Gespeichert. Die Testseite wird aktualisiert …");
+  try {
+    const result = await api.toTesting();
+    // Ohne Änderung gegenüber dem Testing-Branch entsteht kein Commit.
+    const schonDa = result.unchanged || result.commit?.unchanged;
+    toast(
+      schonDa
+        ? "Gespeichert. Auf der Testseite steht bereits dieser Stand."
+        : "Gespeichert und auf die Testseite gestellt. Sie ist in etwa einer Minute aktuell.",
+      "ok"
+    );
+  } catch (err) {
+    toast(`Gespeichert – die Testseite konnte aber nicht aktualisiert werden: ${err.message}`, "error");
+  }
+}
+
+/** Link auf die Testseite in der Vorschauleiste, sofern eine hinterlegt ist. */
+function showTestingLink() {
+  const link = $("#testingLink");
+  if (!link) return;
+  link.hidden = !state.testingUrl;
+  if (state.testingUrl) {
+    link.href = state.testingUrl;
+    link.title = `Testseite ansehen (Branch ${state.testingBranch})`;
   }
 }
 
@@ -541,7 +595,10 @@ function bindToolbar() {
   $("#btnDiscard").addEventListener("click", async () => {
     const yes = await confirmDialog({
       title: "Änderungen verwerfen?",
-      text: "Der Entwurf wird gelöscht und die Seite zeigt wieder den veröffentlichten Stand. Das lässt sich nicht rückgängig machen.",
+      text:
+        "Der Entwurf wird gelöscht und die Seite zeigt wieder den veröffentlichten Stand." +
+        (state.testingBranch ? " Auch die Testseite fällt auf den Live-Stand zurück." : "") +
+        " Das lässt sich nicht rückgängig machen.",
       confirmLabel: "Verwerfen",
       danger: true,
     });
@@ -617,12 +674,24 @@ async function publish() {
 
   const message = await dialog((body, close) => {
     let text = "";
-    body.append(
-      el("h2", { text: "Änderungen veröffentlichen" }),
+    const hinweise = [
       el("p", {
         class: "auth-note",
-        text: "Die Änderungen werden ins Repository übernommen. Die Live-Seite aktualisiert sich danach automatisch – das dauert etwa eine Minute.",
+        text: "Die Änderungen gehen auf den Live-Branch. Die Live-Seite aktualisiert sich danach automatisch – das dauert etwa eine Minute.",
       }),
+    ];
+    if (state.testingBranch) {
+      hinweise.push(
+        el("p", {
+          class: "auth-note",
+          text: `Die Testseite (${state.testingBranch}) zeigt danach wieder denselben Stand wie die Live-Seite.`,
+        })
+      );
+    }
+
+    body.append(
+      el("h2", { text: "Änderungen veröffentlichen" }),
+      ...hinweise,
       field("Kurze Notiz (optional)", input("", (v) => (text = v)), "Erscheint als Beschreibung in der Änderungshistorie."),
       el(
         "div",
@@ -641,7 +710,16 @@ async function publish() {
     const result = await api.publish(message, state.head);
     setDirty(false);
     state.head = result.commit.sha;
-    toast("Veröffentlicht. Die Live-Seite ist in etwa einer Minute aktuell.", "ok");
+    // Der Sync der Testseite ist Beiwerk – gescheitert ist er nur einen
+    // Hinweis wert, veroeffentlicht wurde trotzdem.
+    if (result.testing?.error) {
+      toast(
+        `Veröffentlicht. Der Branch ${result.testing.branch} konnte aber nicht nachgezogen werden: ${result.testing.error}`,
+        "error"
+      );
+    } else {
+      toast("Veröffentlicht. Die Live-Seite ist in etwa einer Minute aktuell.", "ok");
+    }
     showErrors(null);
   } catch (err) {
     if (err instanceof ApiError && err.errors) {
@@ -1002,6 +1080,7 @@ async function auditDialog() {
     recovery_regenerated: "Neue Wiederherstellungscodes",
     password_changed: "Passwort geändert",
     publish: "Veröffentlicht",
+    testing: "Auf die Testseite gestellt",
     draft_discarded: "Entwurf verworfen",
     katalog_upload: "Katalog hochgeladen",
     katalog_update: "Katalog geändert",

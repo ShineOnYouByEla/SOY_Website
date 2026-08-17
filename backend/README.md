@@ -28,9 +28,18 @@ Weil das Admin nur von zuhause oder über VPN benutzt wird, braucht die
 Homelab-Variante **keine öffentliche Erreichbarkeit**. Ausgehend muss der
 Container nur die GitHub-API erreichen.
 
-Beim Bearbeiten landet alles zunächst als **Entwurf** in der Datenbank – die
-Live-Seite bleibt unberührt. Erst „Veröffentlichen" schreibt in **einem Commit**
-ins Repository:
+### Vom Entwurf zur Live-Seite
+
+Beim Bearbeiten landet alles zunächst als **Entwurf** in der Datenbank – weder
+die Testseite noch die Live-Seite ändern sich dabei. Danach gibt es zwei
+Stufen:
+
+| Schritt | Ziel | Was passiert |
+|---|---|---|
+| **Speichern** | `GITHUB_TESTING_BRANCH` (`Testing`) | Ein Commit auf den Testing-Branch. Die Testseite im Heimnetz zeigt den Stand, die Live-Seite bleibt unberührt. |
+| **Veröffentlichen** | `GITHUB_BRANCH` (`main`) | Ein Commit auf den Live-Branch, der Pages-Workflow stellt die Seite online. Anschließend wird der Testing-Branch auf denselben Stand nachgezogen. |
+
+Beide Schritte schreiben denselben Satz Dateien in **einem Commit**:
 
 - `content/site.json` – die Inhalte selbst,
 - `index.html` und `js/config.js` – daraus erzeugt, damit der Stand im
@@ -40,9 +49,29 @@ ins Repository:
 Der Pages-Workflow baut `index.html` beim Deploy noch einmal aus
 `content/site.json` und stellt die Seite online; das dauert etwa eine Minute.
 
+Nebenbei:
+
+- Während des Tippens speichert das Admin den Entwurf alle paar Sekunden
+  automatisch – **das bleibt in der Datenbank**. Auf die Testseite kommt der
+  Stand erst mit einem ausdrücklichen Klick auf „Speichern" (oder Strg+S),
+  sonst entstünde bei jedem Buchstaben ein Commit.
+- **Kataloge** (PDFs) gehen weiterhin sofort live, weil sie keinen Entwurf
+  kennen. Denselben Commit bekommt der Testing-Branch mit, damit dort nichts
+  fehlt.
+- „Verwerfen" löscht den Entwurf **und** setzt die Testseite auf den
+  Live-Stand zurück.
+- Ist kein `GITHUB_TESTING_BRANCH` gesetzt (oder zeigt er auf denselben Branch
+  wie `GITHUB_BRANCH`), entfällt die Zwischenstufe: „Speichern" bleibt dann
+  reiner Entwurf, alles andere läuft wie zuvor.
+
 **Live wird die Seite nur aus `main`.** Zeigt `GITHUB_BRANCH` auf einen anderen
 Branch, endet das Veröffentlichen dort als Commit – bis dieser Branch nach
 `main` gemergt ist, ändert sich an der Live-Seite nichts.
+
+Lässt sich der Testing-Branch nach dem Veröffentlichen nicht mit `main`
+mischen, weil beide Seiten dieselben Zeilen geändert haben, wird er **hart auf
+den Live-Stand gesetzt**. Auf dem Testing-Branch soll deshalb nichts liegen,
+was es nicht auch auf `main` gibt.
 
 Daraus ergeben sich zwei angenehme Eigenschaften:
 
@@ -165,6 +194,13 @@ liegt.** Solange die Inhalte nur auf einem Testbranch liegen, meldet das Admin
 beim Öffnen, die Datei sei nicht zu finden. Und: veröffentlicht wird in genau
 diesen Branch – die Live-Seite baut sich nur aus `main`.
 
+**`GITHUB_TESTING_BRANCH` ist der Branch der Testseite.** Jeder Klick auf
+„Speichern" legt den Entwurf dort ab, damit die im Heimnetz gehostete
+Testseite ihn anzeigen kann. Den Branch muss niemand von Hand anlegen – fehlt
+er, zweigt ihn das Admin beim ersten Speichern von `GITHUB_BRANCH` ab. Ist
+zusätzlich `TESTING_URL` gesetzt, erscheint in der Vorschauleiste ein Link
+dorthin.
+
 ### 4. Erstes Konto anlegen
 
 Von einem Rechner im selben Netz:
@@ -243,7 +279,9 @@ veröffentlichen und weitere Personen einladen.
 | `COOKIE_SECURE` | `false` beim Betrieb ohne TLS. Standard `true`. |
 | `GITHUB_TOKEN` | Token mit Schreibrecht auf das Repository. |
 | `GITHUB_REPO` / `GITHUB_BRANCH` | Ziel der Veröffentlichung. Standard `ShineOnYouByEla/SOY_Website` / `main`. |
+| `GITHUB_TESTING_BRANCH` | Branch der Testseite; dorthin geht „Speichern". Standard `Testing`. Leer lassen, wenn es keine Testseite gibt. |
 | `SITE_URL` | Adresse der Live-Seite – wird für die Vorschau gebraucht. |
+| `TESTING_URL` | Adresse der Testseite im Heimnetz – nur für den Link „Testseite" im Admin. Optional. |
 | `PBKDF2_ITERATIONS` | Rechenaufwand des Passwort-Hashings. Standard `600000`. |
 | `SETUP_ENABLED` / `SETUP_TOKEN` | Nur für die Ersteinrichtung. |
 | `DATABASE_PATH` | Standard `/data/soy-admin.db`. |
@@ -465,6 +503,8 @@ die Vorschau im Worker und `index.html` im Build.
 | „SETUP_TOKEN ist nicht gesetzt" | Die Stack-Variable `SETUP_TOKEN` fehlt im Container |
 | „Anfrage von einer fremden Herkunft wurde abgelehnt" | Die aufgerufene Adresse steht nicht in `ADMIN_ORIGIN`. Die Meldung nennt, was erlaubt wäre – fehlende Adresse dort ergänzen (Komma-getrennt) |
 | „content/site.json wurde in … nicht gefunden" | `GITHUB_BRANCH` zeigt auf einen Branch ohne die Datei. Auf den richtigen Branch stellen oder die Inhalte dorthin mergen |
+| „Gespeichert – die Testseite konnte aber nicht aktualisiert werden" | Der Entwurf ist sicher in der Datenbank. Meist fehlt dem Token das Schreibrecht oder `GITHUB_TESTING_BRANCH` ist falsch geschrieben (Groß-/Kleinschreibung zählt) |
+| Testseite zeigt einen alten Stand | Nach dem automatischen Zwischenspeichern noch einmal ausdrücklich auf „Speichern" klicken – nur das schreibt auf den Testing-Branch. Sonst prüfen, ob der Host wirklich diesen Branch auscheckt |
 | „Diese Oberfläche kennt den Typ … noch nicht" bei einem Bereich | Das laufende Backend ist älter als die Inhalte: die Sektionen kommen live aus GitHub, die Eingabemasken stecken im Image. Neu bauen und den Container ersetzen – siehe A, „Aktualisieren" |
 | Einladungslink funktioniert nicht | Er gilt sieben Tage und genau einmal. Unter „Benutzer & Zugänge" eine neue Einladung erstellen |
 | Alle Zugänge gesperrt/verloren | Das letzte aktive Konto lässt sich nicht sperren. Hilft das nicht: `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` bzw. direkt in der SQLite-Datei löschen, `npm run setup` |
