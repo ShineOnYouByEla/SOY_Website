@@ -26,11 +26,11 @@ import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, rmSync
 import { join } from "node:path";
 
 import { KATALOG_DIR, TITEL_DATEI, baueKataloge } from "../shared/kataloge.mjs";
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 
 const require = createRequire(import.meta.url);
 const { createCanvas } = require("canvas");
 const sharp = require("sharp");
-const pdfjs = require("pdfjs-dist/legacy/build/pdf.js");
 
 /* ---------- Einstellungen ----------
    Gerendert wird einmal in der großen Breite; die kleine entsteht daraus
