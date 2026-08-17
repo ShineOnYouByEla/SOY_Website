@@ -28,9 +28,16 @@ import { join } from "node:path";
 import { KATALOG_DIR, TITEL_DATEI, baueKataloge } from "../shared/kataloge.mjs";
 
 const require = createRequire(import.meta.url);
-const { createCanvas } = require("canvas");
+// pdfjs-dist rendert Gruppen/Masken intern über @napi-rs/canvas (siehe
+// NodeCanvasFactory in pdf.mjs) – mit dem alten "canvas"-Paket als Haupt-
+// Canvas kollidieren die Canvas-Typen beim internen drawImage().
+const { createCanvas } = require("@napi-rs/canvas");
 const sharp = require("sharp");
-const pdfjs = require("pdfjs-dist/legacy/build/pdf.js");
+// pdfjs-dist >=5 ships only an ESM build (no legacy/build/pdf.js CJS entry mehr).
+const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+// Ohne wasmUrl decodiert pdfjs JBig2/OpenJPEG-Bilder (scanartige Inhalte)
+// nicht und lässt sie stillschweigend weg – der Ordner liegt im Paket bei.
+const WASM_URL = join(require.resolve("pdfjs-dist/package.json"), "..", "wasm") + "/";
 
 /* ---------- Einstellungen ----------
    Gerendert wird einmal in der großen Breite; die kleine entsteht daraus
@@ -74,7 +81,8 @@ async function rendereKatalog(eintrag, pdfBytes, hash, ziel) {
   rmSync(ziel, { recursive: true, force: true });
   mkdirSync(ziel, { recursive: true });
 
-  const pdf = await pdfjs.getDocument({ data: new Uint8Array(pdfBytes) }).promise;
+  const ladeAuftrag = pdfjs.getDocument({ data: new Uint8Array(pdfBytes), wasmUrl: WASM_URL });
+  const pdf = await ladeAuftrag.promise;
   const anzahl = pdf.numPages;
   let ratio = 1 / Math.SQRT2;
 
@@ -90,7 +98,7 @@ async function rendereKatalog(eintrag, pdfBytes, hash, ziel) {
 
     if (n % 10 === 0 || n === anzahl) process.stdout.write(`    ${n}/${anzahl}\r`);
   }
-  await pdf.destroy();
+  await ladeAuftrag.destroy();
 
   const info = { hash, rezept: REZEPT, seiten: anzahl, ratio: Number(ratio.toFixed(6)) };
   writeFileSync(join(ziel, "info.json"), JSON.stringify(info, null, 2) + "\n");
