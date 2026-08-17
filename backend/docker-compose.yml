@@ -47,8 +47,14 @@ services:
       # Branch, aus dem gelesen und in den veröffentlicht wird. content/site.json
       # muss dort liegen – sonst meldet das Admin, die Datei sei nicht zu finden.
       - GITHUB_BRANCH=main
+      # Branch der Testseite. Jedes „Speichern" im Admin legt den Entwurf hier
+      # ab, veröffentlicht wird weiterhin nur nach GITHUB_BRANCH. Leer lassen,
+      # wenn es keine Testseite gibt.
+      - GITHUB_TESTING_BRANCH=Testing
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - SITE_URL=https://shineonyou.de
+      # Adresse der Testseite im Heimnetz – erscheint als Link im Admin.
+      - TESTING_URL=http://testing.shineonyou.de
       - PBKDF2_ITERATIONS=600000
 
       # Nur für die Ersteinrichtung auf true, danach zurückstellen.

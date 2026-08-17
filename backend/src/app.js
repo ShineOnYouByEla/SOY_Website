@@ -91,6 +91,32 @@ function githubConfigured(env) {
   return Boolean(env.GITHUB_TOKEN && env.GITHUB_REPO && env.GITHUB_BRANCH);
 }
 
+/**
+ * Branch der Testseite. Gibt null zurueck, wenn keiner eingerichtet ist oder
+ * er auf denselben Branch zeigt wie die Live-Seite — dann gibt es schlicht
+ * keine Zwischenstufe und alles laeuft wie bisher.
+ */
+function testingBranch(env) {
+  const branch = String(env.GITHUB_TESTING_BRANCH || "").trim();
+  return branch && branch !== env.GITHUB_BRANCH ? branch : null;
+}
+
+/**
+ * Denselben Commit zusaetzlich auf den Testing-Branch legen. Fehler bleiben
+ * hier: Wenn die Testseite nicht mitkommt, darf das den Vorgang auf der
+ * Live-Seite nicht scheitern lassen.
+ */
+async function auchAufTesting(env, files, opts) {
+  const branch = testingBranch(env);
+  if (!branch || !githubConfigured(env)) return null;
+  try {
+    await gh.ensureBranch(env, branch);
+    return await gh.commitFiles(env, files, { ...opts, branch });
+  } catch (err) {
+    return { branch, error: err.message };
+  }
+}
+
 function authorLine(user) {
   return {
     name: user.name || user.email.split("@")[0],
@@ -536,6 +562,22 @@ async function loadWorking(c) {
   return { content: JSON.parse(new TextDecoder().decode(file.bytes)), source: "live", updatedAt: null, updatedBy: null };
 }
 
+/**
+ * Die Dateien, die ein Stand der Inhalte im Repository ergibt: site.json plus
+ * das daraus erzeugte index.html und js/config.js — und die Bilder, die noch
+ * nur im Entwurf liegen. Der Renderer laeuft dabei durch, bevor irgendetwas
+ * committet wird; ein Fehler bleibt so ohne Folgen.
+ */
+async function inhaltsDateien(c, content) {
+  const files = publishFiles(content);
+  const pending = await c.env.DB.prepare("SELECT path, data_base64 FROM pending_media").all();
+  for (const row of pending.results || []) {
+    if (!isEditablePath(row.path)) throw new ValidationError([`Unzulässiger Dateipfad: ${row.path}`]);
+    files.push({ path: row.path, content: row.data_base64, encoding: "base64" });
+  }
+  return files;
+}
+
 app.get("/api/content", async (c) => {
   const guard = await requireUser(c);
   if (guard) return guard;
@@ -587,8 +629,73 @@ app.delete("/api/content", async (c) => {
     c.env.DB.prepare("DELETE FROM draft WHERE id = 1"),
     c.env.DB.prepare("DELETE FROM pending_media"),
   ]);
+
+  // Mit dem Entwurf verschwindet auch der Zwischenstand auf der Testseite:
+  // sie zeigt danach wieder genau das, was live ist.
+  const branch = testingBranch(c.env);
+  let testing = null;
+  if (branch && githubConfigured(c.env)) {
+    testing = await gh
+      .syncBranch(c.env, branch)
+      .then((r) => ({ branch, ...r }))
+      .catch((err) => ({ branch, error: err.message }));
+  }
+
   await audit(c.env, { userId: c.get("session").user_id, email: c.get("session").email, action: "draft_discarded", ip: clientIp(c), now: now() });
-  return c.json({ ok: true });
+  return c.json({ ok: true, testing });
+});
+
+/* ---------- Auf die Testseite stellen ---------- */
+
+/**
+ * Der gespeicherte Entwurf landet als Commit auf dem Testing-Branch. Von dort
+ * zieht die Testseite im Heimnetz ihren Stand — anschauen, bevor irgendetwas
+ * live geht. Der Entwurf bleibt dabei in der Datenbank: Veroeffentlicht wird
+ * weiterhin ausdruecklich ueber /api/content/publish nach main.
+ */
+app.post("/api/content/testing", async (c) => {
+  const guard = await requireUser(c);
+  if (guard) return guard;
+  const s = c.get("session");
+
+  if (!githubConfigured(c.env)) {
+    return fail(c, 503, "Das Backend ist noch nicht mit GitHub verbunden (GITHUB_TOKEN fehlt).");
+  }
+  const branch = testingBranch(c.env);
+  if (!branch) {
+    return fail(c, 503, "Es ist keine Testseite eingerichtet (GITHUB_TESTING_BRANCH fehlt oder zeigt auf den Live-Branch).");
+  }
+
+  try {
+    const { content, source } = await loadWorking(c);
+    // Ohne Entwurf gibt es nichts zu zeigen, was nicht ohnehin schon live ist.
+    if (source !== "draft") return c.json({ ok: true, branch, unchanged: true, testingUrl: c.env.TESTING_URL || null });
+
+    assertValid(content);
+    const files = await inhaltsDateien(c, content);
+
+    await gh.ensureBranch(c.env, branch);
+    const result = await gh.commitFiles(c.env, files, {
+      message: `Entwurf auf die Testseite gestellt\n\nGespeichert über den Website-Admin von ${s.email}.`,
+      author: authorLine(s),
+      branch,
+    });
+
+    await audit(c.env, {
+      userId: s.user_id,
+      email: s.email,
+      action: "testing",
+      detail: `${branch} · ${result.sha.slice(0, 7)} · ${files.length} Datei(en)`,
+      ip: clientIp(c),
+      now: now(),
+    });
+
+    return c.json({ ok: true, branch, commit: result, files: files.length, testingUrl: c.env.TESTING_URL || null });
+  } catch (err) {
+    if (err instanceof ValidationError) return fail(c, 400, "Die Inhalte sind noch nicht in Ordnung.", { errors: err.errors });
+    if (err instanceof gh.GitHubError) return fail(c, err.status === 409 ? 409 : 502, err.message);
+    return fail(c, 500, `Die Testseite konnte nicht aktualisiert werden: ${err.message}`);
+  }
 });
 
 /* ---------- Vorschau ---------- */
@@ -632,16 +739,9 @@ app.post("/api/content/publish", async (c) => {
     const body = await c.req.json().catch(() => ({}));
     const note = String(body.message || "").trim().slice(0, 120);
 
-    // site.json plus das daraus erzeugte index.html und js/config.js. Der
-    // Renderer laeuft dabei durch, bevor irgendetwas committet wird.
-    const files = publishFiles(content);
-
-    // Bilder aus dem Entwurf gehen im selben Commit mit raus.
-    const pending = await c.env.DB.prepare("SELECT path, data_base64 FROM pending_media").all();
-    for (const row of pending.results || []) {
-      if (!isEditablePath(row.path)) return fail(c, 400, `Unzulässiger Dateipfad: ${row.path}`);
-      files.push({ path: row.path, content: row.data_base64, encoding: "base64" });
-    }
+    // site.json, das daraus erzeugte index.html und js/config.js sowie die
+    // Bilder aus dem Entwurf — alles in einem Commit auf den Live-Branch.
+    const files = await inhaltsDateien(c, content);
 
     const summary = note || "Inhalte über den Admin aktualisiert";
     const result = await gh.commitFiles(c.env, files, {
@@ -649,6 +749,19 @@ app.post("/api/content/publish", async (c) => {
       author: authorLine(s),
       expectedHead: body.expectedHead || undefined,
     });
+
+    /* Die Testseite zieht nach: Sie soll ab jetzt wieder denselben Stand
+       zeigen wie die Live-Seite — samt allem, was sonst noch auf dem
+       Live-Branch passiert ist. Scheitert das, ist die Veroeffentlichung
+       trotzdem durch; die Meldung geht nur als Hinweis zurueck. */
+    const branch = testingBranch(c.env);
+    let testing = null;
+    if (branch) {
+      testing = await gh
+        .syncBranch(c.env, branch)
+        .then((r) => ({ branch, ...r }))
+        .catch((err) => ({ branch, error: err.message }));
+    }
 
     await c.env.DB.batch([
       c.env.DB.prepare("DELETE FROM draft WHERE id = 1"),
@@ -663,7 +776,7 @@ app.post("/api/content/publish", async (c) => {
       now: t,
     });
 
-    return c.json({ ok: true, commit: result, files: files.length });
+    return c.json({ ok: true, commit: result, files: files.length, testing });
   } catch (err) {
     if (err instanceof ValidationError) return fail(c, 400, "Die Inhalte sind noch nicht in Ordnung.", { errors: err.errors });
     if (err instanceof gh.GitHubError) return fail(c, err.status === 409 ? 409 : 502, err.message);
@@ -892,10 +1005,11 @@ app.post("/api/kataloge", async (c) => {
       files.push(titelDateiEintrag(liste));
     }
 
-    const result = await gh.commitFiles(c.env, files, {
-      message: `Katalog ${name} ${vorhanden ? "ersetzt" : "hinzugefügt"}\n\nHochgeladen über den Website-Admin von ${s.email}.`,
-      author: authorLine(s),
-    });
+    const nachricht = `Katalog ${name} ${vorhanden ? "ersetzt" : "hinzugefügt"}\n\nHochgeladen über den Website-Admin von ${s.email}.`;
+    const result = await gh.commitFiles(c.env, files, { message: nachricht, author: authorLine(s) });
+    // Kataloge gehen sofort live — damit die Testseite nicht hinterherhinkt,
+    // bekommt sie denselben Commit.
+    await auchAufTesting(c.env, files, { message: nachricht, author: authorLine(s) });
 
     await audit(c.env, { userId: s.user_id, email: s.email, action: "katalog_upload", detail: path, ip: clientIp(c), now: now() });
     return c.json({ ok: true, path, commit: result });
@@ -965,10 +1079,9 @@ app.patch("/api/kataloge/:name", async (c) => {
     }
     if (!teile.length) return c.json({ ok: true, name, unchanged: true });
 
-    const commit = await gh.commitFiles(c.env, dateien, {
-      message: `Katalog ${katalog.name}: ${teile.join(", ")}\n\nGeändert über den Website-Admin von ${s.email}.`,
-      author: authorLine(s),
-    });
+    const nachricht = `Katalog ${katalog.name}: ${teile.join(", ")}\n\nGeändert über den Website-Admin von ${s.email}.`;
+    const commit = await gh.commitFiles(c.env, dateien, { message: nachricht, author: authorLine(s) });
+    await auchAufTesting(c.env, dateien, { message: nachricht, author: authorLine(s) });
 
     await audit(c.env, {
       userId: s.user_id,
@@ -1005,10 +1118,10 @@ app.put("/api/kataloge/reihenfolge", async (c) => {
     const reihenfolge = [...namen, ...eintraege.filter((e) => !namen.includes(e.name)).map((e) => e.name)];
     const liste = reihenfolge.map((n, i) => ({ ...eintraege.find((e) => e.name === n), position: i + 1 }));
 
-    const commit = await gh.commitFiles(c.env, [titelDateiEintrag(liste)], {
-      message: `Katalog-Reihenfolge geändert\n\nGeändert über den Website-Admin von ${s.email}.`,
-      author: authorLine(s),
-    });
+    const dateien = [titelDateiEintrag(liste)];
+    const nachricht = `Katalog-Reihenfolge geändert\n\nGeändert über den Website-Admin von ${s.email}.`;
+    const commit = await gh.commitFiles(c.env, dateien, { message: nachricht, author: authorLine(s) });
+    await auchAufTesting(c.env, dateien, { message: nachricht, author: authorLine(s) });
 
     await audit(c.env, {
       userId: s.user_id,
@@ -1039,14 +1152,10 @@ app.delete("/api/kataloge/:name", async (c) => {
     if (!findeKatalog(eintraege, name)) return fail(c, 404, "Diesen Katalog gibt es nicht (mehr).");
 
     // PDF und der zugehoerige Eintrag in titel.json verschwinden zusammen.
-    await gh.commitFiles(
-      c.env,
-      [{ path, remove: true }, titelDateiEintrag(eintraege.filter((e) => e.name !== name))],
-      {
-        message: `Katalog ${name} entfernt\n\nGelöscht über den Website-Admin von ${s.email}.`,
-        author: authorLine(s),
-      }
-    );
+    const dateien = [{ path, remove: true }, titelDateiEintrag(eintraege.filter((e) => e.name !== name))];
+    const nachricht = `Katalog ${name} entfernt\n\nGelöscht über den Website-Admin von ${s.email}.`;
+    await gh.commitFiles(c.env, dateien, { message: nachricht, author: authorLine(s) });
+    await auchAufTesting(c.env, dateien, { message: nachricht, author: authorLine(s) });
 
     await audit(c.env, { userId: s.user_id, email: s.email, action: "katalog_delete", detail: path, ip: clientIp(c), now: now() });
     return c.json({ ok: true });
@@ -1313,6 +1422,8 @@ app.get("/api/health", async (c) => {
   return c.json({
     github: access,
     branch: c.env.GITHUB_BRANCH,
+    testingBranch: testingBranch(c.env),
+    testingUrl: c.env.TESTING_URL || null,
     siteUrl: c.env.SITE_URL,
     setupEnabled: c.env.SETUP_ENABLED === "true",
   });

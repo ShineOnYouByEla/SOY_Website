@@ -83,6 +83,8 @@ export const api = {
   getContent: () => request("GET", "/api/content"),
   saveDraft: (content) => request("PUT", "/api/content", { json: { content } }),
   discardDraft: () => request("DELETE", "/api/content"),
+  /** Den gespeicherten Entwurf auf den Testing-Branch stellen. */
+  toTesting: () => request("POST", "/api/content/testing"),
   publish: (message, expectedHead) => request("POST", "/api/content/publish", { json: { message, expectedHead } }),
   contentStatus: () => request("GET", "/api/content/status"),
 

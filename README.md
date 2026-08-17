@@ -43,7 +43,10 @@ python3 -m http.server 8000
 ## Anpassen
 
 Am bequemsten geht das über das **Admin-Backend** – dort gibt es Formulare,
-eine Live-Vorschau und einen Veröffentlichen-Knopf: [`backend/README.md`](backend/README.md).
+eine Live-Vorschau und zwei Stufen: „Speichern" stellt den Stand auf den
+Branch `Testing` (den die Testseite im Heimnetz zeigt), „Veröffentlichen"
+schreibt nach `main` und damit live. Alles Weitere:
+[`backend/README.md`](backend/README.md).
 
 Wer lieber direkt in der Datei arbeitet, findet alles in `content/site.json`:
 

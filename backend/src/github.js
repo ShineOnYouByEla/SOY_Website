@@ -53,10 +53,64 @@ export async function checkAccess(env) {
   };
 }
 
-/** Aktueller Stand des Ziel-Branches. */
-export async function getBranchHead(env) {
-  const ref = await gh(env, `/repos/${env.GITHUB_REPO}/git/ref/heads/${env.GITHUB_BRANCH}`);
+/** Aktueller Stand eines Branches — ohne Angabe der des Ziel-Branches. */
+export async function getBranchHead(env, branch = null) {
+  const ref = await gh(env, `/repos/${env.GITHUB_REPO}/git/ref/heads/${encodeURI(branch || env.GITHUB_BRANCH)}`);
   return ref.object.sha;
+}
+
+/**
+ * Legt den Branch an, falls es ihn noch nicht gibt — abgezweigt vom
+ * Ziel-Branch. Gibt zurueck, ob er neu entstanden ist.
+ */
+export async function ensureBranch(env, branch, from = null) {
+  try {
+    await getBranchHead(env, branch);
+    return false;
+  } catch (err) {
+    if (!(err instanceof GitHubError && err.status === 404)) throw err;
+    const sha = await getBranchHead(env, from);
+    await gh(env, `/repos/${env.GITHUB_REPO}/git/refs`, {
+      method: "POST",
+      body: JSON.stringify({ ref: `refs/heads/${branch}`, sha }),
+    });
+    return true;
+  }
+}
+
+/**
+ * Bringt `branch` auf den Stand von `from` (in der Regel: Testing auf Live).
+ * Normalfall ist ein Merge, damit auf dem Branch nichts verlorengeht. Sind
+ * beide Seiten am selben Inhalt auseinandergelaufen, kann GitHub nicht
+ * mischen — dann wird der Branch hart auf den Live-Stand gesetzt. Der
+ * Entwurf liegt in der Datenbank, es geht also nichts Unersetzliches
+ * verloren.
+ * @returns {Promise<{mode: "merge"|"aktuell"|"reset", sha: string|null}>}
+ */
+export async function syncBranch(env, branch, from = null) {
+  const quelle = from || env.GITHUB_BRANCH;
+  await ensureBranch(env, branch, quelle);
+
+  try {
+    const merge = await gh(env, `/repos/${env.GITHUB_REPO}/merges`, {
+      method: "POST",
+      body: JSON.stringify({
+        base: branch,
+        head: quelle,
+        commit_message: `${quelle} in ${branch} übernommen`,
+      }),
+    });
+    // 204 (also null) bedeutet: der Branch war bereits auf dem Stand.
+    return merge ? { mode: "merge", sha: merge.sha } : { mode: "aktuell", sha: null };
+  } catch (err) {
+    if (!(err instanceof GitHubError) || err.status !== 409) throw err;
+    const sha = await getBranchHead(env, quelle);
+    await gh(env, `/repos/${env.GITHUB_REPO}/git/refs/heads/${encodeURI(branch)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ sha, force: true }),
+    });
+    return { mode: "reset", sha };
+  }
 }
 
 /** Eine Datei aus dem Repository lesen. Gibt null zurueck, wenn es sie nicht gibt. */
@@ -99,13 +153,13 @@ export async function listDirectory(env, path) {
  *                                (Umbenennen, ohne die Datei erneut zu laden)
  *   { path, remove: true }       Datei entfernen
  * @param {Array<{path: string, content?: string, encoding?: "utf-8"|"base64", sha?: string, remove?: boolean}>} files
- * @param {{message: string, author?: {name: string, email: string}, expectedHead?: string}} opts
+ * @param {{message: string, author?: {name: string, email: string}, expectedHead?: string, branch?: string}} opts
  */
 export async function commitFiles(env, files, opts) {
   const repo = env.GITHUB_REPO;
-  const branch = env.GITHUB_BRANCH;
+  const branch = opts.branch || env.GITHUB_BRANCH;
 
-  const headSha = await getBranchHead(env);
+  const headSha = await getBranchHead(env, branch);
   // Schutz vor dem Ueberschreiben fremder Aenderungen: hat sich der Branch
   // seit dem Laden bewegt, bricht der Publish ab.
   if (opts.expectedHead && opts.expectedHead !== headSha) {
@@ -143,6 +197,19 @@ export async function commitFiles(env, files, opts) {
     body: JSON.stringify({ base_tree: headCommit.tree.sha, tree: blobs }),
   });
 
+  /* Baeume sind ueber ihren Inhalt adressiert: kommt derselbe Baum heraus wie
+     im letzten Commit, hat sich nichts geaendert. Dann bleibt es dabei —
+     sonst saehe die Historie nach zweimal Speichern nach Arbeit aus, die es
+     nie gab. */
+  if (tree.sha === headCommit.tree.sha) {
+    return {
+      sha: headSha,
+      branch,
+      unchanged: true,
+      url: `https://github.com/${repo}/commit/${headSha}`,
+    };
+  }
+
   // … und schliesslich den Commit.
   const commit = await gh(env, `/repos/${repo}/git/commits`, {
     method: "POST",
@@ -154,12 +221,16 @@ export async function commitFiles(env, files, opts) {
     }),
   });
 
-  await gh(env, `/repos/${repo}/git/refs/heads/${branch}`, {
+  await gh(env, `/repos/${repo}/git/refs/heads/${encodeURI(branch)}`, {
     method: "PATCH",
     body: JSON.stringify({ sha: commit.sha, force: false }),
   });
 
-  return { sha: commit.sha, url: commit.html_url || `https://github.com/${repo}/commit/${commit.sha}` };
+  return {
+    sha: commit.sha,
+    branch,
+    url: commit.html_url || `https://github.com/${repo}/commit/${commit.sha}`,
+  };
 }
 
 /** Letzte Commits, die content/site.json beruehrt haben. */

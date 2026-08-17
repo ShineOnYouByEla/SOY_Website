@@ -33,8 +33,13 @@ const config = {
 
   GITHUB_REPO: process.env.GITHUB_REPO || "ShineOnYouByEla/SOY_Website",
   GITHUB_BRANCH: process.env.GITHUB_BRANCH || "main",
+  // Branch der Testseite: dorthin geht jedes „Speichern", damit sich der
+  // Stand im Heimnetz anschauen laesst, bevor er live geht.
+  GITHUB_TESTING_BRANCH: process.env.GITHUB_TESTING_BRANCH || "Testing",
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || "",
   SITE_URL: process.env.SITE_URL || "https://shineonyou.de",
+  // Adresse der Testseite im Heimnetz — nur fuer den Link im Admin.
+  TESTING_URL: process.env.TESTING_URL || "",
   ADMIN_ORIGIN: process.env.ADMIN_ORIGIN || "",
   PBKDF2_ITERATIONS: process.env.PBKDF2_ITERATIONS || "600000",
   SETUP_ENABLED: process.env.SETUP_ENABLED || "false",
@@ -120,6 +125,13 @@ const server = serve({ fetch: (request) => app.fetch(request, env), port: config
   console.log(`Shine On You Admin läuft auf http://${config.host}:${info.port}`);
   console.log(`  Datenbank:     ${config.databasePath}`);
   console.log(`  Repository:    ${config.GITHUB_REPO} (${config.GITHUB_BRANCH})`);
+  console.log(
+    `  Testseite:     ${
+      config.GITHUB_TESTING_BRANCH && config.GITHUB_TESTING_BRANCH !== config.GITHUB_BRANCH
+        ? `Branch ${config.GITHUB_TESTING_BRANCH}${config.TESTING_URL ? ` · ${config.TESTING_URL}` : ""}`
+        : "keine (Speichern bleibt im Entwurf)"
+    }`
+  );
   console.log(`  Admin-Adresse: ${config.ADMIN_ORIGIN}`);
   if (config.COOKIE_SECURE === "false") {
     console.log("  Hinweis: Cookie ohne Secure-Flag – nur im eigenen Netz betreiben.");
