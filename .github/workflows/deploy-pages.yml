@@ -27,15 +27,15 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       # Baut kataloge/manifest.json automatisch aus den vorhandenen PDFs,
       # damit neue Kataloge ohne Code-Änderung erscheinen.
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -46,7 +46,7 @@ jobs:
         run: npm ci --prefix scripts
 
       - name: Gerenderte Katalogseiten wiederverwenden
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: kataloge/seiten
           key: katalogseiten-${{ hashFiles('kataloge/*.pdf') }}
@@ -64,11 +64,11 @@ jobs:
         run: node scripts/build-site.mjs
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           # gesamtes Repo-Wurzelverzeichnis als Website hochladen
           path: "."
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
