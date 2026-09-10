@@ -10,6 +10,6 @@
   "dependencies": {
     "@napi-rs/canvas": "^1.0.6",
     "pdfjs-dist": "^6.2.108",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.4"
   }
 }
