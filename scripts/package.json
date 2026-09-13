@@ -8,7 +8,7 @@
     "kataloge": "node build-katalog-seiten.mjs"
   },
   "dependencies": {
-    "@napi-rs/canvas": "^1.0.6",
+    "@napi-rs/canvas": "^1.0.9",
     "pdfjs-dist": "^6.2.108",
     "sharp": "^0.35.4"
   }
