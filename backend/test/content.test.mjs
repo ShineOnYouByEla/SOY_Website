@@ -15,6 +15,7 @@ import {
   validateContent,
 } from "../src/content.js";
 import { renderConfigJs, renderPage } from "../../shared/render.mjs";
+import { renderLlmsTxt, renderPricingMd, renderSitemap } from "../../shared/agents.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const live = () => JSON.parse(readFileSync(join(root, "content", "site.json"), "utf8"));
@@ -124,7 +125,7 @@ test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
   const files = publishFiles(content);
   assert.deepEqual(
     files.map((f) => f.path),
-    ["content/site.json", "index.html", "js/config.js"]
+    ["content/site.json", "index.html", "js/config.js", "llms.txt", "pricing.md", "sitemap.xml"]
   );
 
   // Byte-gleich mit dem, was scripts/build-site.mjs schreibt. Weicht es ab,
@@ -133,6 +134,9 @@ test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
   const byPath = Object.fromEntries(files.map((f) => [f.path, f.content]));
   assert.equal(byPath["index.html"], renderPage(content));
   assert.equal(byPath["js/config.js"], renderConfigJs(content));
+  assert.equal(byPath["llms.txt"], renderLlmsTxt(content));
+  assert.equal(byPath["pricing.md"], renderPricingMd(content));
+  assert.equal(byPath["sitemap.xml"], renderSitemap(content));
   assert.deepEqual(JSON.parse(byPath["content/site.json"]), content);
   assert.ok(files.every((f) => f.encoding === "utf-8"));
 });

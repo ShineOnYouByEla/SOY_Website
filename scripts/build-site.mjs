@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 /* ============================================================
-   Baut index.html und js/config.js aus content/site.json.
+   Baut aus content/site.json:
+     index.html   — die Seite
+     js/config.js — Laufzeit-Einstellungen fuer script.js und webmcp.js
+     llms.txt     — Kurzprofil fuer KI-Assistenten
+     pricing.md   — maschinenlesbare Preisauskunft
+     sitemap.xml  — alle auslieferbaren Seiten
    Wird im CI und beim Deploy ausgefuehrt — und lokal per
    `node scripts/build-site.mjs`.
    ============================================================ */
@@ -10,6 +15,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { renderPage, renderConfigJs } from "../shared/render.mjs";
+import { renderLlmsTxt, renderPricingMd, renderSitemap } from "../shared/agents.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -25,6 +31,9 @@ try {
 const targets = [
   ["index.html", renderPage(content)],
   [join("js", "config.js"), renderConfigJs(content)],
+  ["llms.txt", renderLlmsTxt(content)],
+  ["pricing.md", renderPricingMd(content)],
+  ["sitemap.xml", renderSitemap(content)],
 ];
 
 let changed = 0;
