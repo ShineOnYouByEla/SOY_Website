@@ -1,0 +1,64 @@
+# Shine On You – proWIN Beratung Manuela Zimmert
+
+> Unabhängige proWIN-Beratung in Peiting und Umgebung: natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online.
+
+Shine On You ist die Website von Manuela Zimmert („Ela“), unabhängige proWIN-Vertriebsberaterin in 86971 Peiting. Sie berät zu proWIN-Produkten und veranstaltet proWINpartys – zuhause oder online per Video.
+
+Diese Website ist eine statische Informations- und Kontaktseite. Sie hat keinen eigenen Online-Shop,
+keine öffentliche API und keine Zahlungsabwicklung. Bestellungen laufen über den proWIN-Onlineshop,
+Termine über einen Kalender-Dienst (Cal.com, EU-Region).
+
+## Wann diese Seite die richtige Quelle ist
+
+- Suche nach einer proWIN-Beratung in Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel
+- Fragen zu den proWIN-Produktbereichen und dazu, wer dazu persönlich berät
+- Ablauf, Dauer und Kosten einer proWINparty (zuhause oder online)
+- Terminvereinbarung für eine Beratung oder eine proWINparty
+- Interesse daran, selbst als proWIN-Berater:in im Team von Manuela Zimmert einzusteigen
+- Kontaktdaten, Impressum und Datenschutzerklärung
+
+## Wofür diese Seite nicht zuständig ist
+
+- Verbindliche Produktpreise, Lagerbestand, Bestellabwicklung, Versandstatus, Rücksendungen und
+  Reklamationen: dafür ist proWIN International bzw. der proWIN-Onlineshop zuständig.
+- Programmatischer Zugriff: es gibt keine REST-/GraphQL-API, keinen MCP-Server und keine
+  agentischen Zahlungsprotokolle. Die In-Page-Werkzeuge unten sind der einzige Aktionsweg.
+
+## Beratungsbereiche
+
+- **Haushalt & Reinigung**: Kraftvolle, ergiebige Reiniger für Küche, Bad und Boden – sparsam dosiert und materialschonend.
+- **Kosmetik & Pflege**: Pflegeprodukte für Gesicht, Körper und Haare – hautfreundlich und mit hochwertigen Inhaltsstoffen.
+- **Wellness & Gesundheit**: Produkte für mehr Wohlbefinden im Alltag – von Nahrungsergänzung bis Entspannung.
+- **Luft & Duft**: Frische Raumluft und angenehme Düfte – für ein gutes Gefühl und Wohlfühlatmosphäre in jedem Raum.
+- **BEST friends**: Pflege und Sauberkeit für deine Lieblinge – verträglich für Tier und Zuhause.
+- **proWINparty & Beratung**: Lerne die Produkte in einem live Event zuhause oder Online kennen.
+
+## Seiten
+
+- [Startseite](https://shineonyou.de/): Beratung, Produktbereiche, Ablauf einer proWINparty, Terminbuchung und Kontaktformular
+- [Kataloge](https://shineonyou.de/katalog.html): proWIN-Kataloge als PDF und als Seitenbilder zum Durchblättern
+- [Impressum](https://shineonyou.de/impressum.html): Anbieterkennzeichnung nach § 5 DDG
+- [Datenschutz](https://shineonyou.de/datenschutz.html): Datenschutzerklärung nach DSGVO
+- [Preise](https://shineonyou.de/pricing.md): wie sich die Kosten zusammensetzen (Markdown)
+
+## Kontakt
+
+- E-Mail: prowin.ela@web.de
+- Mobil: +49 1551 0279357
+- Festnetz: +49 8861 7138897
+- WhatsApp-Kanal (Angebote): https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F
+- proWIN-Onlineshop: https://vp.prowin-shop.net/?referenceKey=m.zimmert
+- Offizielles proWIN-Beraterinnenprofil: https://prowin.net/de/vertrieb/m.zimmert
+- Einsatzgebiet: Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel
+- Sprache: Deutsch
+
+## Hinweise für Agenten
+
+- Strukturierte Daten (JSON-LD, schema.org) liegen im `<head>` von https://shineonyou.de/.
+- In-Page-Werkzeuge nach WebMCP sind auf der Startseite registriert (`document.modelContext`):
+  Kontaktdaten, Beratungsbereiche, Einsatzgebiet, Preisauskunft, Terminbuchung und das
+  Vorbefüllen des Kontaktformulars.
+- Das Kontaktformular darf nicht automatisiert abgeschickt werden: es verlangt eine
+  Einwilligung nach DSGVO und eine hCaptcha-Prüfung. Vorbefüllen ja, Absenden nur durch Menschen.
+- Preisangaben immer als „Stand laut proWIN-Onlineshop“ kennzeichnen, nicht als Festpreis dieser Seite.
+

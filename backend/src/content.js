@@ -8,6 +8,7 @@
 
 import { ICONS } from "../../shared/icons.mjs";
 import { renderPage, renderConfigJs } from "../../shared/render.mjs";
+import { renderLlmsTxt, renderPricingMd, renderSitemap } from "../../shared/agents.mjs";
 
 const SECTION_TYPES = new Set(["hero", "about", "cards", "flow", "channel", "booking", "contact"]);
 const MAX_CONTENT_BYTES = 512 * 1024;
@@ -266,6 +267,12 @@ export function publishFiles(content) {
     { path: "content/site.json", content: JSON.stringify(content, null, 2) + "\n", encoding: "utf-8" },
     { path: "index.html", content: html, encoding: "utf-8" },
     { path: "js/config.js", content: configJs, encoding: "utf-8" },
+    /* Auch die Dateien fuer KI-Assistenten und Suchmaschinen entstehen aus
+       site.json — sonst erzaehlen sie nach einer Veroeffentlichung etwas
+       anderes als die Seite. */
+    { path: "llms.txt", content: renderLlmsTxt(content), encoding: "utf-8" },
+    { path: "pricing.md", content: renderPricingMd(content), encoding: "utf-8" },
+    { path: "sitemap.xml", content: renderSitemap(content), encoding: "utf-8" },
   ];
 }
 

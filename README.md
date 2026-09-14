@@ -12,12 +12,13 @@ oder als Cloudflare Worker.
 ## Vorschau / lokal starten
 
 ```bash
-node scripts/build-site.mjs   # index.html + js/config.js aus content/site.json
+node scripts/build-site.mjs   # index.html, js/config.js, llms.txt, pricing.md, sitemap.xml
 python3 -m http.server 8000
 # danach http://localhost:8000 öffnen
 ```
 
-> `index.html` und `js/config.js` werden **erzeugt** – Änderungen darin gehen beim
+> `index.html`, `js/config.js`, `llms.txt`, `pricing.md` und `sitemap.xml` werden
+> **erzeugt** – Änderungen darin gehen beim
 > nächsten Build verloren. Inhalte gehören nach `content/site.json` (oder ins Admin).
 > Die CI schlägt Alarm, wenn die erzeugten Dateien nicht zum Inhalt passen.
 
@@ -33,7 +34,13 @@ python3 -m http.server 8000
 ├── scripts/          # Build-Skripte und Qualitätsprüfungen
 ├── backend/          # Admin-Backend (Cloudflare Worker) – siehe backend/README.md
 ├── index.html        # ERZEUGT aus content/site.json – nicht von Hand ändern
-├── js/config.js      # ERZEUGT – Kontaktdaten und Dienste für script.js
+├── shared/agents.mjs # erzeugt llms.txt, pricing.md und sitemap.xml
+├── js/config.js      # ERZEUGT – Kontaktdaten und Dienste für script.js/webmcp.js
+├── js/webmcp.js      # In-Page-Werkzeuge für KI-Agenten (WebMCP)
+├── llms.txt          # ERZEUGT – Kurzprofil für KI-Assistenten
+├── pricing.md        # ERZEUGT – maschinenlesbare Preisauskunft
+├── sitemap.xml       # ERZEUGT – alle auslieferbaren Seiten
+├── robots.txt        # welche Crawler dürfen, welche nicht
 ├── css/styles.css    # Styles & Markenfarben
 ├── js/script.js      # Mobile-Menü, Terminbuchung (.ics), Formulare
 ├── assets/img/       # aus dem Iconset abgeleitete Logos & Favicons
@@ -68,6 +75,37 @@ Wer lieber direkt in der Datei arbeitet, findet alles in `content/site.json`:
 Danach `node scripts/build-site.mjs` ausführen und beides committen.
 E-Mail und Telefon landen automatisch überall auf der Seite – im Kontaktblock,
 in `js/config.js` und in den strukturierten Daten für Suchmaschinen.
+
+## Sichtbarkeit für KI-Assistenten
+
+Ein wachsender Teil der Besucher kommt nicht mehr über eine Trefferliste, sondern
+über eine Antwort – aus ChatGPT, Claude, Perplexity oder der Google-Übersicht.
+Dafür liegen neben der Seite selbst ein paar Dateien, die genau diese Systeme lesen:
+
+| Datei | Wozu |
+| --- | --- |
+| `llms.txt` | Kurzprofil: wer das ist, wofür die Seite die richtige Quelle ist und wofür nicht |
+| `pricing.md` | Preisauskunft in Klartext – Beratung kostenlos, Produktpreise laut proWIN-Shop |
+| `sitemap.xml` | alle vier Seiten, nicht nur die Startseite |
+| `robots.txt` | antwortende Assistenten willkommen, reine Trainingsdaten-Sammler nicht |
+| JSON-LD im `<head>` | `ProfessionalService`, `Person`, `Service` samt Kontaktpunkt und Einsatzgebiet |
+| `js/webmcp.js` | In-Page-Werkzeuge nach [WebMCP](https://github.com/webmachinelearning/webmcp) |
+
+Die ersten drei entstehen beim Build aus `content/site.json`; die Fließtexte darin
+stehen in `shared/agents.mjs`.
+
+**WebMCP** ist ein W3C-Entwurf: Browser mit Agentenfunktion (Chrome-Origin-Trial,
+ChatGPT-Desktop) fragen die Seite nach ihren Werkzeugen, statt sie abzutippen.
+Registriert sind sieben – sechs reine Auskünfte (Kontakt, Beratungsbereiche,
+Einsatzgebiet, Preise, Terminoptionen, Kataloge) und `prefill_contact_form`, das
+das Kontaktformular **vorbefüllt, aber nicht abschickt**: Einwilligung und
+hCaptcha bleiben Sache eines Menschen. Kennt ein Browser WebMCP nicht, passiert
+schlicht nichts.
+
+> Was hier bewusst fehlt: API, MCP-Server, OAuth und agentische Zahlungsprotokolle
+> (x402, ACP, UCP, AP2). Eine statische Beratungsseite ohne eigenen Shop hat dafür
+> keine Grundlage – `llms.txt` und `pricing.md` sagen das den Agenten auch
+> ausdrücklich, damit sie nicht danach suchen.
 
 ## Funktionen
 

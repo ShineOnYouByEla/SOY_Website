@@ -29,16 +29,17 @@ jobs:
         with:
           node-version: 22
 
-      # index.html entsteht aus content/site.json - erst bauen, dann pruefen.
+      # index.html, llms.txt, pricing.md und sitemap.xml entstehen aus
+      # content/site.json - erst bauen, dann pruefen.
       - name: Seite aus content/site.json bauen
         run: node scripts/build-site.mjs
 
-      # Der Build darf nichts veraendern: sonst wurde index.html von Hand
-      # angefasst statt ueber content/site.json bzw. den Admin.
+      # Der Build darf nichts veraendern: sonst wurde eine erzeugte Datei von
+      # Hand angefasst statt ueber content/site.json bzw. den Admin.
       - name: Gebaute Dateien sind aktuell
         run: |
-          git diff --exit-code -- index.html js/config.js || {
-            echo "::error::index.html/js/config.js sind nicht aktuell. Bitte 'node scripts/build-site.mjs' ausfuehren und committen."
+          git diff --exit-code -- index.html js/config.js llms.txt pricing.md sitemap.xml || {
+            echo "::error::Erzeugte Dateien sind nicht aktuell. Bitte 'node scripts/build-site.mjs' ausfuehren und committen."
             exit 1
           }
 

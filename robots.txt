@@ -1,5 +1,77 @@
+# Shine On You – shineonyou.de
+#
+# Grundhaltung: Die Seite soll gefunden werden – von Suchmaschinen und von
+# den Assistenten, die heute Antworten liefern. Reine Trainingsdaten-Sammler
+# bekommen sie nicht. Die Katalog-PDFs bleiben aussen vor, sie gehoeren
+# hinter die Uebersicht auf /katalog.html.
+
+# Haltung zu den Inhalten (Content Signals von Cloudflare, als Kommentar):
+#   search=yes, ai-input=yes, ai-train=no
+# Als echte Direktive geschrieben laesst sie Lighthouse den robots.txt-Check
+# durchfallen ("Unknown directive") und damit den SEO-Schwellwert der CI
+# reissen. Wirksam ist hier ohnehin die Aufteilung nach User-Agent unten.
+
+# ---- Alle uebrigen ----
 User-agent: *
 Allow: /
 Disallow: /kataloge/
+
+# ---- Assistenten, die auf Nachfrage antworten: willkommen ----
+User-agent: GPTBot
+Allow: /
+Disallow: /kataloge/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /kataloge/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /kataloge/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /kataloge/
+
+User-agent: Claude-User
+Allow: /
+Disallow: /kataloge/
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /kataloge/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /kataloge/
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /kataloge/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /kataloge/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /kataloge/
+
+User-agent: ora-agent
+Allow: /
+Disallow: /kataloge/
+
+# ---- Reine Trainingsdaten-Sammler: nein ----
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: ByteSpider
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
 
 Sitemap: https://shineonyou.de/sitemap.xml

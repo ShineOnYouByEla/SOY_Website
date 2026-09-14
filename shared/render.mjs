@@ -51,6 +51,15 @@ export function rich(value) {
   return out;
 }
 
+/** Fliesstext auf reinen Text zurueckfuehren — fuer JSON-LD und Agenten-Daten. */
+export function plainText(value) {
+  return String(value ?? "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** Leere Eintraege aus einer Liste werfen und Zeilen zusammenfuegen. */
 const join = (parts, sep = "\n") => parts.filter(Boolean).join(sep);
 
@@ -505,7 +514,7 @@ const SECTIONS = {
     const form = join([
       '<form id="contactForm" class="card form-card" novalidate>',
       "  <!-- Honeypot gegen Spam-Bots: fuer Menschen unsichtbar. -->",
-      '  <input type="checkbox" name="botcheck" tabindex="-1" aria-hidden="true" style="display:none !important;" />',
+      '  <input type="checkbox" name="botcheck" aria-label="Bitte nicht ausfüllen" tabindex="-1" aria-hidden="true" style="display:none !important;" />',
       '  <div class="field">',
       `    <label for="c-name">${esc(f.nameLabel || "Name")}</label>`,
       '    <input type="text" id="c-name" name="name" autocomplete="name" required />',
@@ -581,6 +590,9 @@ function renderJsonLd(content) {
   /* Stabiler Anker fuer die Person – bleibt bestehen, damit Suchmaschinen
      die einmal erfasste Entitaet weiterhin wiedererkennen. */
   const personId = `${url}#${b.person?.id || "person"}`;
+  /* Die Produktbereiche stehen sichtbar auf der Seite — genau die gehoeren
+     auch in die strukturierten Daten, nichts Zusaetzliches. */
+  const serviceAreas = visibleSections(content).find((s) => s.id === "produkte")?.data?.cards || [];
 
   const graph = [
     {
@@ -604,6 +616,18 @@ function renderJsonLd(content) {
         addressCountry: b.address?.country,
       },
       areaServed: (b.areaServed || []).map((a) => ({ "@type": a.type, name: a.name })),
+      /* Ausdruecklicher Kontaktpunkt: KI-Assistenten lesen contactPoint,
+         um Kontaktfragen zu beantworten und die Firma zu verifizieren. */
+      contactPoint: [
+        {
+          "@type": "ContactPoint",
+          contactType: "customer support",
+          email: c.email,
+          telephone: c.phoneHref,
+          areaServed: (b.areaServed || []).map((a) => a.name).filter(Boolean),
+          availableLanguage: ["de"],
+        },
+      ].filter((cp) => cp.email || cp.telephone),
       founder: { "@id": personId },
       makesOffer: {
         "@type": "Offer",
@@ -620,9 +644,46 @@ function renderJsonLd(content) {
       "@id": personId,
       name: b.person?.name,
       alternateName: b.person?.alternateName,
+      description: b.person?.description,
       jobTitle: b.person?.jobTitle,
       worksFor: { "@id": `${url}#business` },
+      /* Verweise auf dieselbe Person an anderer Stelle im Netz — damit
+         KI-Systeme die Person von Namensvettern unterscheiden koennen. */
+      sameAs: (b.person?.sameAs || []).filter(Boolean),
       url,
+    },
+    {
+      /* Die Leistung selbst, mit den Bereichen aus der Produkt-Sektion.
+         Deckt sich mit dem, was auf der Seite sichtbar ist. */
+      "@type": "Service",
+      "@id": `${url}#service`,
+      name: b.offer?.name,
+      description: b.offer?.description,
+      serviceType: b.offer?.name,
+      provider: { "@id": `${url}#business` },
+      areaServed: (b.areaServed || []).map((a) => ({ "@type": a.type, name: a.name })),
+      availableChannel: {
+        "@type": "ServiceChannel",
+        serviceUrl: `${url}#termin`,
+        servicePhone: c.phoneHref,
+        availableLanguage: "de",
+      },
+      ...(serviceAreas.length
+        ? {
+            hasOfferCatalog: {
+              "@type": "OfferCatalog",
+              name: b.offer?.name,
+              itemListElement: serviceAreas.map((card) => ({
+                "@type": "Offer",
+                itemOffered: {
+                  "@type": "Service",
+                  name: plainText(card.title),
+                  description: plainText(card.text),
+                },
+              })),
+            },
+          }
+        : {}),
     },
     {
       "@type": "WebSite",
@@ -851,6 +912,8 @@ export function renderPage(content) {
       '  <script src="js/config.js"></script>',
       '  <script src="js/theme.js" defer></script>',
       '  <script src="js/script.js"></script>',
+      "  <!-- In-Page-Werkzeuge fuer KI-Agenten (WebMCP). Laedt nur, wo der Browser das kann. -->",
+      '  <script src="js/webmcp.js" defer></script>',
       "</body>",
       "</html>",
       "",
@@ -863,6 +926,10 @@ export function renderPage(content) {
 export function renderConfigJs(content) {
   const c = content.contact || {};
   const sv = content.services || {};
+  const b = content.business || {};
+  const base = content.site?.baseUrl || "https://shineonyou.de/";
+  const url = base.endsWith("/") ? base : base + "/";
+  const cards = visibleSections(content).find((s) => s.id === "produkte")?.data?.cards || [];
   const cfg = {
     businessName: content.site?.brandName,
     ownerName: content.site?.author,
@@ -875,6 +942,22 @@ export function renderConfigJs(content) {
     calLink: sv.calLink || "",
     calOrigin: sv.calOrigin || "",
     calEmbedJs: sv.calEmbedJs || "",
+    /* Auskunft fuer die WebMCP-Werkzeuge in js/webmcp.js. Rein lesbare
+       Fakten — alles kommt aus content/site.json. */
+    agent: {
+      url,
+      owner: b.person?.name || content.site?.author,
+      jobTitle: b.person?.jobTitle,
+      summary: plainText(b.description || content.site?.description),
+      priceRange: b.priceRange || "€€",
+      whatsappChannel: c.whatsappChannel || "",
+      shopUrl: b.shopUrl || "",
+      partnerUrl: b.partnerUrl || "",
+      locality: [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" "),
+      areaServed: (b.areaServed || []).map((a) => a.name).filter(Boolean),
+      topics: cards.map((card) => ({ title: plainText(card.title), text: plainText(card.text) })),
+      bookingUrl: sv.calLink ? `${(sv.calOrigin || "https://cal.com").replace(/\/+$/, "")}/${sv.calLink}` : "",
+    },
   };
   return join([
     "/* Automatisch erzeugt aus content/site.json — nicht von Hand bearbeiten. */",

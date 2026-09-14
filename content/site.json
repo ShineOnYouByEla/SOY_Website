@@ -34,6 +34,8 @@
     "logo": "assets/img/logo-stacked-dark.png",
     "priceRange": "€€",
     "inLanguage": "de-DE",
+    "shopUrl": "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
+    "partnerUrl": "https://prowin.net/de/vertrieb/m.zimmert",
     "address": {
       "locality": "Peiting",
       "postalCode": "86971",
@@ -71,11 +73,18 @@
       "id": "manuela",
       "name": "Manuela Zimmert",
       "alternateName": "Ela",
-      "jobTitle": "Unabhängige proWIN-Vertriebsberaterin"
+      "jobTitle": "Unabhängige proWIN-Vertriebsberaterin",
+      "description": "Manuela Zimmert („Ela“) ist unabhängige proWIN-Vertriebsberaterin in Peiting. Sie berät persönlich zu Produkten für Haushalt, Reinigung, Kosmetik und Wellness und veranstaltet proWINpartys zuhause oder online per Video.",
+      "sameAs": [
+        "https://prowin.net/de/vertrieb/m.zimmert",
+        "https://kontakt.shineonyou.de"
+      ]
     },
     "sameAs": [
       "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F",
-      "https://kontakt.shineonyou.de"
+      "https://kontakt.shineonyou.de",
+      "https://prowin.net/de/vertrieb/m.zimmert",
+      "https://vp.prowin-shop.net/?referenceKey=m.zimmert"
     ]
   },
   "header": {
@@ -496,7 +505,7 @@
             "kind": "url",
             "icon": "link",
             "text": "Digitale Visitenkarte",
-            "href": "http://kontakt.shineonyou.de",
+            "href": "https://kontakt.shineonyou.de",
             "external": true
           }
         ],
