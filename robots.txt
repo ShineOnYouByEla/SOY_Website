@@ -5,9 +5,14 @@
 # bekommen sie nicht. Die Katalog-PDFs bleiben aussen vor, sie gehoeren
 # hinter die Uebersicht auf /katalog.html.
 
+# Haltung zu den Inhalten (Content Signals von Cloudflare, als Kommentar):
+#   search=yes, ai-input=yes, ai-train=no
+# Als echte Direktive geschrieben laesst sie Lighthouse den robots.txt-Check
+# durchfallen ("Unknown directive") und damit den SEO-Schwellwert der CI
+# reissen. Wirksam ist hier ohnehin die Aufteilung nach User-Agent unten.
+
 # ---- Alle uebrigen ----
 User-agent: *
-Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Disallow: /kataloge/
 
