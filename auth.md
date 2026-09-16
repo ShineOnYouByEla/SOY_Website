@@ -1,3 +1,10 @@
+---
+title: "Agent authentication for Shine On You"
+description: "There is nothing to authenticate to: no API, no tokens, no authorization server."
+canonical: https://shineonyou.de/auth.md
+last-updated: 2026-09-16
+---
+
 # Agent authentication for Shine On You
 
 Kurz auf Deutsch: Diese Seite hat keine Anmeldung. Alles, was ein Agent hier tun kann,

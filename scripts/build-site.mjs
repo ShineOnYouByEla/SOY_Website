@@ -6,6 +6,8 @@
      llms.txt     — Kurzprofil fuer KI-Assistenten
      pricing.md   — maschinenlesbare Preisauskunft
      sitemap.xml  — alle auslieferbaren Seiten
+     index.md     — die Startseite als Markdown
+     about/contact/privacy.html — Einstiegsseiten unter sprechenden Adressen
      auth.md      — warum es hier nichts anzumelden gibt
      .well-known/ard.json               — Katalog der agentischen Ressourcen
      .well-known/agent-skills/…/SKILL.md — Kurzanleitung fuer Agenten
@@ -19,6 +21,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { renderPage, renderConfigJs } from "../shared/render.mjs";
+import { INFO_PAGES, renderInfoPage } from "../shared/infopages.mjs";
 import {
   ARD_PATH,
   SKILLS_INDEX_PATH,
@@ -27,6 +30,7 @@ import {
   renderAgentSkillsIndex,
   renderArdCatalog,
   renderAuthMd,
+  renderIndexMd,
   renderLlmsTxt,
   renderPricingMd,
   renderSitemap,
@@ -49,6 +53,8 @@ const targets = [
   ["llms.txt", renderLlmsTxt(content)],
   ["pricing.md", renderPricingMd(content)],
   ["sitemap.xml", renderSitemap(content)],
+  ["index.md", renderIndexMd(content)],
+  ...INFO_PAGES.map((pg) => [pg.path, renderInfoPage(content, pg.slug)]),
   ["auth.md", renderAuthMd(content)],
   [ARD_PATH, renderArdCatalog(content)],
   [SKILL_PATH, renderAgentSkill(content)],

@@ -734,6 +734,8 @@ function renderHeadTag(content) {
     '<meta name="robots" content="index, follow" />',
     `<meta name="theme-color" content="${esc(site.themeColor)}" />`,
     `<link rel="canonical" href="${esc(url)}" />`,
+    "<!-- Dieselbe Seite als Markdown - fuer Agenten, die lesen statt rendern -->",
+    '<link rel="alternate" type="text/markdown" href="index.md" />',
     "",
     "<!-- Theme frueh setzen (verhindert Aufblitzen des falschen Modus) -->",
     "<script>",

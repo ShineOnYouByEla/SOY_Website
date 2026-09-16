@@ -21,6 +21,8 @@ export const SKILL_NAME = "prowin-beratung-shine-on-you";
 export const SKILL_PATH = `.well-known/agent-skills/${SKILL_NAME}/SKILL.md`;
 export const SKILLS_INDEX_PATH = ".well-known/agent-skills/index.json";
 export const ARD_PATH = ".well-known/ard.json";
+/* Das oeffentliche Repository dieser Website. */
+export const REPO_URL = "https://github.com/ShineOnYouByEla/SOY_Website";
 
 /* Die Seiten, die ausgeliefert werden. Neue Seite -> hier ergaenzen. */
 const PAGES = [
@@ -66,6 +68,30 @@ function xml(value) {
 }
 
 const lines = (parts) => parts.filter((p) => p !== null && p !== undefined && p !== false).join("\n");
+
+/** Tag der letzten Inhaltsaenderung (YYYY-MM-DD) aus content/site.json. */
+function updatedOn(content) {
+  const v = String(content.site?.contentUpdated || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+}
+
+/**
+ * YAML-Kopf fuer die ausgelieferten Markdown-Dateien. Agenten lesen daraus
+ * Titel, Zweck und Stand, ohne den Fliesstext auseinandernehmen zu muessen.
+ */
+function frontMatter(content, { title, description, canonical }) {
+  const updated = updatedOn(content);
+  return lines([
+    "---",
+    `title: "${String(title).replaceAll('"', "'")}"`,
+    description ? `description: "${String(description).replaceAll('"', "'")}"` : null,
+    canonical ? `canonical: ${canonical}` : null,
+    updated ? `last-updated: ${updated}` : null,
+    "---",
+    "",
+    "",
+  ]);
+}
 
 /** Die Karten der Produkt-Sektion — die Bereiche, zu denen beraten wird. */
 function productAreas(content) {
@@ -164,6 +190,8 @@ export function renderLlmsTxt(content) {
       "",
       ...PAGES.map((pg) => `- [${pg.label}](${page(pg.path)}): ${pg.note}`),
       `- [Preise](${page("pricing.md")}): wie sich die Kosten zusammensetzen (Markdown)`,
+      `- [Startseite als Markdown](${page("index.md")}): derselbe Inhalt ohne Navigation und Bilder`,
+      `- [Über uns](${page("about")}), [Kontakt](${page("contact")}), [Datenschutz in Kurzform](${page("privacy")}): Einstiegsseiten unter sprechenden Adressen`,
       `- [Agent-Skill](${page(SKILL_PATH)}): Kurzanleitung für Agenten (Markdown, wann und wie diese Seite benutzen)`,
       `- [Anmeldung](${page("auth.md")}): warum es hier nichts anzumelden gibt (auth.md)`,
       `- [ARD-Katalog](${page(ARD_PATH)}): maschinenlesbares Verzeichnis der agentischen Ressourcen`,
@@ -192,6 +220,7 @@ export function renderLlmsTxt(content) {
       `  Agent Skills Discovery: ${page(SKILLS_INDEX_PATH)}.`,
       "- Es gibt keine Anmeldung und keine Zugangsdaten. Wer danach sucht, findet die Begründung in",
       `  ${page("auth.md")}.`,
+      `- Quelltext dieser Website: ${REPO_URL} — mit AGENTS.md für Agenten, die daran arbeiten.`,
       "",
     ]).replace(/\n{3,}/g, "\n\n") + "\n"
   );
@@ -206,6 +235,11 @@ export function renderPricingMd(content) {
   const url = baseUrl(content);
 
   return (
+    frontMatter(content, {
+      title: `Preise – ${plain(content.site?.brandName || b.name)}`,
+      description: "Beratung und proWINparty kostenlos; Produktpreise setzt proWIN International fest.",
+      canonical: url + "pricing.md",
+    }) +
     lines([
       `# Preise – ${plain(content.site?.brandName || b.name)}`,
       "",
@@ -255,6 +289,8 @@ export function renderPricingMd(content) {
 /** Alle auslieferbaren Seiten — nicht nur die Startseite. */
 export function renderSitemap(content) {
   const url = baseUrl(content);
+  /* Alle Seiten entstehen aus einer Datei — sie haben denselben Stand. */
+  const updated = updatedOn(content);
 
   return (
     lines([
@@ -265,6 +301,7 @@ export function renderSitemap(content) {
         lines([
           "  <url>",
           `    <loc>${xml(url + pg.path)}</loc>`,
+          updated ? `    <lastmod>${updated}</lastmod>` : null,
           `    <changefreq>${pg.changefreq}</changefreq>`,
           `    <priority>${pg.priority}</priority>`,
           "  </url>",
@@ -298,6 +335,11 @@ export function renderAuthMd(content) {
   const url = baseUrl(content);
 
   return (
+    frontMatter(content, {
+      title: `Agent authentication for ${plain(content.site?.brandName || b.name)}`,
+      description: "There is nothing to authenticate to: no API, no tokens, no authorization server.",
+      canonical: url + "auth.md",
+    }) +
     lines([
       `# Agent authentication for ${plain(content.site?.brandName || b.name)}`,
       "",
@@ -540,6 +582,15 @@ export function renderArdCatalog(content) {
   return (
     JSON.stringify(
       {
+        /* Die Version des Umschlags, nicht die des Dokuments: veroeffentlichte
+           Manifeste tragen hier "1.0". Ohne das Feld gilt der Katalog als
+           unvollstaendig, auch wenn jeder Eintrag fuer sich gueltig ist. */
+        specVersion: "1.0",
+        host: {
+          displayName: plain(b.name || content.site?.brandName),
+          identifier: host,
+          documentationUrl: url + "llms.txt",
+        },
         entries: [
           {
             identifier: `urn:air:${host}:skill:${SKILL_NAME}`,
@@ -626,5 +677,109 @@ export function renderArdCatalog(content) {
       null,
       2
     ) + "\n"
+  );
+}
+
+/* ---------- index.md ---------- */
+
+/**
+ * Die Startseite als Markdown. Agenten, die eine Seite lesen wollen statt
+ * sie zu rendern, holen sich das hier: derselbe Inhalt, ohne Navigation,
+ * Bilder und Skripte. Beworben wird die Datei im `<head>` von index.html
+ * (`<link rel="alternate" type="text/markdown">`).
+ *
+ * Erzeugt aus denselben Sektionen wie die HTML-Fassung — was auf der
+ * Startseite ausgeblendet wird, fehlt hier automatisch auch.
+ */
+export function renderIndexMd(content) {
+  const site = content.site || {};
+  const b = content.business || {};
+  const c = content.contact || {};
+  const p = b.person || {};
+  const url = baseUrl(content);
+  const area = areaServed(content);
+  const areas = productAreas(content);
+  const sections = visibleSections(content);
+  const ort = [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" ");
+
+  const section = (id) => sections.find((s) => s.id === id)?.data || null;
+  const ueber = section("ueber");
+  const ablauf = section("ablauf");
+  const termin = section("termin");
+  const mitmachen = section("mitmachen");
+
+  return (
+    frontMatter(content, {
+      title: plain(site.title),
+      description: plain(site.description),
+      canonical: url,
+    }) +
+    lines([
+      `# ${plain(b.name || site.brandName)}`,
+      "",
+      `> ${plain(b.description || site.description)}`,
+      "",
+      `Markdown-Fassung der Startseite ${url} — gleicher Inhalt, ohne Navigation und Bilder.`,
+      "",
+      ueber ? "## Über mich" : null,
+      ueber ? "" : null,
+      ...(ueber?.paragraphs || []).map((t) => plain(t) + "\n"),
+      ...(ueber?.checklist || []).map((t) => `- ${plain(t)}`),
+      ueber ? "" : null,
+      areas.length ? "## Beratungsbereiche" : null,
+      areas.length ? "" : null,
+      ...areas.map((a) => `- **${a.title}**: ${a.text}`),
+      areas.length ? "" : null,
+      ablauf ? "## So läuft eine proWINparty ab" : null,
+      ablauf ? "" : null,
+      ablauf?.sub ? plain(ablauf.sub) : null,
+      ablauf ? "" : null,
+      ...(ablauf?.blocks || []).flatMap((blk) => [
+        `### ${plain(blk.title)}`,
+        "",
+        plain(blk.text),
+        "",
+        ...(blk.steps || []).map((st, i) => `${i + 1}. **${plain(st.title)}** – ${plain(st.text)}`),
+        "",
+      ]),
+      termin ? "## Termin vereinbaren" : null,
+      termin ? "" : null,
+      ...(termin?.paragraphs || []).map((t) => plain(t) + "\n"),
+      ...(termin?.blocks || []).flatMap((blk) => [
+        `- **${plain(blk.title)}**: ${(blk.items || []).map(plain).join(" · ")}`,
+      ]),
+      termin ? "" : null,
+      `Buchung und Kontaktformular liegen auf der HTML-Fassung: ${url}#termin bzw. ${url}#kontakt.`,
+      "Das Kontaktformular verlangt eine Einwilligung nach DSGVO und eine hCaptcha-Prüfung –",
+      "es darf nicht automatisiert abgeschickt werden.",
+      "",
+      mitmachen ? "## Selbst einsteigen" : null,
+      mitmachen ? "" : null,
+      mitmachen?.sub ? plain(mitmachen.sub) : null,
+      mitmachen ? "" : null,
+      ...(mitmachen?.cards || []).map((card) => `- **${plain(card.title)}**: ${plain(card.text)}`),
+      mitmachen ? "" : null,
+      "## Preise",
+      "",
+      "Beratung und proWINparty sind kostenlos und unverbindlich. Produktpreise setzt proWIN",
+      `International fest, verbindlich ist der Shop. Einzelheiten: ${url}pricing.md`,
+      "",
+      "## Kontakt",
+      "",
+      p.name ? `- ${plain(p.name)}${p.jobTitle ? `, ${lowerFirst(plain(p.jobTitle))}` : ""}${ort ? `, ${ort}` : ""}` : null,
+      c.email ? `- E-Mail: ${c.email}` : null,
+      c.phone ? `- Mobil: ${c.phone}` : null,
+      c.landline ? `- Festnetz: ${c.landline}` : null,
+      c.whatsappChannel ? `- WhatsApp-Kanal: ${c.whatsappChannel}` : null,
+      b.shopUrl ? `- proWIN-Onlineshop (Bestellungen und Preise): ${b.shopUrl}` : null,
+      area.length ? `- Einsatzgebiet vor Ort: ${area.join(", ")}` : null,
+      "",
+      "## Weitere Seiten",
+      "",
+      `- [Über uns](${url}about) · [Kontakt](${url}contact) · [Datenschutz in Kurzform](${url}privacy)`,
+      `- [Kataloge](${url}katalog.html) · [Impressum](${url}impressum.html) · [Datenschutz](${url}datenschutz.html)`,
+      `- Für Agenten: [llms.txt](${url}llms.txt) · [auth.md](${url}auth.md) · [Skill](${url}${SKILL_PATH})`,
+      "",
+    ]).replace(/\n{3,}/g, "\n\n") + "\n"
   );
 }
