@@ -68,6 +68,13 @@ jobs:
         with:
           # gesamtes Repo-Wurzelverzeichnis als Website hochladen
           path: "."
+          # Seit v4 wirft die Action alles mit fuehrendem Punkt aus dem
+          # Artefakt (`--exclude=.[^/]*`). Ohne diesen Schalter waeren
+          # .well-known/ard.json und der Agent-Skills-Index nicht
+          # ausgeliefert worden - der Deploy meldet trotzdem Erfolg, die
+          # Adressen antworten aber mit 404. .git und .github bleiben in
+          # jedem Fall draussen, darum ist das hier unbedenklich.
+          include-hidden-files: true
 
       - name: Deploy to GitHub Pages
         id: deployment
