@@ -95,6 +95,24 @@ test("Bilder von fremden Servern werden abgelehnt", () => {
   assert.ok(validateContent(content).some((e) => e.includes("aus dem Projekt")));
 });
 
+test("Eine krumme Nummer für den WhatsApp-Chat fällt auf", () => {
+  const content = live();
+  content.chat = { ...content.chat, phoneHref: "0151 abc" };
+  assert.ok(validateContent(content).some((e) => e.includes("WhatsApp-Chat")));
+});
+
+test("Der Chat-Knopf landet mit wa.me-Link im HTML", () => {
+  const html = renderPage(live());
+  assert.match(html, /class="chat-dock"/);
+  assert.match(html, /https:\/\/wa\.me\/4915510279357\?text=/);
+});
+
+test("Ohne Chat-Block bleibt der Knopf weg", () => {
+  const content = live();
+  content.chat = { ...content.chat, enabled: false };
+  assert.equal(renderPage(content).includes("chat-dock"), false);
+});
+
 test("Ein Kanal-Link ohne http(s) fällt auf", () => {
   const content = live();
   content.sections.find((s) => s.type === "channel").data.href = "whatsapp.com/channel/abc";

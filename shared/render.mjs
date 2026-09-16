@@ -815,6 +815,100 @@ function renderFooter(content) {
   ]);
 }
 
+/* ---------- Schwebender WhatsApp-Chat ---------- */
+
+/** Telefonnummer fuer wa.me: nur Ziffern, ohne Plus und Leerzeichen. */
+function waNumber(value) {
+  return String(value ?? "").replace(/[^0-9]/g, "");
+}
+
+/** wa.me-Adresse, optional mit vorformulierter Nachricht. */
+function waHref(number, text) {
+  const msg = String(text ?? "").trim();
+  return `https://wa.me/${number}` + (msg ? `?text=${encodeURIComponent(msg)}` : "");
+}
+
+/**
+ * Der Knopf unten rechts, der ein kleines Chat-Fenster aufklappt.
+ * Bewusst ein <details>: klappt auch ohne JavaScript auf. Von WhatsApp wird
+ * nichts geladen — erst ein Klick auf einen der Links fuehrt dorthin.
+ */
+function renderChatWidget(content) {
+  const w = content.chat || {};
+  if (w.enabled === false) return "";
+
+  /* Ziel ist die Mobilnummer aus den Kontaktdaten; eine eigene uebersteuert sie. */
+  const number = waNumber(w.phoneHref || content.contact?.phoneHref);
+  if (!number) return "";
+
+  const label = w.label || "WhatsApp-Chat öffnen";
+  const avatar = w.avatar?.src
+    ? `<img src="${esc(w.avatar.src)}" alt="${esc(w.avatar.alt || "")}" class="chat-avatar"` +
+      ` width="${esc(w.avatar.width)}" height="${esc(w.avatar.height)}" loading="lazy" decoding="async" />`
+    : "";
+
+  const messages = (w.messages || []).map((m) => `<p class="chat-msg">${rich(m)}</p>`);
+
+  /* Fertige Gespraechsanfaenge: ein Tipp und die Nachricht steht schon. */
+  const quick = (w.quickReplies || [])
+    .filter((q) => q?.label)
+    .map(
+      (q) =>
+        `<a class="chat-chip" href="${esc(waHref(number, q.message || q.label))}"` +
+        ` target="_blank" rel="noopener">${esc(q.label)}</a>`
+    );
+
+  const channel = content.contact?.whatsappChannel;
+
+  return join([
+    `<div class="chat-dock" data-chat data-chat-delay="${esc(w.teaserDelay ?? 9)}">`,
+    w.teaser
+      ? join([
+          '  <div class="chat-teaser" hidden>',
+          `    <button type="button" class="chat-teaser-open">${rich(w.teaser)}</button>`,
+          '    <button type="button" class="chat-teaser-close" aria-label="Hinweis schließen">',
+          '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
+            ' stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+          "    </button>",
+          "  </div>",
+        ])
+      : "",
+    '  <details class="chat-fab">',
+    `    <summary class="chat-fab-btn" aria-label="${esc(label)}" title="${esc(label)}">`,
+    '      <span class="chat-fab-icon" aria-hidden="true">' + icon("whatsapp", { size: 32 }) + "</span>",
+    '      <svg class="chat-fab-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"' +
+      ' stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    "    </summary>",
+    '    <div class="chat-panel">',
+    '      <div class="chat-panel-head">',
+    avatar ? "        " + avatar : "",
+    '        <span class="chat-panel-who">',
+    `          <strong>${esc(w.name || content.site?.author || "")}</strong>`,
+    w.role ? `          <span>${esc(w.role)}</span>` : "",
+    "        </span>",
+    "      </div>",
+    '      <div class="chat-panel-body">',
+    messages.length ? indent(messages.join("\n"), 8) : "",
+    w.status ? `        <p class="chat-status">${esc(w.status)}</p>` : "",
+    quick.length ? `        <div class="chat-quick">\n${indent(quick.join("\n"), 10)}\n        </div>` : "",
+    "      </div>",
+    '      <div class="chat-panel-foot">',
+    `        <a class="btn chat-start" href="${esc(waHref(number, w.prefill))}" target="_blank" rel="noopener">`,
+    "          " + icon("whatsapp", { size: 20 }),
+    `          <span>${esc(w.ctaLabel || "Chat starten")}</span>`,
+    "        </a>",
+    channel && w.channelLabel
+      ? `        <a class="chat-panel-channel" href="${esc(channel)}"` +
+        ` target="_blank" rel="noopener">${esc(w.channelLabel)}</a>`
+      : "",
+    w.note ? `        <p class="chat-panel-note">${rich(w.note)}</p>` : "",
+    "      </div>",
+    "    </div>",
+    "  </details>",
+    "</div>",
+  ]);
+}
+
 /* ---------- Gesamtseite ---------- */
 
 /** Erzeugt die vollstaendige index.html als String. */
@@ -847,6 +941,8 @@ export function renderPage(content) {
       "  </main>",
       "",
       indent(renderFooter(content), 2),
+      "",
+      indent(renderChatWidget(content), 2),
       "",
       '  <script src="js/config.js"></script>',
       '  <script src="js/theme.js" defer></script>',

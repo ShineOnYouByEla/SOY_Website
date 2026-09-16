@@ -132,6 +132,11 @@ export function validateContent(content) {
     }
   }
 
+  /* --- Chat-Knopf unten rechts --- */
+  if (isObj(content.chat) && content.chat.phoneHref && !/^\+?[0-9]{6,20}$/.test(content.chat.phoneHref)) {
+    errors.push("Die abweichende Nummer für den WhatsApp-Chat darf nur Ziffern und ein führendes + enthalten.");
+  }
+
   /* --- Fussbereich --- */
   if (isObj(content.footer)) {
     checkExternalHref(content.footer.partnerHref, "Fußbereich, Partner-Logo", errors);
