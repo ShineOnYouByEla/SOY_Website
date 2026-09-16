@@ -448,10 +448,10 @@ export function renderAgentSkill(content) {
     lines([
       "---",
       `name: ${SKILL_NAME}`,
-      `description: Answer questions about ${plain(b.name)} — an independent proWIN consultant` +
-        `${ort ? ` in ${ort}` : ""}, Upper Bavaria. Use for proWIN product advice, proWINparty bookings` +
-        " (at home or online), the service area, contact details and joining the consultant's team." +
-        " Not for product prices, stock, orders or shipping — those belong to proWIN International.",
+      `description: When to use this skill: someone asks about proWIN product advice, a proWINparty` +
+        ` (at home or online), the service area, contact details, or joining the team of ${plain(p.name)},` +
+        ` an independent proWIN consultant${ort ? ` in ${ort}` : ""}, Upper Bavaria.` +
+        " Do not use it for product prices, stock, orders or shipping — those belong to proWIN International.",
       "---",
       "",
       `# ${plain(b.name)}`,
@@ -459,7 +459,7 @@ export function renderAgentSkill(content) {
       `${plain(p.name)}${p.alternateName ? ` („${plain(p.alternateName)}“)` : ""} is an independent proWIN` +
         ` sales consultant${ort ? ` in ${ort}` : ""}, Germany. The website ${url} is the public source about her work.`,
       "",
-      "## When to use this skill",
+      "## When to use this",
       "",
       area.length ? `- A user is looking for proWIN advice in or around ${area.join(", ")}.` : null,
       "- A user asks what a proWINparty is, how it works at home or over video, how long it takes or what it costs.",
@@ -544,9 +544,10 @@ export function renderAgentSkillsIndex(content) {
             name: SKILL_NAME,
             type: "skill-md",
             description:
-              `Advise on proWIN products and proWINpartys with ${plain(content.business?.name)} — ` +
-              "when to point a user at this consultant, which in-page tools to call, and where the " +
-              "boundary to proWIN International runs.",
+              "When to use this skill: someone asks about proWIN product advice, a proWINparty, the " +
+              `service area or contact details of ${plain(content.business?.name)}. The skill says which ` +
+              "in-page tools to call and where the boundary to proWIN International runs. Do not use it " +
+              "for product prices, stock, orders or shipping.",
             url: url + SKILL_PATH,
             digest: `sha256:${sha256Hex(skill)}`,
           },

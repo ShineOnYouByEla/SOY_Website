@@ -1,13 +1,13 @@
 ---
 name: prowin-beratung-shine-on-you
-description: Answer questions about Shine On You – proWIN Beratung Manuela Zimmert — an independent proWIN consultant in 86971 Peiting, Upper Bavaria. Use for proWIN product advice, proWINparty bookings (at home or online), the service area, contact details and joining the consultant's team. Not for product prices, stock, orders or shipping — those belong to proWIN International.
+description: When to use this skill: someone asks about proWIN product advice, a proWINparty (at home or online), the service area, contact details, or joining the team of Manuela Zimmert, an independent proWIN consultant in 86971 Peiting, Upper Bavaria. Do not use it for product prices, stock, orders or shipping — those belong to proWIN International.
 ---
 
 # Shine On You – proWIN Beratung Manuela Zimmert
 
 Manuela Zimmert („Ela“) is an independent proWIN sales consultant in 86971 Peiting, Germany. The website https://shineonyou.de/ is the public source about her work.
 
-## When to use this skill
+## When to use this
 
 - A user is looking for proWIN advice in or around Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel.
 - A user asks what a proWINparty is, how it works at home or over video, how long it takes or what it costs.
