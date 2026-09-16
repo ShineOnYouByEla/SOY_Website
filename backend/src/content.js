@@ -8,7 +8,18 @@
 
 import { ICONS } from "../../shared/icons.mjs";
 import { renderPage, renderConfigJs } from "../../shared/render.mjs";
-import { renderLlmsTxt, renderPricingMd, renderSitemap } from "../../shared/agents.mjs";
+import {
+  ARD_PATH,
+  SKILLS_INDEX_PATH,
+  SKILL_PATH,
+  renderAgentSkill,
+  renderAgentSkillsIndex,
+  renderArdCatalog,
+  renderAuthMd,
+  renderLlmsTxt,
+  renderPricingMd,
+  renderSitemap,
+} from "../../shared/agents.mjs";
 
 const SECTION_TYPES = new Set(["hero", "about", "cards", "flow", "channel", "booking", "contact"]);
 const MAX_CONTENT_BYTES = 512 * 1024;
@@ -273,6 +284,10 @@ export function publishFiles(content) {
     { path: "llms.txt", content: renderLlmsTxt(content), encoding: "utf-8" },
     { path: "pricing.md", content: renderPricingMd(content), encoding: "utf-8" },
     { path: "sitemap.xml", content: renderSitemap(content), encoding: "utf-8" },
+    { path: "auth.md", content: renderAuthMd(content), encoding: "utf-8" },
+    { path: ARD_PATH, content: renderArdCatalog(content), encoding: "utf-8" },
+    { path: SKILL_PATH, content: renderAgentSkill(content), encoding: "utf-8" },
+    { path: SKILLS_INDEX_PATH, content: renderAgentSkillsIndex(content), encoding: "utf-8" },
   ];
 }
 

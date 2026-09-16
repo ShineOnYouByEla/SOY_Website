@@ -29,8 +29,9 @@ jobs:
         with:
           node-version: 22
 
-      # index.html, llms.txt, pricing.md und sitemap.xml entstehen aus
-      # content/site.json - erst bauen, dann pruefen.
+      # index.html, llms.txt, pricing.md, sitemap.xml, auth.md und die
+      # Dateien unter .well-known/ entstehen aus content/site.json -
+      # erst bauen, dann pruefen.
       - name: Seite aus content/site.json bauen
         run: node scripts/build-site.mjs
 
@@ -38,8 +39,15 @@ jobs:
       # Hand angefasst statt ueber content/site.json bzw. den Admin.
       - name: Gebaute Dateien sind aktuell
         run: |
-          git diff --exit-code -- index.html js/config.js llms.txt pricing.md sitemap.xml || {
+          git diff --exit-code -- index.html js/config.js llms.txt pricing.md sitemap.xml auth.md .well-known/ || {
             echo "::error::Erzeugte Dateien sind nicht aktuell. Bitte 'node scripts/build-site.mjs' ausfuehren und committen."
+            exit 1
+          }
+          # Eine neue erzeugte Datei taucht nicht im Diff auf, sondern als
+          # unversioniert - auch das ist ein fehlender Commit.
+          test -z "$(git ls-files --others --exclude-standard)" || {
+            echo "::error::Der Build hat Dateien erzeugt, die nicht im Repository sind:"
+            git ls-files --others --exclude-standard
             exit 1
           }
 

@@ -6,16 +6,31 @@
      llms.txt     — Kurzprofil fuer KI-Assistenten
      pricing.md   — maschinenlesbare Preisauskunft
      sitemap.xml  — alle auslieferbaren Seiten
+     auth.md      — warum es hier nichts anzumelden gibt
+     .well-known/ard.json               — Katalog der agentischen Ressourcen
+     .well-known/agent-skills/…/SKILL.md — Kurzanleitung fuer Agenten
+     .well-known/agent-skills/index.json — Verzeichnis dazu
    Wird im CI und beim Deploy ausgefuehrt — und lokal per
    `node scripts/build-site.mjs`.
    ============================================================ */
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { renderPage, renderConfigJs } from "../shared/render.mjs";
-import { renderLlmsTxt, renderPricingMd, renderSitemap } from "../shared/agents.mjs";
+import {
+  ARD_PATH,
+  SKILLS_INDEX_PATH,
+  SKILL_PATH,
+  renderAgentSkill,
+  renderAgentSkillsIndex,
+  renderArdCatalog,
+  renderAuthMd,
+  renderLlmsTxt,
+  renderPricingMd,
+  renderSitemap,
+} from "../shared/agents.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -34,6 +49,10 @@ const targets = [
   ["llms.txt", renderLlmsTxt(content)],
   ["pricing.md", renderPricingMd(content)],
   ["sitemap.xml", renderSitemap(content)],
+  ["auth.md", renderAuthMd(content)],
+  [ARD_PATH, renderArdCatalog(content)],
+  [SKILL_PATH, renderAgentSkill(content)],
+  [SKILLS_INDEX_PATH, renderAgentSkillsIndex(content)],
 ];
 
 let changed = 0;
@@ -49,6 +68,7 @@ for (const [rel, next] of targets) {
     console.log(`· ${rel} unverändert`);
     continue;
   }
+  mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, next, "utf8");
   console.log(`✓ ${rel} geschrieben`);
   changed += 1;

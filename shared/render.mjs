@@ -79,6 +79,11 @@ function abs(base, path) {
   return String(base).replace(/\/+$/, "") + "/" + String(path).replace(/^\/+/, "");
 }
 
+/** Die nackte Domain aus der Basis-URL — „https://shineonyou.de/“ -> „shineonyou.de“. */
+function host(base) {
+  return String(base).replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+}
+
 /* ---------- Sektionen ---------- */
 
 /** Nur sichtbare Sektionen, in gespeicherter Reihenfolge. */
@@ -599,6 +604,9 @@ function renderJsonLd(content) {
       "@type": "ProfessionalService",
       "@id": `${url}#business`,
       name: b.name,
+      /* Der kurze Markenname als eigene Bezeichnung: „Shine On You“ ist fuer
+         sich genommen mehrdeutig, hier haengt er nachpruefbar am Eintrag. */
+      alternateName: site.brandName && site.brandName !== b.name ? [site.brandName, host(url)] : undefined,
       description: b.description,
       url,
       image: abs(url, site.ogImage),
@@ -690,6 +698,7 @@ function renderJsonLd(content) {
       "@id": `${url}#website`,
       url,
       name: site.brandName,
+      alternateName: host(url),
       inLanguage: b.inLanguage || "de-DE",
       publisher: { "@id": `${url}#business` },
     },

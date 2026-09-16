@@ -34,12 +34,16 @@ python3 -m http.server 8000
 ├── scripts/          # Build-Skripte und Qualitätsprüfungen
 ├── backend/          # Admin-Backend (Cloudflare Worker) – siehe backend/README.md
 ├── index.html        # ERZEUGT aus content/site.json – nicht von Hand ändern
-├── shared/agents.mjs # erzeugt llms.txt, pricing.md und sitemap.xml
+├── shared/agents.mjs # erzeugt llms.txt, pricing.md, sitemap.xml, auth.md und .well-known/
+├── shared/sha256.mjs # Prüfwerte für den Agent-Skills-Index (synchron, ohne Node-APIs)
 ├── js/config.js      # ERZEUGT – Kontaktdaten und Dienste für script.js/webmcp.js
 ├── js/webmcp.js      # In-Page-Werkzeuge für KI-Agenten (WebMCP)
 ├── llms.txt          # ERZEUGT – Kurzprofil für KI-Assistenten
 ├── pricing.md        # ERZEUGT – maschinenlesbare Preisauskunft
 ├── sitemap.xml       # ERZEUGT – alle auslieferbaren Seiten
+├── auth.md           # ERZEUGT – warum es hier nichts anzumelden gibt
+├── .well-known/      # ERZEUGT – ARD-Katalog und Agent-Skills-Index
+├── 404.html          # Seite nicht gefunden – mit Wegen zurück, auch für Agenten
 ├── robots.txt        # welche Crawler dürfen, welche nicht
 ├── css/styles.css    # Styles & Markenfarben
 ├── js/script.js      # Mobile-Menü, Terminbuchung (.ics), Formulare
@@ -87,12 +91,18 @@ Dafür liegen neben der Seite selbst ein paar Dateien, die genau diese Systeme l
 | `llms.txt` | Kurzprofil: wer das ist, wofür die Seite die richtige Quelle ist und wofür nicht |
 | `pricing.md` | Preisauskunft in Klartext – Beratung kostenlos, Produktpreise laut proWIN-Shop |
 | `sitemap.xml` | alle vier Seiten, nicht nur die Startseite |
+| `auth.md` | nach der [auth.md-Spezifikation](https://github.com/workos/auth.md): hier gibt es nichts anzumelden, und warum |
+| `.well-known/ard.json` | Katalog der agentischen Ressourcen nach [ARD](https://agenticresourcediscovery.org/) |
+| `.well-known/agent-skills/` | Kurzanleitung als Skill plus `index.json` nach Agent Skills Discovery |
+| `404.html` | echter 404 mit Wegweiser – für Menschen und für Agenten, die sich verlaufen haben |
 | `robots.txt` | antwortende Assistenten willkommen, reine Trainingsdaten-Sammler nicht |
 | JSON-LD im `<head>` | `ProfessionalService`, `Person`, `Service` samt Kontaktpunkt und Einsatzgebiet |
 | `js/webmcp.js` | In-Page-Werkzeuge nach [WebMCP](https://github.com/webmachinelearning/webmcp) |
 
-Die ersten drei entstehen beim Build aus `content/site.json`; die Fließtexte darin
-stehen in `shared/agents.mjs`.
+Alles bis auf `robots.txt`, das JSON-LD, `js/webmcp.js` und `404.html` entsteht beim
+Build aus `content/site.json`; die Fließtexte dazu stehen in `shared/agents.mjs`.
+Der Skill wird dort auch gehasht: sein `sha256`-Prüfwert steht im `index.json`, beide
+entstehen im selben Durchlauf und können darum nicht auseinanderlaufen.
 
 **WebMCP** ist ein W3C-Entwurf: Browser mit Agentenfunktion (Chrome-Origin-Trial,
 ChatGPT-Desktop) fragen die Seite nach ihren Werkzeugen, statt sie abzutippen.
@@ -104,8 +114,15 @@ schlicht nichts.
 
 > Was hier bewusst fehlt: API, MCP-Server, OAuth und agentische Zahlungsprotokolle
 > (x402, ACP, UCP, AP2). Eine statische Beratungsseite ohne eigenen Shop hat dafür
-> keine Grundlage – `llms.txt` und `pricing.md` sagen das den Agenten auch
-> ausdrücklich, damit sie nicht danach suchen.
+> keine Grundlage – `llms.txt`, `pricing.md` und `auth.md` sagen das den Agenten
+> auch ausdrücklich, damit sie nicht danach suchen.
+>
+> Dazu gehört auch, was **nicht** unter `.well-known/` liegt:
+> `oauth-protected-resource` (RFC 9728) und `oauth-authorization-server` (RFC 8414)
+> fehlen, weil es keinen Autorisierungsserver gibt. Solche Dateien würden einen
+> `identity_endpoint` versprechen, hinter dem nichts steht – Agenten liefen ins
+> Leere. Prüf-Tools zählen die beiden Dateien als Pluspunkt; das ist kein Grund,
+> etwas zu behaupten, das es nicht gibt.
 
 ## Funktionen
 
