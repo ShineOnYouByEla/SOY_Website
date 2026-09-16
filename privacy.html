@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Datenschutz in Kurzform – Shine On You</title>
+  <meta name="description" content="Kurzüberblick zum Datenschutz auf shineonyou.de: keine Cookies, kein Tracking. Verbindlich ist die vollständige Datenschutzerklärung." />
+  <meta name="robots" content="noindex, follow" />
+  <meta name="theme-color" content="#041f24" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
+
+  <!-- Theme frueh setzen (verhindert Aufblitzen des falschen Modus) -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("soy-theme");
+        var mode = stored === "light" || stored === "dark" ? stored : "system";
+        var prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+        var theme = mode === "system" ? (prefersLight ? "light" : "dark") : mode;
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-theme-mode", mode);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-theme-mode", "system");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="css/fonts.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html#top" class="brand" aria-label="Shine On You – Startseite">
+        <img src="assets/img/wordmark.webp" alt="Shine On You" class="brand-logo" width="640" height="360" />
+      </a>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <div class="container">
+      <a href="index.html" class="legal-back">&larr; Zur Startseite</a>
+      <h1>Datenschutz in Kurzform</h1>
+      <p>
+        Diese Seite fasst zusammen, was mit Daten passiert, wenn du shineonyou.de benutzt.
+        Verbindlich ist allein die vollständige <a href="datenschutz.html">Datenschutzerklärung</a>;
+        bei Abweichungen gilt der dortige Text.
+      </p>
+      <h2>Das Wichtigste</h2>
+      <ul>
+        <li><strong>Keine Cookies.</strong> Die Seite setzt keine Cookies und misst kein Nutzungsverhalten – keine Webanalyse, keine Werbe- oder Tracking-Technologie, keine Profilbildung.</li>
+        <li><strong>Zwei lokale Einstellungen.</strong> Im <code>localStorage</code> des Browsers liegen nur <code>soy-theme</code> (helles oder dunkles Design) und <code>soy-channel-tip</code> (der einmalige Hinweis auf den WhatsApp-Kanal). Beides bleibt auf dem Gerät und wird nicht übertragen.</li>
+        <li><strong>Schriftarten lokal.</strong> Die Schriften liegen auf dem Server dieser Seite, es wird keine fremde Schriftbibliothek aufgerufen.</li>
+        <li><strong>Server-Logfiles.</strong> Der Hoster protokolliert technische Zugriffsdaten – das lässt sich beim Betrieb einer Website nicht vermeiden.</li>
+        <li><strong>Kontaktformular.</strong> Was du einträgst, wird zur Beantwortung deiner Anfrage verarbeitet. Vor dem Absenden brauchen wir deine Einwilligung; gegen Spam läuft eine hCaptcha-Prüfung.</li>
+        <li><strong>Terminbuchung.</strong> Die Online-Buchung läuft über Cal.com. Erst wenn du sie aufrufst, wird eine Verbindung dorthin hergestellt.</li>
+        <li><strong>Externe Links.</strong> Für den proWIN-Onlineshop, den WhatsApp-Kanal und andere fremde Seiten gilt deren eigene Datenschutzerklärung.</li>
+      </ul>
+      <h2>Deine Rechte</h2>
+      <p>
+        Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch und Widerruf einer Einwilligung –
+        alles im Einzelnen in der <a href="datenschutz.html">Datenschutzerklärung</a>. Zuständig ist
+        Manuela Zimmert, erreichbar unter <a href="mailto:prowin.ela@web.de">prowin.ela@web.de</a>.
+        Beschwerden nimmt außerdem die zuständige Datenschutz-Aufsichtsbehörde entgegen.
+      </p>
+      <h2>Privacy (English)</h2>
+      <p>
+        No cookies, no analytics, no tracking, no profiling. Two non-personal settings are kept in the browser's
+        local storage (theme choice and a dismissed one-off notice). The host writes standard server logs.
+        The contact form needs explicit consent plus an hCaptcha check; appointment booking is handed to Cal.com
+        only when you open it. The binding text is the German
+        <a href="datenschutz.html">Datenschutzerklärung</a>.
+      </p>
+      <p><a href="about.html">Über Shine On You</a> · <a href="contact.html">Kontakt</a> · <a href="impressum.html">Impressum</a></p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-legal">
+        <a href="index.html">Startseite</a> · <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
+      </p>
+      <p class="footer-fine">&copy; <span id="year"></span> Shine On You · Seit 2026.</p>
+    </div>
+  </footer>
+
+  <script src="js/theme.js" defer></script>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

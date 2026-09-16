@@ -1,3 +1,10 @@
+---
+title: "Preise – Shine On You"
+description: "Beratung und proWINparty kostenlos; Produktpreise setzt proWIN International fest."
+canonical: https://shineonyou.de/pricing.md
+last-updated: 2026-09-16
+---
+
 # Preise – Shine On You
 
 Shine On You – proWIN Beratung Manuela Zimmert · Unabhängige proWIN-Vertriebsberaterin

@@ -69,6 +69,8 @@ MCP server and no payment protocol here.
 - [Impressum](https://shineonyou.de/impressum.html): Anbieterkennzeichnung nach § 5 DDG
 - [Datenschutz](https://shineonyou.de/datenschutz.html): Datenschutzerklärung nach DSGVO
 - [Preise](https://shineonyou.de/pricing.md): wie sich die Kosten zusammensetzen (Markdown)
+- [Startseite als Markdown](https://shineonyou.de/index.md): derselbe Inhalt ohne Navigation und Bilder
+- [Über uns](https://shineonyou.de/about), [Kontakt](https://shineonyou.de/contact), [Datenschutz in Kurzform](https://shineonyou.de/privacy): Einstiegsseiten unter sprechenden Adressen
 - [Agent-Skill](https://shineonyou.de/.well-known/agent-skills/prowin-beratung-shine-on-you/SKILL.md): Kurzanleitung für Agenten (Markdown, wann und wie diese Seite benutzen)
 - [Anmeldung](https://shineonyou.de/auth.md): warum es hier nichts anzumelden gibt (auth.md)
 - [ARD-Katalog](https://shineonyou.de/.well-known/ard.json): maschinenlesbares Verzeichnis der agentischen Ressourcen
@@ -97,4 +99,5 @@ MCP server and no payment protocol here.
   Agent Skills Discovery: https://shineonyou.de/.well-known/agent-skills/index.json.
 - Es gibt keine Anmeldung und keine Zugangsdaten. Wer danach sucht, findet die Begründung in
   https://shineonyou.de/auth.md.
+- Quelltext dieser Website: https://github.com/ShineOnYouByEla/SOY_Website — mit AGENTS.md für Agenten, die daran arbeiten.
 

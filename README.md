@@ -36,14 +36,18 @@ python3 -m http.server 8000
 ├── index.html        # ERZEUGT aus content/site.json – nicht von Hand ändern
 ├── shared/agents.mjs # erzeugt llms.txt, pricing.md, sitemap.xml, auth.md und .well-known/
 ├── shared/sha256.mjs # Prüfwerte für den Agent-Skills-Index (synchron, ohne Node-APIs)
+├── shared/infopages.mjs # erzeugt about.html, contact.html, privacy.html
 ├── js/config.js      # ERZEUGT – Kontaktdaten und Dienste für script.js/webmcp.js
 ├── js/webmcp.js      # In-Page-Werkzeuge für KI-Agenten (WebMCP)
+├── index.md          # ERZEUGT – die Startseite als Markdown
+├── about/contact/privacy.html # ERZEUGT – Einstiegsseiten unter /about, /contact, /privacy
 ├── llms.txt          # ERZEUGT – Kurzprofil für KI-Assistenten
 ├── pricing.md        # ERZEUGT – maschinenlesbare Preisauskunft
 ├── sitemap.xml       # ERZEUGT – alle auslieferbaren Seiten
 ├── auth.md           # ERZEUGT – warum es hier nichts anzumelden gibt
 ├── .well-known/      # ERZEUGT – ARD-Katalog und Agent-Skills-Index
 ├── 404.html          # Seite nicht gefunden – mit Wegen zurück, auch für Agenten
+├── AGENTS.md         # Hinweise für KI-Agenten, die an diesem Repository arbeiten
 ├── robots.txt        # welche Crawler dürfen, welche nicht
 ├── css/styles.css    # Styles & Markenfarben
 ├── js/script.js      # Mobile-Menü, Terminbuchung (.ics), Formulare
@@ -95,6 +99,9 @@ Dafür liegen neben der Seite selbst ein paar Dateien, die genau diese Systeme l
 | `.well-known/ard.json` | Katalog der agentischen Ressourcen nach [ARD](https://agenticresourcediscovery.org/) |
 | `.well-known/agent-skills/` | Kurzanleitung als Skill plus `index.json` nach Agent Skills Discovery |
 | `404.html` | echter 404 mit Wegweiser – für Menschen und für Agenten, die sich verlaufen haben |
+| `index.md` | die Startseite als Markdown, im `<head>` als `rel="alternate"` ausgewiesen |
+| `/about`, `/contact`, `/privacy` | Einstiegsseiten unter den Adressen, die Agenten abfragen – `noindex`, verbindlich bleiben Impressum und Datenschutzerklärung |
+| `AGENTS.md` | für Agenten, die am Quelltext arbeiten: was erzeugt wird, was zu prüfen ist, was nicht behauptet werden darf |
 | `robots.txt` | antwortende Assistenten willkommen, reine Trainingsdaten-Sammler nicht |
 | JSON-LD im `<head>` | `ProfessionalService`, `Person`, `Service` samt Kontaktpunkt und Einsatzgebiet |
 | `js/webmcp.js` | In-Page-Werkzeuge nach [WebMCP](https://github.com/webmachinelearning/webmcp) |
@@ -103,6 +110,10 @@ Alles bis auf `robots.txt`, das JSON-LD, `js/webmcp.js` und `404.html` entsteht 
 Build aus `content/site.json`; die Fließtexte dazu stehen in `shared/agents.mjs`.
 Der Skill wird dort auch gehasht: sein `sha256`-Prüfwert steht im `index.json`, beide
 entstehen im selben Durchlauf und können darum nicht auseinanderlaufen.
+
+Der Stand der Inhalte steht in `content/site.json` unter `site.contentUpdated` und
+landet im `<lastmod>` der Sitemap und in der Frontmatter der Markdown-Dateien. Beim
+Veröffentlichen aus dem Admin wird er auf das Tagesdatum gesetzt.
 
 **WebMCP** ist ein W3C-Entwurf: Browser mit Agentenfunktion (Chrome-Origin-Trial,
 ChatGPT-Desktop) fragen die Seite nach ihren Werkzeugen, statt sie abzutippen.
