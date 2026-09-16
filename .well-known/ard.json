@@ -1,4 +1,10 @@
 {
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Shine On You – proWIN Beratung Manuela Zimmert",
+    "identifier": "shineonyou.de",
+    "documentationUrl": "https://shineonyou.de/llms.txt"
+  },
   "entries": [
     {
       "identifier": "urn:air:shineonyou.de:skill:prowin-beratung-shine-on-you",

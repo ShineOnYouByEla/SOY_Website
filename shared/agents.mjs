@@ -582,6 +582,15 @@ export function renderArdCatalog(content) {
   return (
     JSON.stringify(
       {
+        /* Die Version des Umschlags, nicht die des Dokuments: veroeffentlichte
+           Manifeste tragen hier "1.0". Ohne das Feld gilt der Katalog als
+           unvollstaendig, auch wenn jeder Eintrag fuer sich gueltig ist. */
+        specVersion: "1.0",
+        host: {
+          displayName: plain(b.name || content.site?.brandName),
+          identifier: host,
+          documentationUrl: url + "llms.txt",
+        },
         entries: [
           {
             identifier: `urn:air:${host}:skill:${SKILL_NAME}`,
