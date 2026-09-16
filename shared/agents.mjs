@@ -76,8 +76,13 @@ function updatedOn(content) {
 }
 
 /**
- * YAML-Kopf fuer die ausgelieferten Markdown-Dateien. Agenten lesen daraus
- * Titel, Zweck und Stand, ohne den Fliesstext auseinandernehmen zu muessen.
+ * YAML-Kopf fuer index.md. Agenten lesen daraus Titel, Zweck und Stand, ohne
+ * den Fliesstext auseinandernehmen zu muessen.
+ *
+ * Bewusst nur dort: pricing.md und auth.md werden danach beurteilt, ob sie mit
+ * ihrer Ueberschrift beginnen. Ein YAML-Block davor kostet dort mehr, als die
+ * Metadaten einbringen — und die Ueberschrift sagt bei beiden ohnehin schon,
+ * worum es geht.
  */
 function frontMatter(content, { title, description, canonical }) {
   const updated = updatedOn(content);
@@ -235,11 +240,6 @@ export function renderPricingMd(content) {
   const url = baseUrl(content);
 
   return (
-    frontMatter(content, {
-      title: `Preise – ${plain(content.site?.brandName || b.name)}`,
-      description: "Beratung und proWINparty kostenlos; Produktpreise setzt proWIN International fest.",
-      canonical: url + "pricing.md",
-    }) +
     lines([
       `# Preise – ${plain(content.site?.brandName || b.name)}`,
       "",
@@ -335,11 +335,6 @@ export function renderAuthMd(content) {
   const url = baseUrl(content);
 
   return (
-    frontMatter(content, {
-      title: `Agent authentication for ${plain(content.site?.brandName || b.name)}`,
-      description: "There is nothing to authenticate to: no API, no tokens, no authorization server.",
-      canonical: url + "auth.md",
-    }) +
     lines([
       `# Agent authentication for ${plain(content.site?.brandName || b.name)}`,
       "",
