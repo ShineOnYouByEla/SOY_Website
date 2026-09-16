@@ -15,7 +15,18 @@ import {
   validateContent,
 } from "../src/content.js";
 import { renderConfigJs, renderPage } from "../../shared/render.mjs";
-import { renderLlmsTxt, renderPricingMd, renderSitemap } from "../../shared/agents.mjs";
+import {
+  ARD_PATH,
+  SKILLS_INDEX_PATH,
+  SKILL_PATH,
+  renderAgentSkill,
+  renderAgentSkillsIndex,
+  renderArdCatalog,
+  renderAuthMd,
+  renderLlmsTxt,
+  renderPricingMd,
+  renderSitemap,
+} from "../../shared/agents.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const live = () => JSON.parse(readFileSync(join(root, "content", "site.json"), "utf8"));
@@ -125,7 +136,18 @@ test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
   const files = publishFiles(content);
   assert.deepEqual(
     files.map((f) => f.path),
-    ["content/site.json", "index.html", "js/config.js", "llms.txt", "pricing.md", "sitemap.xml"]
+    [
+      "content/site.json",
+      "index.html",
+      "js/config.js",
+      "llms.txt",
+      "pricing.md",
+      "sitemap.xml",
+      "auth.md",
+      ARD_PATH,
+      SKILL_PATH,
+      SKILLS_INDEX_PATH,
+    ]
   );
 
   // Byte-gleich mit dem, was scripts/build-site.mjs schreibt. Weicht es ab,
@@ -137,6 +159,10 @@ test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
   assert.equal(byPath["llms.txt"], renderLlmsTxt(content));
   assert.equal(byPath["pricing.md"], renderPricingMd(content));
   assert.equal(byPath["sitemap.xml"], renderSitemap(content));
+  assert.equal(byPath["auth.md"], renderAuthMd(content));
+  assert.equal(byPath[ARD_PATH], renderArdCatalog(content));
+  assert.equal(byPath[SKILL_PATH], renderAgentSkill(content));
+  assert.equal(byPath[SKILLS_INDEX_PATH], renderAgentSkillsIndex(content));
   assert.deepEqual(JSON.parse(byPath["content/site.json"]), content);
   assert.ok(files.every((f) => f.encoding === "utf-8"));
 });

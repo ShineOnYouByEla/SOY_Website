@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seite nicht gefunden – Shine On You</title>
+  <meta name="description" content="Diese Adresse gibt es auf shineonyou.de nicht. Hier stehen die Wege zurück: Startseite, Kataloge, Kontakt." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#041f24" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
+
+  <!-- Theme früh setzen (verhindert Aufblitzen des falschen Modus) -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("soy-theme");
+        var mode = stored === "light" || stored === "dark" ? stored : "system";
+        var prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+        var theme = mode === "system" ? (prefersLight ? "light" : "dark") : mode;
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-theme-mode", mode);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-theme-mode", "system");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/css/fonts.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/#top" class="brand" aria-label="Shine On You – Startseite">
+        <img src="/assets/img/wordmark.webp" alt="Shine On You" class="brand-logo" width="640" height="360" />
+      </a>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <div class="container">
+      <h1>Diese Seite gibt es nicht</h1>
+      <p>
+        Die aufgerufene Adresse führt ins Leere – vertippt, veraltet oder von woanders
+        falsch verlinkt. Der Weg zurück ist kurz:
+      </p>
+
+      <h2>Wo es weitergeht</h2>
+      <ul>
+        <li><a href="/">Startseite</a> – Beratung, Produktbereiche, Ablauf einer proWINparty, Termin und Kontakt</li>
+        <li><a href="/katalog.html">Kataloge</a> – die proWIN-Kataloge als PDF und zum Durchblättern</li>
+        <li><a href="/#termin">Termin vereinbaren</a> – Telefon- oder Videoberatung, kostenlos und unverbindlich</li>
+        <li><a href="/#kontakt">Kontakt</a> – Nachricht schreiben, E-Mail und Telefonnummer</li>
+        <li><a href="/impressum.html">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a></li>
+      </ul>
+
+      <h2>Für Agenten und Crawler</h2>
+      <p>
+        Diese Antwort hat wirklich den Status <strong>404</strong> – die Adresse existiert
+        nicht und wird es auch nicht. Die vollständige Liste der ausgelieferten Seiten steht
+        in der <a href="/sitemap.xml">sitemap.xml</a>, das Kurzprofil dieser Seite in
+        <a href="/llms.txt">llms.txt</a> und die Kurzanleitung samt Werkzeugen im
+        <a href="/.well-known/agent-skills/prowin-beratung-shine-on-you/SKILL.md">Agent-Skill</a>.
+        Zugangsdaten braucht hier nichts, siehe <a href="/auth.md">auth.md</a>.
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-legal">
+        <a href="/">Startseite</a> · <a href="/impressum.html">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a>
+      </p>
+      <p class="footer-fine">&copy; <span id="year"></span> Shine On You · Seit 2026.</p>
+    </div>
+  </footer>
+
+  <script src="/js/theme.js" defer></script>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>
