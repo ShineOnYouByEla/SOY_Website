@@ -433,6 +433,58 @@ export const SETTINGS_PANELS = [
     fromForm: (d) => ({ ...d, cta: d.cta?.[0] || undefined }),
   },
   {
+    id: "chat",
+    title: "WhatsApp-Chat unten rechts",
+    path: "chat",
+    description:
+      "Der runde Knopf unten rechts klappt ein kleines Chatfenster auf. Geschrieben wird an die " +
+      "Mobilnummer aus den Kontaktdaten – geladen wird nichts von WhatsApp.",
+    fields: [
+      { k: "enabled", label: "Chat-Knopf anzeigen", type: "checkbox" },
+      { k: "label", label: "Beschriftung des Knopfs", type: "text", note: "Für Screenreader und als Tooltip." },
+      { k: "teaser", label: "Sprechblase am Knopf", type: "text", note: "Leer lassen, wenn keine erscheinen soll." },
+      {
+        k: "teaserDelay",
+        label: "Sprechblase nach … Sekunden",
+        type: "number",
+        note: "Sie wartet außerdem, bis der Kanal-Hinweis oben geschlossen ist.",
+      },
+      { k: "name", label: "Name im Chatfenster", type: "text" },
+      { k: "role", label: "Zeile unter dem Namen", type: "text" },
+      { k: "avatar", label: "Bild im Chatfenster", type: "image" },
+      { k: "messages", label: "Begrüßung", type: "lines", rows: 4, note: "Jede Zeile wird eine eigene Sprechblase." },
+      { k: "status", label: "Hinweis zur Antwortzeit", type: "text", note: "z. B. „Antwort meist noch am selben Tag“." },
+      {
+        k: "quickReplies",
+        label: "Fertige Gesprächsanfänge",
+        type: "list",
+        singular: "Gesprächsanfang",
+        itemLabel: (q) => q.label || "Gesprächsanfang",
+        newItem: () => ({ label: "", message: "" }),
+        item: [
+          { k: "label", label: "Beschriftung", type: "text" },
+          {
+            k: "message",
+            label: "Vorformulierte Nachricht",
+            type: "longtext",
+            rows: 2,
+            note: "Steht beim Antippen schon im WhatsApp-Eingabefeld.",
+          },
+        ],
+      },
+      { k: "ctaLabel", label: "Beschriftung des grünen Knopfs", type: "text" },
+      { k: "prefill", label: "Nachricht für den grünen Knopf", type: "longtext", rows: 2 },
+      { k: "channelLabel", label: "Hinweis auf den Kanal", type: "text", note: "Leer = kein Kanal-Link im Chatfenster." },
+      { k: "note", label: "Kleingedrucktes", type: "rich", rows: 2 },
+      {
+        k: "phoneHref",
+        label: "Abweichende Nummer",
+        type: "text",
+        note: "Optional, ohne Leerzeichen. Leer = Mobilnummer aus den Kontaktdaten.",
+      },
+    ],
+  },
+  {
     id: "fuss",
     title: "Fußbereich",
     path: "footer",

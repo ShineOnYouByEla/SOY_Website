@@ -105,6 +105,46 @@
       "style": "sun"
     }
   },
+  "chat": {
+    "enabled": true,
+    "label": "WhatsApp-Chat mit Ela öffnen",
+    "teaser": "Fragen? Schreib mir kurz 👋",
+    "teaserDelay": 9,
+    "name": "Ela",
+    "role": "proWIN-Beratung · Peiting",
+    "avatar": {
+      "src": "assets/img/manuela.webp",
+      "width": 760,
+      "height": 1013
+    },
+    "messages": [
+      "Hallo, ich bin Ela 👋",
+      "Frag mich einfach – zu Produkten, einer proWINparty oder einer Bestellung. Ich antworte persönlich, ganz ohne Formular."
+    ],
+    "status": "Antwort meist noch am selben Tag",
+    "quickReplies": [
+      {
+        "label": "Produktfrage",
+        "message": "Hallo Ela, ich habe eine Frage zu einem proWIN Produkt: "
+      },
+      {
+        "label": "Produkte bestellen",
+        "message": "Hallo Ela, ich möchte proWIN Produkte bestellen: "
+      },
+      {
+        "label": "proWINparty planen",
+        "message": "Hallo Ela, ich interessiere mich für eine proWINparty. "
+      },
+      {
+        "label": "Im Team mitmachen",
+        "message": "Hallo Ela, ich würde gerne wissen, wie das Mitmachen in deinem Team funktioniert. "
+      }
+    ],
+    "ctaLabel": "Chat starten",
+    "prefill": "Hallo Ela, ich habe eine Frage: ",
+    "channelLabel": "Oder folge meinem WhatsApp-Kanal",
+    "note": "Öffnet WhatsApp mit meiner Nummer. Erst dann werden Daten an WhatsApp übertragen."
+  },
   "sections": [
     {
       "id": "hero",

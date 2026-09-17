@@ -124,6 +124,7 @@ if (toggle && mobileNav) {
     hidden = true;
     tip.classList.remove("open");
     icon.classList.remove("is-hinted");
+    document.documentElement.removeAttribute("data-channel-tip");
     window.removeEventListener("resize", onReflow);
     window.removeEventListener("scroll", onReflow);
     document.removeEventListener("keydown", onKey);
@@ -148,10 +149,79 @@ if (toggle && mobileNav) {
     place();
     requestAnimationFrame(() => tip.classList.add("open"));
     icon.classList.add("is-hinted");
+    /* Merkzettel fuer den Chat-Knopf unten rechts: hier ist noch eine Blase offen. */
+    document.documentElement.setAttribute("data-channel-tip", "open");
     window.addEventListener("resize", onReflow, { passive: true });
     window.addEventListener("scroll", onReflow, { passive: true });
     document.addEventListener("keydown", onKey);
   }, 1400);
+})();
+
+/* ===== Schwebender WhatsApp-Chat =====
+   Auf- und Zuklappen erledigt das <details> im HTML von allein — hier kommt
+   nur das Drumherum dazu: Escape und ein Klick daneben schließen das Fenster,
+   und nach einer Weile meldet sich eine kleine Sprechblase. Die kommt erst,
+   wenn der Kanal-Hinweis oben weg ist (nie zwei Blasen gleichzeitig) und nach
+   dem Schließen nicht wieder. */
+(function initChatWidget() {
+  const dock = document.querySelector("[data-chat]");
+  if (!dock) return;
+  const panel = dock.querySelector("details");
+  const summary = dock.querySelector("summary");
+  if (!panel || !summary) return;
+
+  const STORAGE_KEY = "soy-chat-teaser";
+  const teaser = dock.querySelector(".chat-teaser");
+
+  function seen() {
+    try { return localStorage.getItem(STORAGE_KEY) === "seen"; } catch (e) { return false; }
+  }
+  function remember() {
+    try { localStorage.setItem(STORAGE_KEY, "seen"); } catch (e) { /* egal */ }
+  }
+
+  function hideTeaser() {
+    remember();
+    if (!teaser || teaser.hidden) return;
+    teaser.classList.remove("open");
+    setTimeout(() => { teaser.hidden = true; }, 350);
+  }
+
+  /* Klick daneben schließt – sonst bleibt das Fenster beim Weiterlesen stehen. */
+  document.addEventListener("click", (e) => {
+    if (panel.open && !dock.contains(e.target)) panel.open = false;
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (teaser && !teaser.hidden) hideTeaser();
+    if (panel.open) { panel.open = false; summary.focus(); }
+  });
+  panel.addEventListener("toggle", () => { if (panel.open) hideTeaser(); });
+
+  if (!teaser || seen()) return;
+
+  teaser.querySelector(".chat-teaser-close")?.addEventListener("click", hideTeaser);
+  teaser.querySelector(".chat-teaser-open")?.addEventListener("click", () => {
+    panel.open = true;
+    hideTeaser();
+    summary.focus();
+  });
+
+  const delay = Math.max(0, Number(dock.dataset.chatDelay) || 0) * 1000;
+  let start = Date.now();
+  const timer = setInterval(() => {
+    if (seen() || panel.open) return clearInterval(timer);
+    /* Der Kanal-Hinweis im Kopf hat Vorrang; danach noch ein paar Sekunden
+       Luft, damit nicht sofort die naechste Blase nachrueckt. */
+    if (document.documentElement.hasAttribute("data-channel-tip")) {
+      start = Math.max(start, Date.now() - Math.max(0, delay - 4000));
+      return;
+    }
+    if (Date.now() - start < delay) return;
+    clearInterval(timer);
+    teaser.hidden = false;
+    requestAnimationFrame(() => teaser.classList.add("open"));
+  }, 600);
 })();
 
 /* ===== Kontaktgrund vorauswählen =====

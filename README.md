@@ -146,6 +146,13 @@ schlicht nichts.
 Die Stufen schalten sich **automatisch** frei, sobald die jeweiligen Schlüssel in
 `js/script.js` (`CONFIG`) eingetragen sind – sonst bleibt der Fallback aktiv.
 
+- **WhatsApp-Chat unten rechts:** Ein schwebender Knopf klappt ein kleines
+  Chatfenster auf – Begrüßung, fertige Gesprächsanfänge und ein Knopf, der WhatsApp
+  mit vorformulierter Nachricht an die Mobilnummer öffnet. Geladen wird nichts von
+  WhatsApp, es sind reine Links dorthin. Die Texte stehen unter `chat` in
+  `content/site.json` bzw. im Admin unter „WhatsApp-Chat unten rechts“;
+  `"enabled": false` blendet den Knopf aus.
+
 ### Echter Formularversand mit Web3Forms
 
 Funktioniert auf jedem Hosting, großzügiges Gratis-Kontingent, kein Konto-Login nötig.
@@ -217,6 +224,9 @@ die DNS-Einträge setzen. **Wichtig:** Wechselt der Hoster, muss der Abschnitt
 - **Cal.com-Embed** wird über eine **2-Klick-Lösung** eingebunden: Das externe
   Widget lädt erst, nachdem die Besucherin/der Besucher aktiv auf
   „Online-Terminbuchung laden" klickt (DSGVO-konforme Einwilligung).
+- **WhatsApp-Chat** lädt nichts von WhatsApp: Das Chatfenster gehört zur Seite,
+  erst ein Klick auf einen Link darin öffnet WhatsApp (beschrieben in
+  `datenschutz.html`, Punkt 9).
 
 ### Noch offen
 
