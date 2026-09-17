@@ -110,6 +110,8 @@
     "label": "WhatsApp-Chat mit Ela öffnen",
     "teaser": "Fragen? Schreib mir kurz 👋",
     "teaserDelay": 9,
+    "autoOpen": true,
+    "autoOpenDelay": 12,
     "name": "Ela",
     "role": "proWIN-Beratung · Peiting",
     "avatar": {

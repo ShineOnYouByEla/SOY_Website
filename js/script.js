@@ -119,7 +119,9 @@ if (toggle && mobileNav) {
   }
 
   let hidden = false;
-  function hide() {
+  /* keep=false: der Hinweis macht nur Platz (z. B. fuer den Chat unten rechts)
+     und darf beim naechsten Besuch wiederkommen. */
+  function hide(keep = true) {
     if (hidden) return;
     hidden = true;
     tip.classList.remove("open");
@@ -129,7 +131,7 @@ if (toggle && mobileNav) {
     window.removeEventListener("scroll", onReflow);
     document.removeEventListener("keydown", onKey);
     setTimeout(() => tip.remove(), 400);
-    try { localStorage.setItem(STORAGE_KEY, "seen"); } catch (e) { /* egal */ }
+    if (keep) { try { localStorage.setItem(STORAGE_KEY, "seen"); } catch (e) { /* egal */ } }
   }
 
   let ticking = false;
@@ -140,8 +142,10 @@ if (toggle && mobileNav) {
   }
   function onKey(e) { if (e.key === "Escape") hide(); }
 
-  tip.querySelector(".channel-tip-close").addEventListener("click", hide);
-  tip.querySelector(".channel-tip-link").addEventListener("click", hide);
+  tip.querySelector(".channel-tip-close").addEventListener("click", () => hide());
+  tip.querySelector(".channel-tip-link").addEventListener("click", () => hide());
+  /* Der Chat unten rechts bittet den Hinweis zur Seite, wenn er zu lange steht. */
+  document.addEventListener("soy:channel-tip-hide", () => hide(false));
 
   setTimeout(() => {
     if (hidden) return;
@@ -159,10 +163,12 @@ if (toggle && mobileNav) {
 
 /* ===== Schwebender WhatsApp-Chat =====
    Auf- und Zuklappen erledigt das <details> im HTML von allein — hier kommt
-   nur das Drumherum dazu: Escape und ein Klick daneben schließen das Fenster,
-   und nach einer Weile meldet sich eine kleine Sprechblase. Die kommt erst,
-   wenn der Kanal-Hinweis oben weg ist (nie zwei Blasen gleichzeitig) und nach
-   dem Schließen nicht wieder. */
+   nur das Drumherum dazu: Escape und ein Klick daneben schliessen das Fenster,
+   und nach einer Weile meldet sich der Chat von selbst. Am Rechner klappt er
+   dazu einmal auf, am Handy wuerde das die halbe Seite verdecken — dort kommt
+   nur die Sprechblase. Beides genau einmal je Besucher:in (localStorage).
+   Der Kanal-Hinweis im Kopf hat Vorrang, aber hoechstens TIP_WAIT lang;
+   danach bittet der Chat ihn zur Seite. */
 (function initChatWidget() {
   const dock = document.querySelector("[data-chat]");
   if (!dock) return;
@@ -171,6 +177,9 @@ if (toggle && mobileNav) {
   if (!panel || !summary) return;
 
   const STORAGE_KEY = "soy-chat-teaser";
+  const TIP_WAIT = 10000;  // so lange hat der Kanal-Hinweis oben Vorrang
+  const TIP_GRACE = 3000;  // danach noch kurz Luft, bevor der Chat nachrueckt
+  const SCROLL_DELAY = 5000; // wer schon scrollt, ist eh schon dabei
   const teaser = dock.querySelector(".chat-teaser");
 
   function seen() {
@@ -187,7 +196,7 @@ if (toggle && mobileNav) {
     setTimeout(() => { teaser.hidden = true; }, 350);
   }
 
-  /* Klick daneben schließt – sonst bleibt das Fenster beim Weiterlesen stehen. */
+  /* Klick daneben schliesst – sonst bleibt das Fenster beim Weiterlesen stehen. */
   document.addEventListener("click", (e) => {
     if (panel.open && !dock.contains(e.target)) panel.open = false;
   });
@@ -198,30 +207,68 @@ if (toggle && mobileNav) {
   });
   panel.addEventListener("toggle", () => { if (panel.open) hideTeaser(); });
 
-  if (!teaser || seen()) return;
+  if (seen()) return;
 
-  teaser.querySelector(".chat-teaser-close")?.addEventListener("click", hideTeaser);
-  teaser.querySelector(".chat-teaser-open")?.addEventListener("click", () => {
-    panel.open = true;
-    hideTeaser();
-    summary.focus();
-  });
+  if (teaser) {
+    teaser.querySelector(".chat-teaser-close")?.addEventListener("click", hideTeaser);
+    teaser.querySelector(".chat-teaser-open")?.addEventListener("click", () => {
+      panel.open = true;
+      hideTeaser();
+      summary.focus();
+    });
+  }
 
-  const delay = Math.max(0, Number(dock.dataset.chatDelay) || 0) * 1000;
-  let start = Date.now();
-  const timer = setInterval(() => {
-    if (seen() || panel.open) return clearInterval(timer);
-    /* Der Kanal-Hinweis im Kopf hat Vorrang; danach noch ein paar Sekunden
-       Luft, damit nicht sofort die naechste Blase nachrueckt. */
-    if (document.documentElement.hasAttribute("data-channel-tip")) {
-      start = Math.max(start, Date.now() - Math.max(0, delay - 4000));
-      return;
-    }
-    if (Date.now() - start < delay) return;
-    clearInterval(timer);
+  /* Automatisch aufklappen nur auf breiten Schirmen – auf dem Handy legt sich
+     das Fenster ueber die halbe Seite, das vertreibt mehr als es bringt. */
+  const wide = window.matchMedia("(min-width: 561px)").matches;
+  const autoOpen = wide && dock.dataset.chatAuto === "1";
+  if (!autoOpen && !teaser) return;
+
+  const sec = (v, fallback) => (Number.isFinite(Number(v)) ? Number(v) : fallback) * 1000;
+  const delay = autoOpen ? sec(dock.dataset.chatAutoDelay, 12) : sec(dock.dataset.chatDelay, 9);
+
+  /* Wer ueber den Startbereich hinausliest, hat Interesse – dann frueher. */
+  let scrolled = false;
+  function onScroll() {
+    if (window.scrollY < window.innerHeight * 0.6) return;
+    scrolled = true;
+    window.removeEventListener("scroll", onScroll);
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  function announce() {
+    if (seen() || panel.open) return;
+    if (autoOpen) { panel.open = true; return; }  // der toggle-Handler merkt es sich
+    /* Auch die Sprechblase gilt als erledigt, sobald sie einmal zu sehen war –
+       sonst faengt sie bei jedem Besuch von vorne an zu winken. */
+    remember();
     teaser.hidden = false;
     requestAnimationFrame(() => teaser.classList.add("open"));
-  }, 600);
+  }
+
+  const start = Date.now();
+  let ready = 0;  // fruehester Zeitpunkt nach dem Kanal-Hinweis
+  const timer = setInterval(() => {
+    if (seen() || panel.open) {
+      clearInterval(timer);
+      window.removeEventListener("scroll", onScroll);
+      return;
+    }
+    const now = Date.now();
+    const tipOpen = document.documentElement.hasAttribute("data-channel-tip");
+    if (tipOpen && now - start < TIP_WAIT) {
+      ready = now + TIP_GRACE;
+      return;
+    }
+    const wanted = scrolled ? Math.min(delay, SCROLL_DELAY) : delay;
+    if (now - start < wanted || now < ready) return;
+
+    clearInterval(timer);
+    window.removeEventListener("scroll", onScroll);
+    /* Steht der Kanal-Hinweis immer noch, macht er jetzt Platz. */
+    if (tipOpen) document.dispatchEvent(new CustomEvent("soy:channel-tip-hide"));
+    announce();
+  }, 400);
 })();
 
 /* ===== Kontaktgrund vorauswählen =====

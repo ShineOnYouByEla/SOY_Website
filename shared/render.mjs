@@ -933,7 +933,8 @@ function renderChatWidget(content) {
   const channel = content.contact?.whatsappChannel;
 
   return join([
-    `<div class="chat-dock" data-chat data-chat-delay="${esc(w.teaserDelay ?? 9)}">`,
+    `<div class="chat-dock" data-chat data-chat-delay="${esc(w.teaserDelay ?? 9)}"` +
+      ` data-chat-auto="${w.autoOpen === false ? 0 : 1}" data-chat-auto-delay="${esc(w.autoOpenDelay ?? 12)}">`,
     w.teaser
       ? join([
           '  <div class="chat-teaser" hidden>',
