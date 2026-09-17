@@ -149,9 +149,13 @@ Die Stufen schalten sich **automatisch** frei, sobald die jeweiligen Schlüssel 
 - **WhatsApp-Chat unten rechts:** Ein schwebender Knopf klappt ein kleines
   Chatfenster auf – Begrüßung, fertige Gesprächsanfänge und ein Knopf, der WhatsApp
   mit vorformulierter Nachricht an die Mobilnummer öffnet. Geladen wird nichts von
-  WhatsApp, es sind reine Links dorthin. Die Texte stehen unter `chat` in
-  `content/site.json` bzw. im Admin unter „WhatsApp-Chat unten rechts“;
-  `"enabled": false` blendet den Knopf aus.
+  WhatsApp, es sind reine Links dorthin. Damit er nicht übersehen wird, meldet er
+  sich einmal je Besucher:in von selbst: am Rechner klappt das Fenster nach
+  `autoOpenDelay` Sekunden auf (früher, sobald jemand über den Startbereich hinaus
+  scrollt), am Handy erscheint nur die Sprechblase nach `teaserDelay` Sekunden.
+  Der Kanal-Hinweis im Kopf hat dabei Vorrang – aber höchstens zehn Sekunden lang.
+  Die Texte stehen unter `chat` in `content/site.json` bzw. im Admin unter
+  „WhatsApp-Chat unten rechts“; `"enabled": false` blendet den Knopf aus.
 
 ### Echter Formularversand mit Web3Forms
 
