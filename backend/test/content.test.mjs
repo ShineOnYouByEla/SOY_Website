@@ -15,6 +15,20 @@ import {
   validateContent,
 } from "../src/content.js";
 import { renderConfigJs, renderPage } from "../../shared/render.mjs";
+import { INFO_PAGES, renderInfoPage } from "../../shared/infopages.mjs";
+import {
+  ARD_PATH,
+  SKILLS_INDEX_PATH,
+  SKILL_PATH,
+  renderAgentSkill,
+  renderAgentSkillsIndex,
+  renderArdCatalog,
+  renderAuthMd,
+  renderIndexMd,
+  renderLlmsTxt,
+  renderPricingMd,
+  renderSitemap,
+} from "../../shared/agents.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const live = () => JSON.parse(readFileSync(join(root, "content", "site.json"), "utf8"));
@@ -139,19 +153,47 @@ test("renderOrThrow erzeugt eine vollständige Seite", () => {
 
 test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
   const content = live();
-  const files = publishFiles(content);
+  /* Das Datum wird beim Veroeffentlichen gestempelt - hier fest vorgeben,
+     sonst haengt der Test am Kalender. */
+  const tag = new Date("2026-09-16T12:00:00Z");
+  const stamped = { ...content, site: { ...content.site, contentUpdated: "2026-09-16" } };
+  const files = publishFiles(content, tag);
   assert.deepEqual(
     files.map((f) => f.path),
-    ["content/site.json", "index.html", "js/config.js"]
+    [
+      "content/site.json",
+      "index.html",
+      "js/config.js",
+      "llms.txt",
+      "pricing.md",
+      "sitemap.xml",
+      "index.md",
+      "about.html",
+      "contact.html",
+      "privacy.html",
+      "auth.md",
+      ARD_PATH,
+      SKILL_PATH,
+      SKILLS_INDEX_PATH,
+    ]
   );
 
   // Byte-gleich mit dem, was scripts/build-site.mjs schreibt. Weicht es ab,
   // meldet die CI nach jeder Veröffentlichung „Gebaute Dateien sind aktuell"
   // als Fehler.
   const byPath = Object.fromEntries(files.map((f) => [f.path, f.content]));
-  assert.equal(byPath["index.html"], renderPage(content));
-  assert.equal(byPath["js/config.js"], renderConfigJs(content));
-  assert.deepEqual(JSON.parse(byPath["content/site.json"]), content);
+  assert.equal(byPath["index.html"], renderPage(stamped));
+  assert.equal(byPath["js/config.js"], renderConfigJs(stamped));
+  assert.equal(byPath["llms.txt"], renderLlmsTxt(stamped));
+  assert.equal(byPath["pricing.md"], renderPricingMd(stamped));
+  assert.equal(byPath["sitemap.xml"], renderSitemap(stamped));
+  assert.equal(byPath["index.md"], renderIndexMd(stamped));
+  for (const pg of INFO_PAGES) assert.equal(byPath[pg.path], renderInfoPage(stamped, pg.slug));
+  assert.equal(byPath["auth.md"], renderAuthMd(stamped));
+  assert.equal(byPath[ARD_PATH], renderArdCatalog(stamped));
+  assert.equal(byPath[SKILL_PATH], renderAgentSkill(stamped));
+  assert.equal(byPath[SKILLS_INDEX_PATH], renderAgentSkillsIndex(stamped));
+  assert.deepEqual(JSON.parse(byPath["content/site.json"]), stamped);
   assert.ok(files.every((f) => f.encoding === "utf-8"));
 });
 

@@ -12,12 +12,13 @@ oder als Cloudflare Worker.
 ## Vorschau / lokal starten
 
 ```bash
-node scripts/build-site.mjs   # index.html + js/config.js aus content/site.json
+node scripts/build-site.mjs   # index.html, js/config.js, llms.txt, pricing.md, sitemap.xml
 python3 -m http.server 8000
 # danach http://localhost:8000 öffnen
 ```
 
-> `index.html` und `js/config.js` werden **erzeugt** – Änderungen darin gehen beim
+> `index.html`, `js/config.js`, `llms.txt`, `pricing.md` und `sitemap.xml` werden
+> **erzeugt** – Änderungen darin gehen beim
 > nächsten Build verloren. Inhalte gehören nach `content/site.json` (oder ins Admin).
 > Die CI schlägt Alarm, wenn die erzeugten Dateien nicht zum Inhalt passen.
 
@@ -33,7 +34,21 @@ python3 -m http.server 8000
 ├── scripts/          # Build-Skripte und Qualitätsprüfungen
 ├── backend/          # Admin-Backend (Cloudflare Worker) – siehe backend/README.md
 ├── index.html        # ERZEUGT aus content/site.json – nicht von Hand ändern
-├── js/config.js      # ERZEUGT – Kontaktdaten und Dienste für script.js
+├── shared/agents.mjs # erzeugt llms.txt, pricing.md, sitemap.xml, auth.md und .well-known/
+├── shared/sha256.mjs # Prüfwerte für den Agent-Skills-Index (synchron, ohne Node-APIs)
+├── shared/infopages.mjs # erzeugt about.html, contact.html, privacy.html
+├── js/config.js      # ERZEUGT – Kontaktdaten und Dienste für script.js/webmcp.js
+├── js/webmcp.js      # In-Page-Werkzeuge für KI-Agenten (WebMCP)
+├── index.md          # ERZEUGT – die Startseite als Markdown
+├── about/contact/privacy.html # ERZEUGT – Einstiegsseiten unter /about, /contact, /privacy
+├── llms.txt          # ERZEUGT – Kurzprofil für KI-Assistenten
+├── pricing.md        # ERZEUGT – maschinenlesbare Preisauskunft
+├── sitemap.xml       # ERZEUGT – alle auslieferbaren Seiten
+├── auth.md           # ERZEUGT – warum es hier nichts anzumelden gibt
+├── .well-known/      # ERZEUGT – ARD-Katalog und Agent-Skills-Index
+├── 404.html          # Seite nicht gefunden – mit Wegen zurück, auch für Agenten
+├── AGENTS.md         # Hinweise für KI-Agenten, die an diesem Repository arbeiten
+├── robots.txt        # welche Crawler dürfen, welche nicht
 ├── css/styles.css    # Styles & Markenfarben
 ├── js/script.js      # Mobile-Menü, Terminbuchung (.ics), Formulare
 ├── assets/img/       # aus dem Iconset abgeleitete Logos & Favicons
@@ -68,6 +83,57 @@ Wer lieber direkt in der Datei arbeitet, findet alles in `content/site.json`:
 Danach `node scripts/build-site.mjs` ausführen und beides committen.
 E-Mail und Telefon landen automatisch überall auf der Seite – im Kontaktblock,
 in `js/config.js` und in den strukturierten Daten für Suchmaschinen.
+
+## Sichtbarkeit für KI-Assistenten
+
+Ein wachsender Teil der Besucher kommt nicht mehr über eine Trefferliste, sondern
+über eine Antwort – aus ChatGPT, Claude, Perplexity oder der Google-Übersicht.
+Dafür liegen neben der Seite selbst ein paar Dateien, die genau diese Systeme lesen:
+
+| Datei | Wozu |
+| --- | --- |
+| `llms.txt` | Kurzprofil: wer das ist, wofür die Seite die richtige Quelle ist und wofür nicht |
+| `pricing.md` | Preisauskunft in Klartext – Beratung kostenlos, Produktpreise laut proWIN-Shop |
+| `sitemap.xml` | alle vier Seiten, nicht nur die Startseite |
+| `auth.md` | nach der [auth.md-Spezifikation](https://github.com/workos/auth.md): hier gibt es nichts anzumelden, und warum |
+| `.well-known/ard.json` | Katalog der agentischen Ressourcen nach [ARD](https://agenticresourcediscovery.org/) |
+| `.well-known/agent-skills/` | Kurzanleitung als Skill plus `index.json` nach Agent Skills Discovery |
+| `404.html` | echter 404 mit Wegweiser – für Menschen und für Agenten, die sich verlaufen haben |
+| `index.md` | die Startseite als Markdown, im `<head>` als `rel="alternate"` ausgewiesen |
+| `/about`, `/contact`, `/privacy` | Einstiegsseiten unter den Adressen, die Agenten abfragen – `noindex`, verbindlich bleiben Impressum und Datenschutzerklärung |
+| `AGENTS.md` | für Agenten, die am Quelltext arbeiten: was erzeugt wird, was zu prüfen ist, was nicht behauptet werden darf |
+| `robots.txt` | antwortende Assistenten willkommen, reine Trainingsdaten-Sammler nicht |
+| JSON-LD im `<head>` | `ProfessionalService`, `Person`, `Service` samt Kontaktpunkt und Einsatzgebiet |
+| `js/webmcp.js` | In-Page-Werkzeuge nach [WebMCP](https://github.com/webmachinelearning/webmcp) |
+
+Alles bis auf `robots.txt`, das JSON-LD, `js/webmcp.js` und `404.html` entsteht beim
+Build aus `content/site.json`; die Fließtexte dazu stehen in `shared/agents.mjs`.
+Der Skill wird dort auch gehasht: sein `sha256`-Prüfwert steht im `index.json`, beide
+entstehen im selben Durchlauf und können darum nicht auseinanderlaufen.
+
+Der Stand der Inhalte steht in `content/site.json` unter `site.contentUpdated` und
+landet im `<lastmod>` der Sitemap und in der Frontmatter der Markdown-Dateien. Beim
+Veröffentlichen aus dem Admin wird er auf das Tagesdatum gesetzt.
+
+**WebMCP** ist ein W3C-Entwurf: Browser mit Agentenfunktion (Chrome-Origin-Trial,
+ChatGPT-Desktop) fragen die Seite nach ihren Werkzeugen, statt sie abzutippen.
+Registriert sind sieben – sechs reine Auskünfte (Kontakt, Beratungsbereiche,
+Einsatzgebiet, Preise, Terminoptionen, Kataloge) und `prefill_contact_form`, das
+das Kontaktformular **vorbefüllt, aber nicht abschickt**: Einwilligung und
+hCaptcha bleiben Sache eines Menschen. Kennt ein Browser WebMCP nicht, passiert
+schlicht nichts.
+
+> Was hier bewusst fehlt: API, MCP-Server, OAuth und agentische Zahlungsprotokolle
+> (x402, ACP, UCP, AP2). Eine statische Beratungsseite ohne eigenen Shop hat dafür
+> keine Grundlage – `llms.txt`, `pricing.md` und `auth.md` sagen das den Agenten
+> auch ausdrücklich, damit sie nicht danach suchen.
+>
+> Dazu gehört auch, was **nicht** unter `.well-known/` liegt:
+> `oauth-protected-resource` (RFC 9728) und `oauth-authorization-server` (RFC 8414)
+> fehlen, weil es keinen Autorisierungsserver gibt. Solche Dateien würden einen
+> `identity_endpoint` versprechen, hinter dem nichts steht – Agenten liefen ins
+> Leere. Prüf-Tools zählen die beiden Dateien als Pluspunkt; das ist kein Grund,
+> etwas zu behaupten, das es nicht gibt.
 
 ## Funktionen
 

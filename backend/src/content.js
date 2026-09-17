@@ -8,6 +8,20 @@
 
 import { ICONS } from "../../shared/icons.mjs";
 import { renderPage, renderConfigJs } from "../../shared/render.mjs";
+import { INFO_PAGES, renderInfoPage } from "../../shared/infopages.mjs";
+import {
+  ARD_PATH,
+  SKILLS_INDEX_PATH,
+  SKILL_PATH,
+  renderAgentSkill,
+  renderAgentSkillsIndex,
+  renderArdCatalog,
+  renderAuthMd,
+  renderIndexMd,
+  renderLlmsTxt,
+  renderPricingMd,
+  renderSitemap,
+} from "../../shared/agents.mjs";
 
 const SECTION_TYPES = new Set(["hero", "about", "cards", "flow", "channel", "booking", "contact"]);
 const MAX_CONTENT_BYTES = 512 * 1024;
@@ -265,13 +279,33 @@ export function renderOrThrow(content) {
  * an, und ein Blick ins Repository zeigt eine Seite, die es so nicht mehr gibt.
  * Die Inhalte muessen vorher durch assertValid gegangen sein.
  */
-export function publishFiles(content) {
+export function publishFiles(content, today = new Date()) {
+  /* Veroeffentlichen heisst: der Stand von heute ist der aktuelle. Das Datum
+     wandert mit in site.json, damit der Build im CI dasselbe Ergebnis liefert. */
+  content = { ...content, site: { ...(content.site || {}), contentUpdated: isoDay(today) } };
   const { html, configJs } = renderOrThrow(content);
   return [
     { path: "content/site.json", content: JSON.stringify(content, null, 2) + "\n", encoding: "utf-8" },
     { path: "index.html", content: html, encoding: "utf-8" },
     { path: "js/config.js", content: configJs, encoding: "utf-8" },
+    /* Auch die Dateien fuer KI-Assistenten und Suchmaschinen entstehen aus
+       site.json — sonst erzaehlen sie nach einer Veroeffentlichung etwas
+       anderes als die Seite. */
+    { path: "llms.txt", content: renderLlmsTxt(content), encoding: "utf-8" },
+    { path: "pricing.md", content: renderPricingMd(content), encoding: "utf-8" },
+    { path: "sitemap.xml", content: renderSitemap(content), encoding: "utf-8" },
+    { path: "index.md", content: renderIndexMd(content), encoding: "utf-8" },
+    ...INFO_PAGES.map((pg) => ({ path: pg.path, content: renderInfoPage(content, pg.slug), encoding: "utf-8" })),
+    { path: "auth.md", content: renderAuthMd(content), encoding: "utf-8" },
+    { path: ARD_PATH, content: renderArdCatalog(content), encoding: "utf-8" },
+    { path: SKILL_PATH, content: renderAgentSkill(content), encoding: "utf-8" },
+    { path: SKILLS_INDEX_PATH, content: renderAgentSkillsIndex(content), encoding: "utf-8" },
   ];
+}
+
+/** Datum als YYYY-MM-DD, immer in UTC. */
+function isoDay(date) {
+  return new Date(date).toISOString().slice(0, 10);
 }
 
 /** Wirft, wenn die Inhalte nicht in Ordnung sind. */

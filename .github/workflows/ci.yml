@@ -22,23 +22,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
-      # index.html entsteht aus content/site.json - erst bauen, dann pruefen.
+      # index.html/.md, die Einstiegsseiten, llms.txt, pricing.md,
+      # sitemap.xml, auth.md und die Dateien unter .well-known/ entstehen
+      # aus content/site.json - erst bauen, dann pruefen.
       - name: Seite aus content/site.json bauen
         run: node scripts/build-site.mjs
 
-      # Der Build darf nichts veraendern: sonst wurde index.html von Hand
-      # angefasst statt ueber content/site.json bzw. den Admin.
+      # Der Build darf nichts veraendern: sonst wurde eine erzeugte Datei von
+      # Hand angefasst statt ueber content/site.json bzw. den Admin.
       - name: Gebaute Dateien sind aktuell
         run: |
-          git diff --exit-code -- index.html js/config.js || {
-            echo "::error::index.html/js/config.js sind nicht aktuell. Bitte 'node scripts/build-site.mjs' ausfuehren und committen."
+          git diff --exit-code -- index.html index.md js/config.js llms.txt pricing.md sitemap.xml \
+              auth.md about.html contact.html privacy.html .well-known/ || {
+            echo "::error::Erzeugte Dateien sind nicht aktuell. Bitte 'node scripts/build-site.mjs' ausfuehren und committen."
+            exit 1
+          }
+          # Eine neue erzeugte Datei taucht nicht im Diff auf, sondern als
+          # unversioniert - auch das ist ein fehlender Commit.
+          test -z "$(git ls-files --others --exclude-standard)" || {
+            echo "::error::Der Build hat Dateien erzeugt, die nicht im Repository sind:"
+            git ls-files --others --exclude-standard
             exit 1
           }
 
@@ -56,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Gleicher Schritt wie beim Deploy, damit katalog.html seine
       # Katalogliste findet und der Lauf der Live-Seite entspricht.

@@ -1,0 +1,106 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Shine On You – proWIN Beratung Manuela Zimmert",
+    "identifier": "shineonyou.de",
+    "documentationUrl": "https://shineonyou.de/llms.txt"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:shineonyou.de:skill:prowin-beratung-shine-on-you",
+      "displayName": "Shine On You – proWIN-Beratung",
+      "type": "application/ai-skill+md",
+      "url": "https://shineonyou.de/.well-known/agent-skills/prowin-beratung-shine-on-you/SKILL.md",
+      "description": "When and how to use Shine On You – proWIN Beratung Manuela Zimmert as a source: proWIN product advice, proWINpartys, booking, service area and the boundary to proWIN International.",
+      "capabilities": [
+        "prowin-consulting",
+        "prowinparty-booking",
+        "product-areas",
+        "service-area",
+        "contact-details"
+      ],
+      "representativeQueries": [
+        "proWIN Beratung in Peiting",
+        "Wie läuft eine proWINparty ab und was kostet sie?",
+        "Termin für eine proWIN-Produktberatung vereinbaren",
+        "proWIN-Beraterin in meiner Nähe finden"
+      ],
+      "tags": [
+        "prowin",
+        "beratung",
+        "oberbayern",
+        "haushalt",
+        "kosmetik"
+      ]
+    },
+    {
+      "identifier": "urn:air:shineonyou.de:tools:webmcp",
+      "displayName": "Shine On You – In-Page-Werkzeuge (WebMCP)",
+      "type": "text/html",
+      "url": "https://shineonyou.de/",
+      "description": "The homepage registers read-only WebMCP tools on `document.modelContext` plus one tool that prefills the contact form. Load the page to use them; no credentials, no server call.",
+      "capabilities": [
+        "get_contact",
+        "get_consulting_topics",
+        "get_service_area",
+        "get_pricing",
+        "get_booking_options",
+        "get_catalogs",
+        "prefill_contact_form"
+      ],
+      "representativeQueries": [
+        "Kontaktdaten der proWIN-Beratung abrufen",
+        "Welche Produktbereiche werden hier beraten?",
+        "Kontaktformular mit meiner Anfrage vorbefüllen"
+      ],
+      "tags": [
+        "webmcp",
+        "in-page-tools"
+      ]
+    },
+    {
+      "identifier": "urn:air:shineonyou.de:doc:llms-txt",
+      "displayName": "llms.txt – Kurzprofil der Seite",
+      "type": "text/plain",
+      "url": "https://shineonyou.de/llms.txt",
+      "description": "Site profile for language models: what this site is, when to use it, what it is not responsible for, and how to reach the people behind it.",
+      "representativeQueries": [
+        "Worum geht es auf shineonyou.de?",
+        "When should an agent use shineonyou.de?"
+      ],
+      "tags": [
+        "llms-txt",
+        "site-profile"
+      ]
+    },
+    {
+      "identifier": "urn:air:shineonyou.de:doc:pricing",
+      "displayName": "pricing.md – Preisauskunft",
+      "type": "text/markdown",
+      "url": "https://shineonyou.de/pricing.md",
+      "description": "What consultation and a proWINparty cost (nothing), and who sets the product prices (proWIN International, not this site).",
+      "representativeQueries": [
+        "Was kostet eine proWINparty?",
+        "Kostet die Beratung etwas?"
+      ],
+      "tags": [
+        "pricing"
+      ]
+    },
+    {
+      "identifier": "urn:air:shineonyou.de:doc:auth",
+      "displayName": "auth.md – Anmeldung für Agenten",
+      "type": "text/markdown",
+      "url": "https://shineonyou.de/auth.md",
+      "description": "States that there is nothing to authenticate to: no API, no tokens, no authorization server. Written in the auth.md walkthrough structure so agents stop looking.",
+      "representativeQueries": [
+        "Braucht shineonyou.de einen API-Key?",
+        "How do agents authenticate here?"
+      ],
+      "tags": [
+        "auth",
+        "anonymous"
+      ]
+    }
+  ]
+}

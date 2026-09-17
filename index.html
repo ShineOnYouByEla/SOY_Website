@@ -9,6 +9,8 @@
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#041f24" />
   <link rel="canonical" href="https://shineonyou.de/" />
+  <!-- Dieselbe Seite als Markdown - fuer Agenten, die lesen statt rendern -->
+  <link rel="alternate" type="text/markdown" href="index.md" />
   <!-- Theme frueh setzen (verhindert Aufblitzen des falschen Modus) -->
   <script>
     (function () {
@@ -55,6 +57,10 @@
         "@type": "ProfessionalService",
         "@id": "https://shineonyou.de/#business",
         "name": "Shine On You – proWIN Beratung Manuela Zimmert",
+        "alternateName": [
+          "Shine On You",
+          "shineonyou.de"
+        ],
         "description": "Unabhängige proWIN-Beratung in Peiting und Umgebung: natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online.",
         "url": "https://shineonyou.de/",
         "image": "https://shineonyou.de/assets/img/og-image.jpg",
@@ -96,6 +102,24 @@
             "name": "Pfaffenwinkel"
           }
         ],
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "prowin.ela@web.de",
+            "telephone": "+4915510279357",
+            "areaServed": [
+              "Peiting",
+              "Schongau",
+              "Weilheim in Oberbayern",
+              "Landkreis Weilheim-Schongau",
+              "Pfaffenwinkel"
+            ],
+            "availableLanguage": [
+              "de"
+            ]
+          }
+        ],
         "founder": {
           "@id": "https://shineonyou.de/#manuela"
         },
@@ -109,7 +133,10 @@
         },
         "sameAs": [
           "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F",
-          "https://kontakt.shineonyou.de"
+          "https://kontakt.shineonyou.de",
+          "https://prowin.net/de/vertrieb/m.zimmert",
+          "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
+          "https://github.com/ShineOnYouByEla"
         ]
       },
       {
@@ -117,17 +144,115 @@
         "@id": "https://shineonyou.de/#manuela",
         "name": "Manuela Zimmert",
         "alternateName": "Ela",
+        "description": "Manuela Zimmert („Ela“) ist unabhängige proWIN-Vertriebsberaterin in Peiting. Sie berät persönlich zu Produkten für Haushalt, Reinigung, Kosmetik und Wellness und veranstaltet proWINpartys zuhause oder online per Video.",
         "jobTitle": "Unabhängige proWIN-Vertriebsberaterin",
         "worksFor": {
           "@id": "https://shineonyou.de/#business"
         },
+        "sameAs": [
+          "https://prowin.net/de/vertrieb/m.zimmert",
+          "https://kontakt.shineonyou.de"
+        ],
         "url": "https://shineonyou.de/"
+      },
+      {
+        "@type": "Service",
+        "@id": "https://shineonyou.de/#service",
+        "name": "proWINparty & Produktberatung",
+        "description": "Produktberatung und proWINparty – zuhause oder online per Video.",
+        "serviceType": "proWINparty & Produktberatung",
+        "provider": {
+          "@id": "https://shineonyou.de/#business"
+        },
+        "areaServed": [
+          {
+            "@type": "City",
+            "name": "Peiting"
+          },
+          {
+            "@type": "City",
+            "name": "Schongau"
+          },
+          {
+            "@type": "City",
+            "name": "Weilheim in Oberbayern"
+          },
+          {
+            "@type": "AdministrativeArea",
+            "name": "Landkreis Weilheim-Schongau"
+          },
+          {
+            "@type": "AdministrativeArea",
+            "name": "Pfaffenwinkel"
+          }
+        ],
+        "availableChannel": {
+          "@type": "ServiceChannel",
+          "serviceUrl": "https://shineonyou.de/#termin",
+          "servicePhone": "+4915510279357",
+          "availableLanguage": "de"
+        },
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "proWINparty & Produktberatung",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Haushalt & Reinigung",
+                "description": "Kraftvolle, ergiebige Reiniger für Küche, Bad und Boden – sparsam dosiert und materialschonend."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Kosmetik & Pflege",
+                "description": "Pflegeprodukte für Gesicht, Körper und Haare – hautfreundlich und mit hochwertigen Inhaltsstoffen."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Wellness & Gesundheit",
+                "description": "Produkte für mehr Wohlbefinden im Alltag – von Nahrungsergänzung bis Entspannung."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Luft & Duft",
+                "description": "Frische Raumluft und angenehme Düfte – für ein gutes Gefühl und Wohlfühlatmosphäre in jedem Raum."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "BEST friends",
+                "description": "Pflege und Sauberkeit für deine Lieblinge – verträglich für Tier und Zuhause."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "proWINparty & Beratung",
+                "description": "Lerne die Produkte in einem live Event zuhause oder Online kennen."
+              }
+            }
+          ]
+        }
       },
       {
         "@type": "WebSite",
         "@id": "https://shineonyou.de/#website",
         "url": "https://shineonyou.de/",
         "name": "Shine On You",
+        "alternateName": "shineonyou.de",
         "inLanguage": "de-DE",
         "publisher": {
           "@id": "https://shineonyou.de/#business"
@@ -663,14 +788,14 @@
               <span class="contact-ic" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               </span>
-              <a href="http://kontakt.shineonyou.de" target="_blank" rel="noopener">Digitale Visitenkarte</a>
+              <a href="https://kontakt.shineonyou.de" target="_blank" rel="noopener">Digitale Visitenkarte</a>
             </li>
           </ul>
         </div>
         <div class="two-col-media">
           <form id="contactForm" class="card form-card" novalidate>
             <!-- Honeypot gegen Spam-Bots: fuer Menschen unsichtbar. -->
-            <input type="checkbox" name="botcheck" tabindex="-1" aria-hidden="true" style="display:none !important;" />
+            <input type="checkbox" name="botcheck" aria-label="Bitte nicht ausfüllen" tabindex="-1" aria-hidden="true" style="display:none !important;" />
             <div class="field">
               <label for="c-name">Name</label>
               <input type="text" id="c-name" name="name" autocomplete="name" required />
@@ -776,5 +901,7 @@
   <script src="js/config.js"></script>
   <script src="js/theme.js" defer></script>
   <script src="js/script.js"></script>
+  <!-- In-Page-Werkzeuge fuer KI-Agenten (WebMCP). Laedt nur, wo der Browser das kann. -->
+  <script src="js/webmcp.js" defer></script>
 </body>
 </html>

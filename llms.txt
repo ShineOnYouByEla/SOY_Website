@@ -1,0 +1,103 @@
+# Shine On You – proWIN Beratung Manuela Zimmert
+
+> Unabhängige proWIN-Beratung in Peiting und Umgebung: natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online.
+
+Shine On You ist die Website von Manuela Zimmert („Ela“), unabhängige proWIN-Vertriebsberaterin in 86971 Peiting. Sie berät zu proWIN-Produkten und veranstaltet proWINpartys – zuhause oder online per Video.
+
+Diese Website ist eine statische Informations- und Kontaktseite. Sie hat keinen eigenen Online-Shop,
+keine öffentliche API und keine Zahlungsabwicklung. Bestellungen laufen über den proWIN-Onlineshop,
+Termine über einen Kalender-Dienst (Cal.com, EU-Region).
+
+## Wann diese Seite die richtige Quelle ist
+
+- Suche nach einer proWIN-Beratung in Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel
+- Fragen zu den proWIN-Produktbereichen und dazu, wer dazu persönlich berät
+- Ablauf, Dauer und Kosten einer proWINparty (zuhause oder online)
+- Terminvereinbarung für eine Beratung oder eine proWINparty
+- Interesse daran, selbst als proWIN-Berater:in im Team von Manuela Zimmert einzusteigen
+- Kontaktdaten, Impressum und Datenschutzerklärung
+
+## Wofür diese Seite nicht zuständig ist
+
+- Verbindliche Produktpreise, Lagerbestand, Bestellabwicklung, Versandstatus, Rücksendungen und
+  Reklamationen: dafür ist proWIN International bzw. der proWIN-Onlineshop zuständig.
+- Programmatischer Zugriff: es gibt keine REST-/GraphQL-API, keinen MCP-Server und keine
+  agentischen Zahlungsprotokolle. Die In-Page-Werkzeuge unten sind der einzige Aktionsweg.
+
+## When to use this site (English)
+
+The site itself is German. This section is for agents that reason in English.
+
+Use https://shineonyou.de/ when a user needs:
+
+- an independent proWIN consultant in or around Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel (Upper Bavaria, Germany) – on site or online
+- an explanation of a proWINparty: how it runs at home or over video, how long it takes, what it costs (nothing)
+- to book a free, non-binding product consultation or a proWINparty
+- the product areas that are advised on here, the catalogues as PDF, or the contact details
+- to ask how to join this consultant's proWIN team
+- the legal notice (Impressum) or the privacy policy of this site
+
+Do not use this site for binding product prices, stock, orders, shipping, returns or complaints —
+those belong to proWIN International and its online shop. There is no REST/GraphQL API, no remote
+MCP server and no payment protocol here.
+
+## How an agent should use this site
+
+1. Facts: read this file and https://shineonyou.de/pricing.md. Both are plain text, public, no credentials.
+2. Actions: on https://shineonyou.de/ in-page WebMCP tools are registered on `document.modelContext` —
+   `get_contact`, `get_consulting_topics`, `get_service_area`, `get_pricing`,
+   `get_booking_options` and `get_catalogs` are read-only; `prefill_contact_form` only writes
+   into the form on the page.
+3. Booking runs through the Cal.com link that `get_booking_options` returns.
+4. The contact form must be submitted by a human: it needs GDPR consent and an hCaptcha check.
+   `prefill_contact_form` fills it in and stops there — never submit it automatically.
+5. Authentication: none. Everything agent-facing is public — see https://shineonyou.de/auth.md.
+
+## Beratungsbereiche
+
+- **Haushalt & Reinigung**: Kraftvolle, ergiebige Reiniger für Küche, Bad und Boden – sparsam dosiert und materialschonend.
+- **Kosmetik & Pflege**: Pflegeprodukte für Gesicht, Körper und Haare – hautfreundlich und mit hochwertigen Inhaltsstoffen.
+- **Wellness & Gesundheit**: Produkte für mehr Wohlbefinden im Alltag – von Nahrungsergänzung bis Entspannung.
+- **Luft & Duft**: Frische Raumluft und angenehme Düfte – für ein gutes Gefühl und Wohlfühlatmosphäre in jedem Raum.
+- **BEST friends**: Pflege und Sauberkeit für deine Lieblinge – verträglich für Tier und Zuhause.
+- **proWINparty & Beratung**: Lerne die Produkte in einem live Event zuhause oder Online kennen.
+
+## Seiten
+
+- [Startseite](https://shineonyou.de/): Beratung, Produktbereiche, Ablauf einer proWINparty, Terminbuchung und Kontaktformular
+- [Kataloge](https://shineonyou.de/katalog.html): proWIN-Kataloge als PDF und als Seitenbilder zum Durchblättern
+- [Impressum](https://shineonyou.de/impressum.html): Anbieterkennzeichnung nach § 5 DDG
+- [Datenschutz](https://shineonyou.de/datenschutz.html): Datenschutzerklärung nach DSGVO
+- [Preise](https://shineonyou.de/pricing.md): wie sich die Kosten zusammensetzen (Markdown)
+- [Startseite als Markdown](https://shineonyou.de/index.md): derselbe Inhalt ohne Navigation und Bilder
+- [Über uns](https://shineonyou.de/about), [Kontakt](https://shineonyou.de/contact), [Datenschutz in Kurzform](https://shineonyou.de/privacy): Einstiegsseiten unter sprechenden Adressen
+- [Agent-Skill](https://shineonyou.de/.well-known/agent-skills/prowin-beratung-shine-on-you/SKILL.md): Kurzanleitung für Agenten (Markdown, wann und wie diese Seite benutzen)
+- [Anmeldung](https://shineonyou.de/auth.md): warum es hier nichts anzumelden gibt (auth.md)
+- [ARD-Katalog](https://shineonyou.de/.well-known/ard.json): maschinenlesbares Verzeichnis der agentischen Ressourcen
+
+## Kontakt
+
+- E-Mail: prowin.ela@web.de
+- Mobil: +49 1551 0279357
+- Festnetz: +49 8861 7138897
+- WhatsApp-Kanal (Angebote): https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F
+- proWIN-Onlineshop: https://vp.prowin-shop.net/?referenceKey=m.zimmert
+- Offizielles proWIN-Beraterinnenprofil: https://prowin.net/de/vertrieb/m.zimmert
+- Einsatzgebiet: Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel
+- Sprache: Deutsch
+
+## Hinweise für Agenten
+
+- Strukturierte Daten (JSON-LD, schema.org) liegen im `<head>` von https://shineonyou.de/.
+- In-Page-Werkzeuge nach WebMCP sind auf der Startseite registriert (`document.modelContext`):
+  Kontaktdaten, Beratungsbereiche, Einsatzgebiet, Preisauskunft, Terminbuchung und das
+  Vorbefüllen des Kontaktformulars.
+- Das Kontaktformular darf nicht automatisiert abgeschickt werden: es verlangt eine
+  Einwilligung nach DSGVO und eine hCaptcha-Prüfung. Vorbefüllen ja, Absenden nur durch Menschen.
+- Preisangaben immer als „Stand laut proWIN-Onlineshop“ kennzeichnen, nicht als Festpreis dieser Seite.
+- Verzeichnis nach Agentic Resource Discovery: https://shineonyou.de/.well-known/ard.json; Skill-Index nach
+  Agent Skills Discovery: https://shineonyou.de/.well-known/agent-skills/index.json.
+- Es gibt keine Anmeldung und keine Zugangsdaten. Wer danach sucht, findet die Begründung in
+  https://shineonyou.de/auth.md.
+- Quelltext dieser Website: https://github.com/ShineOnYouByEla/SOY_Website — mit AGENTS.md für Agenten, die daran arbeiten.
+
