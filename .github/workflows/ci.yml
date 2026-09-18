@@ -53,7 +53,7 @@ jobs:
           }
 
       - name: HTML validieren
-        run: npx --yes html-validate@9 "*.html"
+        run: npx --yes html-validate@11 "*.html"
 
       - name: Strukturierte Daten (JSON-LD) prüfen
         run: node scripts/check-jsonld.mjs
