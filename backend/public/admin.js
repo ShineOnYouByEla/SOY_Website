@@ -12,8 +12,20 @@ const views = {
 };
 
 function show(which) {
+  document.body.classList.remove("booting");
   views.auth().hidden = which !== "auth";
   views.app().hidden = which !== "app";
+  // Erst hier das Passwort loeschen: Safari und Apple Passwords merken sich
+  // eine Anmeldung daran, dass das ausgefuellte Formular verschwindet.
+  const password = $("#loginPassword");
+  if (which === "app" && password) password.value = "";
+}
+
+/** Den Benutzernamen in die spaeteren Schritte mitnehmen, damit der
+    Passwortmanager Code und Passwort demselben Konto zuordnet. */
+function carryUser(email) {
+  const field = $("#mfaUser");
+  if (email && field) field.value = email;
 }
 
 /** Innerhalb der Anmeldekarte zwischen den Schritten wechseln. */
@@ -60,6 +72,8 @@ async function boot() {
   } catch {
     session = { authenticated: false };
   }
+
+  carryUser(session.user?.email);
 
   if (!session.authenticated) {
     const setup = await api.setupStatus().catch(() => ({ needsSetup: false }));
@@ -123,12 +137,15 @@ async function startInvite(token) {
   }
 
   step("invite");
+  $("#inviteEmail").value = invite.email;
+  carryUser(invite.email);
   $("#inviteIntro").textContent =
     `Du wurdest eingeladen, die Website von Shine On You zu bearbeiten. ` +
     `Lege hier dein Konto für ${invite.email} an – danach richtest du die ` +
     `Zwei-Faktor-App ein.`;
 
-  $("#inviteSubmit").onclick = async () => {
+  $("#inviteView").onsubmit = async (e) => {
+    e.preventDefault();
     hint("#inviteHint", "");
     const password = $("#invitePassword").value;
     if (password !== $("#invitePassword2").value) {
@@ -159,8 +176,9 @@ $("#loginForm").addEventListener("submit", async (e) => {
   hint("#loginHint", "");
 
   try {
-    const res = await api.login($("#loginEmail").value.trim(), $("#loginPassword").value);
-    $("#loginPassword").value = "";
+    const email = $("#loginEmail").value.trim();
+    const res = await api.login(email, $("#loginPassword").value);
+    carryUser(email);
     if (res.mfaSetupRequired) return startMfaSetup();
     if (res.mfaRequired) return step("mfa");
     await enterApp(res.user);
@@ -219,6 +237,11 @@ async function startMfaSetup() {
   try {
     const { secret, uri } = await api.startMfaSetup();
     $("#secretText").textContent = secret.replace(/(.{4})/g, "$1 ").trim();
+    // Wer das Admin am selben Geraet oeffnet, kann den QR-Code nicht scannen.
+    // Der Link uebergibt den Schluessel direkt an Apple Passwords & Co.
+    const link = $("#otpLink");
+    link.href = uri;
+    link.hidden = false;
     drawQr(uri);
   } catch (err) {
     hint("#setupHint", err.message);

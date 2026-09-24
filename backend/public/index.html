@@ -7,41 +7,45 @@
   <title>Shine On You – Website bearbeiten</title>
   <link rel="stylesheet" href="/admin.css" />
 </head>
-<body>
+<body class="booting">
 
 <!-- ===== Anmeldung ===== -->
-<div id="authView" class="auth" hidden>
+<div id="authView" class="auth">
   <div class="auth-card">
     <h1 class="auth-title">Shine On You</h1>
     <p class="auth-sub">Website bearbeiten</p>
 
     <!-- Schritt 1: E-Mail und Passwort -->
-    <form id="loginForm" class="stack" novalidate>
+    <form id="loginForm" class="stack" method="post" action="/api/auth/login" novalidate>
       <div class="field">
         <label for="loginEmail">E-Mail</label>
-        <input type="email" id="loginEmail" autocomplete="username" required />
+        <input type="email" id="loginEmail" name="username" autocomplete="username"
+               enterkeyhint="next" required />
       </div>
       <div class="field">
         <label for="loginPassword">Passwort</label>
-        <input type="password" id="loginPassword" autocomplete="current-password" required />
+        <input type="password" id="loginPassword" name="password" autocomplete="current-password"
+               enterkeyhint="go" required />
       </div>
       <button type="submit" class="btn btn-primary btn-block">Anmelden</button>
       <p class="hint" id="loginHint" role="alert"></p>
     </form>
 
     <!-- Schritt 2: Code aus der Authenticator-App -->
-    <form id="mfaForm" class="stack" novalidate hidden>
+    <form id="mfaForm" class="stack" method="post" action="/api/auth/mfa" novalidate hidden>
+      <input type="email" id="mfaUser" name="username" autocomplete="username"
+             class="offscreen" tabindex="-1" readonly aria-hidden="true" />
       <p class="auth-note">Gib den 6-stelligen Code aus deiner Authenticator-App ein.</p>
       <div class="field">
         <label for="mfaCode">Bestätigungscode</label>
-        <input type="text" id="mfaCode" inputmode="numeric" autocomplete="one-time-code"
-               maxlength="6" pattern="[0-9]{6}" class="code-input" required />
+        <input type="text" id="mfaCode" name="otp" inputmode="numeric" autocomplete="one-time-code"
+               maxlength="6" pattern="[0-9]{6}" class="code-input" enterkeyhint="go" required />
       </div>
       <button type="submit" class="btn btn-primary btn-block">Bestätigen</button>
       <button type="button" class="btn btn-link" id="useRecovery">Kein Zugriff auf die App?</button>
       <div class="field" id="recoveryField" hidden>
         <label for="recoveryCode">Wiederherstellungscode</label>
-        <input type="text" id="recoveryCode" autocomplete="off" placeholder="XXXX-XXXX" />
+        <input type="text" id="recoveryCode" name="recovery-code" autocomplete="off" placeholder="XXXX-XXXX" />
       </div>
       <p class="hint" id="mfaHint" role="alert"></p>
     </form>
@@ -54,6 +58,7 @@
         Google Authenticator, Aegis oder dem Passwortmanager deines Handys.
       </p>
       <div class="qr-box"><div id="qrTarget"></div></div>
+      <a class="btn btn-block" id="otpLink" href="#" hidden>Auf diesem Gerät einrichten</a>
       <details class="details">
         <summary>Der Code lässt sich nicht scannen?</summary>
         <p class="auth-note">Dann gib dieses Geheimnis von Hand in der App ein:</p>
@@ -61,33 +66,36 @@
       </details>
       <div class="field">
         <label for="setupCode">Code aus der App</label>
-        <input type="text" id="setupCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" class="code-input" />
+        <input type="text" id="setupCode" name="otp" inputmode="numeric" autocomplete="one-time-code"
+               maxlength="6" pattern="[0-9]{6}" class="code-input" />
       </div>
       <button type="button" class="btn btn-primary btn-block" id="activateMfa">Einrichtung abschließen</button>
       <p class="hint" id="setupHint" role="alert"></p>
     </div>
 
     <!-- Einladung annehmen: eigenes Konto anlegen -->
-    <div id="inviteView" class="stack" hidden>
+    <form id="inviteView" class="stack" method="post" novalidate hidden>
       <p class="auth-note" id="inviteIntro"></p>
+      <input type="email" id="inviteEmail" name="username" autocomplete="username"
+             class="offscreen" tabindex="-1" readonly aria-hidden="true" />
       <div class="field">
         <label for="inviteName">Dein Name</label>
-        <input type="text" id="inviteName" autocomplete="name" />
+        <input type="text" id="inviteName" name="name" autocomplete="name" />
       </div>
       <div class="field">
         <label for="invitePassword">Passwort</label>
-        <input type="password" id="invitePassword" autocomplete="new-password" />
+        <input type="password" id="invitePassword" name="new-password" autocomplete="new-password" />
       </div>
       <div class="field">
         <label for="invitePassword2">Passwort wiederholen</label>
-        <input type="password" id="invitePassword2" autocomplete="new-password" />
+        <input type="password" id="invitePassword2" name="confirm-new-password" autocomplete="new-password" />
       </div>
       <p class="field-note">
         Mindestens 12 Zeichen, Groß- und Kleinbuchstaben sowie eine Ziffer.
       </p>
-      <button type="button" class="btn btn-primary btn-block" id="inviteSubmit">Konto anlegen</button>
+      <button type="submit" class="btn btn-primary btn-block" id="inviteSubmit">Konto anlegen</button>
       <p class="hint" id="inviteHint" role="alert"></p>
-    </div>
+    </form>
 
     <!-- Schritt 3: Wiederherstellungscodes anzeigen (nur einmal) -->
     <div id="recoveryView" class="stack" hidden>

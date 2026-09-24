@@ -26,6 +26,26 @@
    trotz hidden sichtbar. */
 [hidden] { display: none !important; }
 
+/* Felder, die nur der Passwortmanager braucht: sie muessen gerendert bleiben,
+   denn display:none macht sie fuer die automatische Erkennung unsichtbar. */
+.offscreen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  border: 0;
+  opacity: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  pointer-events: none;
+}
+
+/* Waehrend des Starts steht noch nicht fest, ob die Anmeldung oder der Editor
+   gezeigt wird. Die Karte bleibt im Layout - nur unsichtbar -, damit Safari
+   und Apple Passwords das Anmeldeformular beim ersten Durchgang finden. */
+body.booting .auth { opacity: 0; pointer-events: none; }
+
 html, body {
   margin: 0;
   height: 100%;
