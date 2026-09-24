@@ -2,7 +2,7 @@
 title: "proWIN Beratung in Peiting – Manuela Zimmert | Shine On You"
 description: "proWIN Beratung in Peiting & Umgebung – Manuela Zimmert. Natürliche Produkte für Haushalt, Reinigung, Kosmetik & Wellness. proWINparty zuhause oder online."
 canonical: https://shineonyou.de/
-last-updated: 2026-09-16
+last-updated: 2026-09-24
 ---
 
 # Shine On You – proWIN Beratung Manuela Zimmert
@@ -20,7 +20,7 @@ Ob persönliche Produktberatung, eine entspannte Produktparty bei dir zuhause od
 - Persönliche, ehrliche Beratung
 - Nachhaltige Produkte – Made in Germany
 - Hautverträglich & umweltschonend
-- Unverbindlich & auf Augenhöhe
+- Unverbindlich und auf Augenhöhe
 
 ## Beratungsbereiche
 
@@ -28,7 +28,7 @@ Ob persönliche Produktberatung, eine entspannte Produktparty bei dir zuhause od
 - **Kosmetik & Pflege**: Pflegeprodukte für Gesicht, Körper und Haare – hautfreundlich und mit hochwertigen Inhaltsstoffen.
 - **Wellness & Gesundheit**: Produkte für mehr Wohlbefinden im Alltag – von Nahrungsergänzung bis Entspannung.
 - **Luft & Duft**: Frische Raumluft und angenehme Düfte – für ein gutes Gefühl und Wohlfühlatmosphäre in jedem Raum.
-- **BEST friends**: Pflege und Sauberkeit für deine Lieblinge – verträglich für Tier und Zuhause.
+- **BEST friends**: Pflege und Sauberkeit für deine Lieblinge.
 - **proWINparty & Beratung**: Lerne die Produkte in einem live Event zuhause oder Online kennen.
 
 ## So läuft eine proWINparty ab
@@ -84,7 +84,6 @@ International fest, verbindlich ist der Shop. Einzelheiten: https://shineonyou.d
 - Mobil: +49 1551 0279357
 - Festnetz: +49 8861 7138897
 - WhatsApp-Kanal: https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F
-- proWIN-Onlineshop (Bestellungen und Preise): https://vp.prowin-shop.net/?referenceKey=m.zimmert
 - Einsatzgebiet vor Ort: Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel
 
 ## Weitere Seiten

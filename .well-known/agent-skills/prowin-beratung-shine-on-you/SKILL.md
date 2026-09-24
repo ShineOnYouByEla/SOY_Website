@@ -19,7 +19,7 @@ Manuela Zimmert („Ela“) is an independent proWIN sales consultant in 86971 P
 ## When not to use it
 
 - Binding product prices, stock levels, orders, shipping status, returns or complaints.
-  Those belong to proWIN International and its shop: https://vp.prowin-shop.net/?referenceKey=m.zimmert.
+  Those belong to proWIN International and its shop: the proWIN online shop.
 - Anything needing programmatic access: there is no REST or GraphQL API, no remote MCP server
   and no agentic payment protocol on this domain.
 - Anything outside the service area that would need someone on site.
@@ -59,7 +59,7 @@ Manuela Zimmert („Ela“) is an independent proWIN sales consultant in 86971 P
 - **Kosmetik & Pflege**: Pflegeprodukte für Gesicht, Körper und Haare – hautfreundlich und mit hochwertigen Inhaltsstoffen.
 - **Wellness & Gesundheit**: Produkte für mehr Wohlbefinden im Alltag – von Nahrungsergänzung bis Entspannung.
 - **Luft & Duft**: Frische Raumluft und angenehme Düfte – für ein gutes Gefühl und Wohlfühlatmosphäre in jedem Raum.
-- **BEST friends**: Pflege und Sauberkeit für deine Lieblinge – verträglich für Tier und Zuhause.
+- **BEST friends**: Pflege und Sauberkeit für deine Lieblinge.
 - **proWINparty & Beratung**: Lerne die Produkte in einem live Event zuhause oder Online kennen.
 
 ## Facts
@@ -69,7 +69,5 @@ Manuela Zimmert („Ela“) is an independent proWIN sales consultant in 86971 P
 - Landline: +49 8861 7138897
 - Service area: Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel
 - Language of the site: Deutsch
-- proWIN online shop (orders and prices): https://vp.prowin-shop.net/?referenceKey=m.zimmert
-- Official proWIN consultant profile: https://prowin.net/de/vertrieb/m.zimmert
 - Authentication: none, see https://shineonyou.de/auth.md
 
