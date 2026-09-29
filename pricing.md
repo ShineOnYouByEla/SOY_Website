@@ -19,7 +19,7 @@ Art und Höhe legt proWIN International fest, nicht diese Seite.
 
 ## Produkte
 
-- Die Produktpreise setzt proWIN International fest. Verbindlich ist immer der Shop: https://vp.prowin-shop.net/?referenceKey=m.zimmert
+- Die Produktpreise setzt proWIN International fest. Verbindlich ist immer der Shop: proWIN-Onlineshop
 - Preisniveau: €€ (schema.org `priceRange`)
 - Währung: EUR, Preise inklusive deutscher Mehrwertsteuer
 - Versand, Lieferzeiten, Rückgabe und Reklamation richten sich nach den Bedingungen von proWIN International
