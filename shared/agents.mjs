@@ -162,7 +162,7 @@ export function renderLlmsTxt(content) {
       "",
       "## When to use this site (English)",
       "",
-      "The site itself is German. This section is for agents that reason in English.",
+      `The site is German; ${url}en/ is an English version for orientation only. Consultations and proWINparties are held in German.`,
       "",
       `Use ${url} when a user needs:`,
       "",

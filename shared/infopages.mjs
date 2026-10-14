@@ -165,6 +165,7 @@ function aboutBody(content) {
     "        She advises on proWIN products for household, cleaning, cosmetics and wellness, and hosts proWINpartys",
     "        at people's homes or online over video. Consultation and party are free and non-binding; product orders,",
     "        prices and shipping are handled by proWIN International.",
+    `        ${NOTE_EN}`,
     "      </p>",
     '      <p><a href="contact.html">Kontakt</a> · <a href="impressum.html">Impressum</a> · <a href="privacy.html">Datenschutz in Kurzform</a></p>',
   ]);
@@ -214,7 +215,7 @@ function contactBody(content) {
     "      </p>",
     "      <h2>Contact (English)</h2>",
     "      <p>",
-    "        Written enquiries in English are fine; replies come in German or English.",
+    `        Written enquiries in English are fine. ${NOTE_EN}`,
     c.email ? `        Email <a href="mailto:${esc(c.email)}">${esc(c.email)}</a> is the most reliable route.` : "",
     "        Consultation and proWINparty bookings are free and non-binding. Product orders and prices are handled by proWIN International, not by this site.",
     "      </p>",
@@ -266,6 +267,10 @@ function privacyBody(content) {
   ]);
 }
 
+/* Die englische Fassung erklaert nur – beraten wird auf Deutsch. Das muss
+   dort stehen, wo jemand bucht oder Kontakt aufnimmt. */
+const NOTE_EN = "Please note: consultations and proWINparties are held in German.";
+
 /* ---------- English ----------
    Dieselben drei Seiten fuer die englische Fassung unter /en/. Die Fakten
    kommen weiterhin aus site.json, die Produkt- und Ueber-mich-Texte aus
@@ -298,6 +303,7 @@ function aboutBodyEn(content) {
       ? `        In person in ${esc(area.join(", "))}${ort ? ` – based in ${esc(ort)}, Upper Bavaria, Germany` : ""}.`
       : "        In person by arrangement.",
     "        A proWINparty or a product consultation also works online over video, wherever you live.",
+    `        ${NOTE_EN}`,
     "      </p>",
     "      <h2>What does not happen here</h2>",
     "      <p>",
@@ -322,6 +328,7 @@ function contactBodyEn(content) {
     "      <p>",
     `        ${esc(plainText(b.name))}. The quickest way is direct – by email, phone or through`,
     "        the contact form on the home page. You will usually get a reply within a few days.",
+    `        ${NOTE_EN}`,
     "      </p>",
     "      <h2>Direct contact</h2>",
     "      <ul>",
