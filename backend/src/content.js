@@ -9,6 +9,7 @@
 import { ICONS } from "../../shared/icons.mjs";
 import { renderPage, renderConfigJs } from "../../shared/render.mjs";
 import { INFO_PAGES, renderInfoPage } from "../../shared/infopages.mjs";
+import { DEFAULT_LANG, LANGS, availableLangs, langDir } from "../../shared/i18n.mjs";
 import {
   ARD_PATH,
   SKILLS_INDEX_PATH,
@@ -240,6 +241,22 @@ export function validateContent(content) {
     if (visible === 0) errors.push("Es muss mindestens eine Sektion sichtbar bleiben.");
   }
 
+  /* --- Uebersetzungen ---
+     Nur die Form wird geprueft: was fehlt, faellt beim Rendern auf Deutsch
+     zurueck. Eine unbekannte Sprache haette keine Seite, die sie zeigt. */
+  if (content.translations !== undefined) {
+    if (!isObj(content.translations)) errors.push("„translations“ muss ein Objekt sein.");
+    else {
+      for (const [lang, tr] of Object.entries(content.translations)) {
+        if (!LANGS.includes(lang) || lang === DEFAULT_LANG) errors.push(`Übersetzung „${lang}“: diese Sprache gibt es auf der Seite nicht.`);
+        else if (!isObj(tr)) errors.push(`Übersetzung „${lang}“ muss ein Objekt sein.`);
+        else if (isStr(tr.site?.title) && tr.site.title.length > 70) {
+          errors.push(`Übersetzung „${lang}“: Seitentitel ist länger als 70 Zeichen – Suchmaschinen kürzen ihn.`);
+        }
+      }
+    }
+  }
+
   /* --- Groesse --- */
   const bytes = new TextEncoder().encode(JSON.stringify(content)).length;
   if (bytes > MAX_CONTENT_BYTES) {
@@ -257,16 +274,22 @@ export function validateContent(content) {
 export function renderOrThrow(content) {
   let html;
   let configJs;
+  const translated = {};
   try {
     html = renderPage(content);
     configJs = renderConfigJs(content);
+    for (const lang of availableLangs(content)) {
+      if (lang !== DEFAULT_LANG) translated[lang] = renderPage(content, lang);
+    }
   } catch (err) {
     throw new ValidationError([`Die Seite konnte nicht erzeugt werden: ${err.message}`]);
   }
-  if (!html.includes("</html>") || html.length < 2000) {
-    throw new ValidationError(["Die erzeugte Seite wirkt unvollständig – bitte die Inhalte prüfen."]);
+  for (const page of [html, ...Object.values(translated)]) {
+    if (!page.includes("</html>") || page.length < 2000) {
+      throw new ValidationError(["Die erzeugte Seite wirkt unvollständig – bitte die Inhalte prüfen."]);
+    }
   }
-  return { html, configJs };
+  return { html, configJs, translated };
 }
 
 /**
@@ -283,7 +306,7 @@ export function publishFiles(content, today = new Date()) {
   /* Veroeffentlichen heisst: der Stand von heute ist der aktuelle. Das Datum
      wandert mit in site.json, damit der Build im CI dasselbe Ergebnis liefert. */
   content = { ...content, site: { ...(content.site || {}), contentUpdated: isoDay(today) } };
-  const { html, configJs } = renderOrThrow(content);
+  const { html, configJs, translated } = renderOrThrow(content);
   return [
     { path: "content/site.json", content: JSON.stringify(content, null, 2) + "\n", encoding: "utf-8" },
     { path: "index.html", content: html, encoding: "utf-8" },
@@ -296,6 +319,15 @@ export function publishFiles(content, today = new Date()) {
     { path: "sitemap.xml", content: renderSitemap(content), encoding: "utf-8" },
     { path: "index.md", content: renderIndexMd(content), encoding: "utf-8" },
     ...INFO_PAGES.map((pg) => ({ path: pg.path, content: renderInfoPage(content, pg.slug), encoding: "utf-8" })),
+    /* Die Sprachfassungen unter en/ … — dieselben Inhalte, uebersetzt. */
+    ...Object.entries(translated).flatMap(([lang, page]) => [
+      { path: `${langDir(lang)}index.html`, content: page, encoding: "utf-8" },
+      ...INFO_PAGES.map((pg) => ({
+        path: `${langDir(lang)}${pg.path}`,
+        content: renderInfoPage(content, pg.slug, lang),
+        encoding: "utf-8",
+      })),
+    ]),
     { path: "auth.md", content: renderAuthMd(content), encoding: "utf-8" },
     { path: ARD_PATH, content: renderArdCatalog(content), encoding: "utf-8" },
     { path: SKILL_PATH, content: renderAgentSkill(content), encoding: "utf-8" },
@@ -324,6 +356,10 @@ export function previewHtml(content, siteUrl, pendingPaths = [], adminOrigin = "
   const base = String(siteUrl || "").replace(/\/+$/, "") + "/";
 
   let out = html.replace("<head>", `<head>\n  <base href="${base}" />`);
+
+  // Die Spracherkennung wuerde die Vorschau sonst auf die Live-Seite
+  // umleiten, sobald der Browser im Admin auf Englisch steht.
+  out = out.replace(/<script id="soy-lang-detect">[\s\S]*?<\/script>\n?/, "");
 
   // Bilder, die nur im Entwurf existieren, kommen aus dem Backend. Die URL
   // muss absolut sein, sonst zieht das <base>-Tag sie auf die Live-Seite.

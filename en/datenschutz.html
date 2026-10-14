@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy policy – Shine On You</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#041f24" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png" />
+  <link rel="alternate" hreflang="de" href="https://shineonyou.de/datenschutz.html" />
+  <link rel="alternate" hreflang="en" href="https://shineonyou.de/en/datenschutz.html" />
+  <link rel="alternate" hreflang="x-default" href="https://shineonyou.de/datenschutz.html" />
+
+  <!-- Sprache des Systems: beim ersten Besuch auf die passende Fassung (Vorlage: shared/i18n.mjs) -->
+  <script id="soy-lang-detect">
+    (function () {
+      var KEY = "soy-lang", HERE = "en", FALLBACK = "en";
+      var TARGET = {"de":"../datenschutz.html","en":"datenschutz.html"};
+      var has = function (k) { return Object.prototype.hasOwnProperty.call(TARGET, k); };
+      /* Bewusste Wahl ueber den Umschalter merken */
+      document.addEventListener("click", function (e) {
+        var a = e.target && e.target.closest ? e.target.closest("a[data-lang]") : null;
+        if (a) { try { localStorage.setItem(KEY, a.getAttribute("data-lang")); } catch (err) {} }
+      });
+      try {
+        if (navigator.webdriver || /bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent)) return;
+        /* Wer innerhalb der Seite einem Link folgt, hat die Sprache gewaehlt */
+        if (document.referrer.indexOf(location.origin + "/") === 0) return;
+        var want = localStorage.getItem(KEY);
+        if (!has(want)) {
+          /* Erste Sprache aus der Systemliste, die es hier gibt; sonst Englisch */
+          var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+          want = FALLBACK;
+          for (var i = 0; i < list.length; i++) {
+            var l = String(list[i]).slice(0, 2).toLowerCase();
+            if (has(l)) { want = l; break; }
+          }
+        }
+        if (want !== HERE) location.replace(TARGET[want] + location.search + location.hash);
+      } catch (err) { /* Speicher gesperrt: auf der aufgerufenen Seite bleiben */ }
+    })();
+  </script>
+
+  <!-- Theme frueh setzen (verhindert Aufblitzen des falschen Modus) -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("soy-theme");
+        var mode = stored === "light" || stored === "dark" ? stored : "system";
+        var prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+        var theme = mode === "system" ? (prefersLight ? "light" : "dark") : mode;
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-theme-mode", mode);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-theme-mode", "system");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="../css/fonts.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html#top" class="brand" aria-label="Shine On You – Home">
+        <img src="../assets/img/wordmark.webp" alt="Shine On You" class="brand-logo" width="640" height="360" />
+      </a>
+
+      <a class="header-channel lang-switch" style="margin-left:auto" href="../datenschutz.html" hreflang="de" lang="de" data-lang="de" aria-label="Deutsche Version" title="Deutsche Version">DE</a>
+      <button type="button" class="header-channel theme-toggle" data-theme-toggle aria-label="Switch to light design" aria-pressed="false">
+        <svg class="icon-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <div class="container">
+      <a href="index.html" class="legal-back">&larr; Back to the home page</a>
+      <h1>Privacy policy</h1>
+      <p class="legal-note">
+        This is a courtesy translation of the German
+        <a href="../datenschutz.html" hreflang="de" lang="de">Datenschutzerklärung</a>. Only the
+        German version is legally binding.
+      </p>
+
+      <h2>1. Controller</h2>
+      <p>
+        The controller responsible for data processing on this website is:
+      </p>
+      <p>
+        Manuela Zimmert<br />
+        Tannenstraße 7a<br />
+        86971 Peiting<br />
+        Email: prowin.ela@web.de<br />
+        Phone: +49 1551 0279357
+      </p>
+
+      <h2>2. General information on data processing</h2>
+      <p>
+        We only process personal data to the extent necessary to provide a functional
+        website and our content and services, or where you have given your consent. The
+        legal bases are in particular Art. 6(1)(a) (consent), (b) (contract/pre-contractual
+        measures) and (f) (legitimate interest) GDPR.
+      </p>
+
+      <h2>3. Hosting</h2>
+      <p>
+        This website is provided via GitHub Pages, a service of GitHub, Inc.,
+        88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA (“GitHub”). When you
+        visit the website, technically necessary data is processed by GitHub and stored on
+        GitHub's servers.
+      </p>
+      <p>
+        As this may involve a transfer of data to the USA, it is based on the EU Standard
+        Contractual Clauses. The legal basis is Art. 6(1)(f) GDPR (legitimate interest in a
+        secure and reliable provision of the website). Further information can be found in
+        GitHub's privacy statement:
+        <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub Privacy Statement</a>.
+      </p>
+
+      <h3>Server log files</h3>
+      <p>
+        When you visit the website, the hosting provider automatically collects
+        information in so-called server log files, which your browser transmits
+        automatically. These are usually:
+      </p>
+      <ul>
+        <li>browser type and version</li>
+        <li>operating system used</li>
+        <li>referrer URL</li>
+        <li>host name of the accessing computer</li>
+        <li>time of the server request</li>
+        <li>IP address</li>
+      </ul>
+      <p>
+        This data is not merged with other data sources. It is collected on the basis of
+        Art. 6(1)(f) GDPR in order to display the website without technical errors and to
+        optimise it.
+      </p>
+
+      <h2>4. SSL/TLS encryption</h2>
+      <p>
+        For security reasons, this site uses SSL/TLS encryption. You can recognise an
+        encrypted connection by “https://” in your browser's address bar.
+      </p>
+
+      <h2>5. Fonts (hosted locally)</h2>
+      <p>
+        This website uses fonts (“Inter” and “Montserrat”) that are stored and served
+        locally from the server. There is <strong>no</strong> connection to third-party
+        servers (e.g. Google Fonts), and no data is transferred to third parties for this
+        purpose.
+      </p>
+
+      <h2>6. Cookies and local storage</h2>
+      <p>
+        This website sets <strong>no cookies</strong>. Your usage behaviour is not
+        analysed: we use neither web analytics services (e.g. Google Analytics) nor
+        advertising or tracking technologies, and no profiles are created about you.
+      </p>
+      <p>
+        Only a few technically necessary settings are stored in your browser's local
+        storage (“localStorage”) so that the website can remember your choices:
+      </p>
+      <ul>
+        <li>
+          <code>soy-theme</code> – stores whether you have chosen the light or dark
+          appearance.
+        </li>
+        <li>
+          <code>soy-lang</code> – stores which language version (German or English) you
+          chose using the language switch. The entry is only created if you switch
+          yourself; without it, the language follows your browser setting.
+        </li>
+        <li>
+          <code>soy-channel-tip</code> – stores that you have closed the one-off notice
+          about our WhatsApp channel so that it does not appear again.
+        </li>
+        <li>
+          <code>soy-chat-teaser</code> – stores that the WhatsApp chat in the bottom right
+          corner has already introduced itself to you (speech bubble or opening the window
+          once), so that this does not happen again.
+        </li>
+      </ul>
+      <p>
+        This information contains no personal reference, remains exclusively on your
+        device, is not transmitted to us or to third parties and is not analysed. The
+        storage is strictly necessary for the presentation of the website you requested and
+        therefore does not require consent under § 25(2) no. 2 TDDDG (German
+        Telecommunications Digital Services Data Protection Act); a cookie banner is
+        therefore not necessary. You can delete the stored entries at any time via your
+        browser settings (site data or local storage). The website remains fully usable
+        afterwards; only your settings are reset.
+      </p>
+
+      <h2>7. Contacting us and contact form</h2>
+      <p>
+        If you contact us via the contact form or by email, the information you provide
+        (e.g. name, email address, message) is processed in order to handle your enquiry.
+        The legal basis is Art. 6(1)(b) GDPR (initiation/performance of a contract) or
+        Art. 6(1)(a) GDPR (consent via the checkbox). The data is deleted as soon as it is
+        no longer required for the purpose and no statutory retention obligations apply.
+      </p>
+
+      <h3>How the form is sent</h3>
+      <p>
+        By default, the form only opens your own email program with a pre-filled message;
+        no data is transmitted to third parties – you send the email yourself.
+      </p>
+      <p>
+        If direct sending of the form is enabled, we use the Web3Forms service for the
+        technical processing and delivery. In this case, the data entered in the form is
+        processed via Web3Forms and forwarded to our email address; by default, the service
+        does not permanently store the message content. This may involve a transfer of data
+        outside the EU. The transfer is based on your consent (Art. 6(1)(a), Art. 49(1)(a)
+        GDPR), which you give when submitting via the consent checkbox. Further information
+        on data protection at Web3Forms:
+        <a href="https://web3forms.com/privacy" target="_blank" rel="noopener">https://web3forms.com/privacy</a>.
+      </p>
+
+      <h3>Spam protection with hCaptcha</h3>
+      <p>
+        To protect against automated misuse (spam), we use the hCaptcha service of
+        Intuition Machines, Inc., 350 Alabama St, San Francisco, CA 94110, USA, for the
+        contact form. hCaptcha checks whether the input was made by a human. For data
+        protection reasons, hCaptcha is <strong>not loaded automatically when the page is
+        opened</strong>, but only once you actively use the contact form. Technical data
+        (including your IP address and information about your device and browser) is then
+        transmitted to and processed by hCaptcha; this may involve a transfer to the USA.
+        The legal basis is our legitimate interest in preventing spam and misuse
+        (Art. 6(1)(f) GDPR) as well as your consent (Art. 6(1)(a), Art. 49(1)(a) GDPR).
+        Further information:
+        <a href="https://www.hcaptcha.com/privacy" target="_blank" rel="noopener">https://www.hcaptcha.com/privacy</a>.
+      </p>
+
+      <h2>8. Appointment booking</h2>
+      <p>
+        To arrange consultation appointments, we process the data you provide (e.g. name,
+        email address, preferred date, subject) for the purpose of organising the
+        appointment. The legal basis is Art. 6(1)(b) GDPR (pre-contractual measures) or
+        your consent under Art. 6(1)(a) GDPR.
+      </p>
+      <h3>Online booking via Cal.com</h3>
+      <p>
+        For online booking we use the Cal.com service provided by Cal.com, Inc.,
+        2261 Market Street #4382, San Francisco, CA 94114, USA. We use the
+        <strong>EU region of Cal.com</strong> (cal.eu); booking data is processed on
+        servers within the European Union.
+      </p>
+      <p>
+        For data protection reasons, the booking widget is <strong>not loaded
+        automatically</strong>. Only when you actively click “Book online” is a connection
+        to Cal.com's servers established and the widget embedded; among other things, your
+        IP address is transmitted to Cal.com. By clicking, you consent to this processing
+        (Art. 6(1)(a) GDPR). As the provider is based in the USA and access from a third
+        country cannot be completely ruled out, any transfer is additionally based on the
+        EU Standard Contractual Clauses (Art. 46 GDPR). The data entered for the booking is
+        transmitted to Cal.com and processed there to provide the booking calendar.
+        Further information:
+        <a href="https://cal.com/privacy" target="_blank" rel="noopener">https://cal.com/privacy</a>.
+      </p>
+      <p>
+        If you do not click the widget, no connection to Cal.com is made. In this case you
+        can also request your preferred appointment informally by email or phone (see
+        section 7).
+      </p>
+
+      <h2>9. External links, WhatsApp channel and WhatsApp chat</h2>
+      <p>
+        This website contains links to external services, including a WhatsApp channel.
+        These links are recognisable as such and only take you to the respective
+        provider's page after you click on them. Data is only transmitted to the provider
+        once you actively click the link; we have no influence on the data processing
+        there. The WhatsApp channel is operated by WhatsApp Ireland Limited or Meta
+        Platforms, Inc. Please note WhatsApp's privacy information there:
+        <a href="https://www.whatsapp.com/legal/privacy-policy-eea" target="_blank" rel="noopener">https://www.whatsapp.com/legal/privacy-policy-eea</a>.
+      </p>
+      <p>
+        You can write to us directly via WhatsApp using the round button in the bottom
+        right corner. The chat window itself is part of this website – no content is loaded
+        from WhatsApp and no connection to WhatsApp is made as long as you only open it.
+        Only when you click a link in it does WhatsApp open with a chat to our mobile
+        number; your phone number and your message are then transmitted to WhatsApp and
+        shown to us there. We process your message solely to handle your enquiry
+        (Art. 6(1)(b) or (f) GDPR) and delete it as soon as it is no longer needed. If you
+        would like to avoid this, you can reach us just as well via the contact form, by
+        email or by phone (see section 7).
+      </p>
+
+      <h2>10. Your rights</h2>
+      <p>You have the right at any time to:</p>
+      <ul>
+        <li>access to your stored data (Art. 15 GDPR)</li>
+        <li>rectification of inaccurate data (Art. 16 GDPR)</li>
+        <li>erasure (Art. 17 GDPR)</li>
+        <li>restriction of processing (Art. 18 GDPR)</li>
+        <li>data portability (Art. 20 GDPR)</li>
+        <li>object to the processing (Art. 21 GDPR)</li>
+        <li>withdraw consent given, with effect for the future (Art. 7(3) GDPR)</li>
+      </ul>
+
+      <h2>11. Right to lodge a complaint with a supervisory authority</h2>
+      <p>
+        In the event of violations of the GDPR, you have the right to lodge a complaint with
+        a supervisory authority, in particular in the member state of your habitual
+        residence, your place of work or the place of the alleged infringement.
+      </p>
+
+      <p class="legal-updated">Last updated: <span id="stand"></span></p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-legal">
+        <a href="index.html">Home</a> · <a href="impressum.html">Legal notice</a> · <a href="datenschutz.html">Privacy policy</a>
+      </p>
+      <p class="footer-review">The texts and graphics on this website have been editorially reviewed by Manuela Zimmert.</p>
+      <p class="footer-fine">&copy; <span id="year"></span> Shine On You · Since 2026.</p>
+    </div>
+  </footer>
+
+  <script src="../js/theme.js" defer></script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+    document.getElementById("stand").textContent =
+      new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  </script>
+</body>
+</html>

@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Erzeugt aus content/site.json (shared/agents.mjs) — nicht von Hand bearbeiten. -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://shineonyou.de/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/" />
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://shineonyou.de/en/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/" />
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -13,11 +24,33 @@
   </url>
   <url>
     <loc>https://shineonyou.de/impressum.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/impressum.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/impressum.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/impressum.html" />
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://shineonyou.de/en/impressum.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/impressum.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/impressum.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/impressum.html" />
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://shineonyou.de/datenschutz.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/datenschutz.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/datenschutz.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/datenschutz.html" />
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://shineonyou.de/en/datenschutz.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/datenschutz.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/datenschutz.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/datenschutz.html" />
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

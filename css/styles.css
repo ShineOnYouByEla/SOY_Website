@@ -1181,3 +1181,17 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
   .chat-panel { animation: none; }
   .chat-fab:not([open]) > summary::after { animation: none; opacity: 0; }
 }
+
+/* ===== Sprachumschalter (DE/EN) =====
+   Sitzt als runder Knopf neben dem Theme-Umschalter und zeigt das Kuerzel
+   der jeweils anderen Sprache. */
+.lang-switch {
+  font-family: var(--font-head); font-weight: 600;
+  font-size: .8rem; letter-spacing: .04em; line-height: 1;
+}
+/* Mit dem Umschalter wird es in der Kopfzeile eng: Abstaende auf dem
+   Desktop etwas kleiner, sonst quetscht der Flex-Container das Logo. */
+@media (min-width: 1101px) {
+  .header-inner { gap: 16px; }
+  .nav { gap: 16px; }
+}

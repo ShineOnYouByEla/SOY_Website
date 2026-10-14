@@ -16,6 +16,7 @@
    ============================================================ */
 
 import { esc, plainText, visibleSections } from "./render.mjs";
+import { DEFAULT_LANG, alternateLinks, asset, langDir, langScript, langSwitch, localize, t } from "./i18n.mjs";
 
 const lines = (parts) => parts.filter((p) => p !== null && p !== undefined && p !== false).join("\n");
 
@@ -36,8 +37,11 @@ function areaServed(content) {
 /* Der Seitenrahmen — bewusst schlank wie bei impressum.html: Marke,
    Inhalt, Fußzeile. Keine Sprungmarken-Navigation, die hier ins Leere
    zeigen würde. */
-function shell(content, { title, description, body }) {
+function shell(content, { slug, title, description, body }) {
   const site = content.site || {};
+  const path = `${slug}.html`;
+  const a = (p) => esc(asset(content, p));
+  const sw = langSwitch(content, path);
 
   return (
     lines([
@@ -52,7 +56,13 @@ function shell(content, { title, description, body }) {
          sind Einstiegspunkte, keine zweite Fassung der Website. */
       '  <meta name="robots" content="noindex, follow" />',
       `  <meta name="theme-color" content="${esc(site.themeColor)}" />`,
-      '  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />',
+      `  <link rel="icon" type="image/png" sizes="32x32" href="${a("assets/img/favicon-32.png")}" />`,
+      ...alternateLinks(content, path).map((l) => "  " + l),
+      "",
+      langScript(content, path)
+        .split("\n")
+        .map((l) => "  " + l)
+        .join("\n"),
       "",
       "  <!-- Theme frueh setzen (verhindert Aufblitzen des falschen Modus) -->",
       "  <script>",
@@ -71,21 +81,22 @@ function shell(content, { title, description, body }) {
       "    })();",
       "  </script>",
       "",
-      '  <link rel="stylesheet" href="css/fonts.css" />',
-      '  <link rel="stylesheet" href="css/styles.css" />',
+      `  <link rel="stylesheet" href="${a("css/fonts.css")}" />`,
+      `  <link rel="stylesheet" href="${a("css/styles.css")}" />`,
       "</head>",
       "<body>",
       '  <header class="site-header">',
       '    <div class="container header-inner">',
-      `      <a href="index.html#top" class="brand" aria-label="${esc(site.brandName)} – Startseite">`,
-      `        <img src="assets/img/wordmark.webp" alt="${esc(site.brandName)}" class="brand-logo" width="640" height="360" />`,
+      `      <a href="index.html#top" class="brand" aria-label="${esc(site.brandName)} – ${esc(t(content, "home"))}">`,
+      `        <img src="${a("assets/img/wordmark.webp")}" alt="${esc(site.brandName)}" class="brand-logo" width="640" height="360" />`,
       "      </a>",
+      sw ? `      <span style="margin-left:auto">${sw}</span>` : null,
       "    </div>",
       "  </header>",
       "",
       '  <main class="legal-main">',
       '    <div class="container">',
-      '      <a href="index.html" class="legal-back">&larr; Zur Startseite</a>',
+      `      <a href="index.html" class="legal-back">&larr; ${esc(t(content, "toHome"))}</a>`,
       body,
       "    </div>",
       "  </main>",
@@ -93,13 +104,14 @@ function shell(content, { title, description, body }) {
       '  <footer class="site-footer">',
       '    <div class="container footer-inner">',
       '      <p class="footer-legal">',
-      '        <a href="index.html">Startseite</a> · <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>',
+      `        <a href="index.html">${esc(t(content, "home"))}</a> · <a href="impressum.html">${esc(t(content, "imprint"))}</a>` +
+        ` · <a href="datenschutz.html">${esc(t(content, "privacy"))}</a>`,
       "      </p>",
-      '      <p class="footer-fine">&copy; <span id="year"></span> ' + esc(site.brandName) + " · Seit 2026.</p>",
+      '      <p class="footer-fine">&copy; <span id="year"></span> ' + esc(site.brandName) + ` · ${esc(t(content, "since"))}</p>`,
       "    </div>",
       "  </footer>",
       "",
-      '  <script src="js/theme.js" defer></script>',
+      `  <script src="${a("js/theme.js")}" defer></script>`,
       '  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>',
       "</body>",
       "</html>",
@@ -226,7 +238,7 @@ function privacyBody(content) {
     "      <h2>Das Wichtigste</h2>",
     "      <ul>",
     "        <li><strong>Keine Cookies.</strong> Die Seite setzt keine Cookies und misst kein Nutzungsverhalten – keine Webanalyse, keine Werbe- oder Tracking-Technologie, keine Profilbildung.</li>",
-    "        <li><strong>Zwei lokale Einstellungen.</strong> Im <code>localStorage</code> des Browsers liegen nur <code>soy-theme</code> (helles oder dunkles Design) und <code>soy-channel-tip</code> (der einmalige Hinweis auf den WhatsApp-Kanal). Beides bleibt auf dem Gerät und wird nicht übertragen.</li>",
+    "        <li><strong>Ein paar lokale Einstellungen.</strong> Im <code>localStorage</code> des Browsers liegen nur <code>soy-theme</code> (helles oder dunkles Design), <code>soy-lang</code> (die Sprache, falls du sie selbst umgestellt hast), <code>soy-channel-tip</code> (der einmalige Hinweis auf den WhatsApp-Kanal) und <code>soy-chat-teaser</code> (der einmalige Hinweis des Chats). Das bleibt auf dem Gerät und wird nicht übertragen.</li>",
     "        <li><strong>Schriftarten lokal.</strong> Die Schriften liegen auf dem Server dieser Seite, es wird keine fremde Schriftbibliothek aufgerufen.</li>",
     "        <li><strong>Server-Logfiles.</strong> Der Hoster protokolliert technische Zugriffsdaten – das lässt sich beim Betrieb einer Website nicht vermeiden.</li>",
     "        <li><strong>Kontaktformular.</strong> Was du einträgst, wird zur Beantwortung deiner Anfrage verarbeitet. Vor dem Absenden brauchen wir deine Einwilligung; gegen Spam läuft eine hCaptcha-Prüfung.</li>",
@@ -244,13 +256,136 @@ function privacyBody(content) {
     "      </p>",
     "      <h2>Privacy (English)</h2>",
     "      <p>",
-    "        No cookies, no analytics, no tracking, no profiling. Two non-personal settings are kept in the browser's",
-    "        local storage (theme choice and a dismissed one-off notice). The host writes standard server logs.",
+    "        No cookies, no analytics, no tracking, no profiling. A few non-personal settings are kept in the browser's",
+    "        local storage (theme, language if you switched it yourself, dismissed one-off notices). The host writes standard server logs.",
     "        The contact form needs explicit consent plus an hCaptcha check; appointment booking is handed to Cal.com",
     "        only when you open it. The binding text is the German",
     '        <a href="datenschutz.html">Datenschutzerklärung</a>.',
     "      </p>",
     '      <p><a href="about.html">Über Shine On You</a> · <a href="contact.html">Kontakt</a> · <a href="impressum.html">Impressum</a></p>',
+  ]);
+}
+
+/* ---------- English ----------
+   Dieselben drei Seiten fuer die englische Fassung unter /en/. Die Fakten
+   kommen weiterhin aus site.json, die Produkt- und Ueber-mich-Texte aus
+   der Uebersetzung dort. Verbindlich bleiben die deutschen Rechtstexte. */
+
+function aboutBodyEn(content) {
+  const b = content.business || {};
+  const p = b.person || {};
+  const area = areaServed(content);
+  const areas = productAreas(content);
+  const ueber = visibleSections(content).find((s) => s.id === "ueber")?.data || {};
+  const ort = [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" ");
+
+  return lines([
+    "      <h1>About Shine On You</h1>",
+    `      <p>${esc(plainText(b.description))}</p>`,
+    p.description ? `      <p>${esc(plainText(p.description))}</p>` : null,
+    ...(ueber.paragraphs || []).map((t) => `      <p>${esc(plainText(t))}</p>`),
+    (ueber.checklist || []).length ? "      <h2>What this consultation stands for</h2>" : null,
+    (ueber.checklist || []).length ? "      <ul>" : null,
+    ...(ueber.checklist || []).map((t) => `        <li>${esc(plainText(t))}</li>`),
+    (ueber.checklist || []).length ? "      </ul>" : null,
+    areas.length ? "      <h2>Product areas</h2>" : null,
+    areas.length ? "      <ul>" : null,
+    ...areas.map((a) => `        <li><strong>${esc(a.title)}</strong> – ${esc(a.text)}</li>`),
+    areas.length ? "      </ul>" : null,
+    "      <h2>Where</h2>",
+    `      <p>`,
+    area.length
+      ? `        In person in ${esc(area.join(", "))}${ort ? ` – based in ${esc(ort)}, Upper Bavaria, Germany` : ""}.`
+      : "        In person by arrangement.",
+    "        A proWINparty or a product consultation also works online over video, wherever you live.",
+    "      </p>",
+    "      <h2>What does not happen here</h2>",
+    "      <p>",
+    "        This website does not sell anything itself. Orders, prices, shipping and complaints are handled by",
+    b.shopUrl
+      ? `        the <a href="${esc(b.shopUrl)}" target="_blank" rel="noopener">proWIN online shop</a> or proWIN International.`
+      : "        proWIN International.",
+    "        Consultation and proWINparty are free and non-binding.",
+    "      </p>",
+    '      <p><a href="contact.html">Contact</a> · <a href="impressum.html">Legal notice</a> · <a href="privacy.html">Privacy in brief</a></p>',
+  ]);
+}
+
+function contactBodyEn(content) {
+  const b = content.business || {};
+  const c = content.contact || {};
+  const area = areaServed(content);
+  const ort = [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" ");
+
+  return lines([
+    "      <h1>Contact</h1>",
+    "      <p>",
+    `        ${esc(plainText(b.name))}. The quickest way is direct – by email, phone or through`,
+    "        the contact form on the home page. You will usually get a reply within a few days.",
+    "      </p>",
+    "      <h2>Direct contact</h2>",
+    "      <ul>",
+    c.email ? `        <li>Email: <a href="mailto:${esc(c.email)}">${esc(c.email)}</a></li>` : null,
+    c.phone ? `        <li>Mobile: <a href="tel:${esc(c.phoneHref || c.phone)}">${tel(c.phone)}</a></li>` : null,
+    c.landline ? `        <li>Landline: <a href="tel:${esc(c.landlineHref || c.landline)}">${tel(c.landline)}</a></li>` : null,
+    c.whatsappChannel
+      ? `        <li>WhatsApp channel (offers and news): <a href="${esc(c.whatsappChannel)}" target="_blank" rel="noopener">follow</a></li>`
+      : null,
+    "      </ul>",
+    "      <h2>Appointment or message</h2>",
+    "      <ul>",
+    '        <li><a href="index.html#termin">Book a consultation</a> – by phone or video (about 30 minutes) or a proWINparty (about 60 minutes), both free and non-binding.</li>',
+    '        <li><a href="index.html#kontakt">Contact form</a> – for anything that is easier in writing. The form asks for consent under the GDPR and an hCaptcha check; a person has to send it.</li>',
+    "      </ul>",
+    "      <h2>Where</h2>",
+    "      <p>",
+    ort ? `        Based in ${esc(ort)}, Germany. ` : "",
+    area.length ? `        In-person consultations in ${esc(area.join(", "))}.` : "",
+    "        Online works anywhere – a proWINparty over video only needs a link.",
+    '        The full provider details are in the <a href="impressum.html">legal notice</a>.',
+    "      </p>",
+    "      <h2>What proWIN International handles</h2>",
+    "      <p>",
+    "        Orders, product prices, delivery status, returns and complaints are not handled on this site but through",
+    b.shopUrl
+      ? `        the <a href="${esc(b.shopUrl)}" target="_blank" rel="noopener">proWIN online shop</a>.`
+      : "        proWIN International.",
+    "      </p>",
+    '      <p><a href="about.html">About Shine On You</a> · <a href="impressum.html">Legal notice</a> · <a href="datenschutz.html">Privacy policy</a></p>',
+  ]);
+}
+
+function privacyBodyEn(content) {
+  const b = content.business || {};
+  const c = content.contact || {};
+
+  return lines([
+    "      <h1>Privacy in brief</h1>",
+    "      <p>",
+    "        This page sums up what happens to data when you use shineonyou.de.",
+    '        Only the full <a href="datenschutz.html">privacy policy</a> is binding, and of that only the',
+    '        <a href="../datenschutz.html" hreflang="de" lang="de">German original</a>; where they differ, its text applies.',
+    "      </p>",
+    "      <h2>The essentials</h2>",
+    "      <ul>",
+    "        <li><strong>No cookies.</strong> The site sets no cookies and does not measure usage – no web analytics, no advertising or tracking technology, no profiling.</li>",
+    "        <li><strong>A few local settings.</strong> The browser's <code>localStorage</code> only holds <code>soy-theme</code> (light or dark design), <code>soy-lang</code> (the language, if you switched it yourself), <code>soy-channel-tip</code> (the one-off notice about the WhatsApp channel) and <code>soy-chat-teaser</code> (the chat's one-off notice). It stays on your device and is not transmitted.</li>",
+    "        <li><strong>Local fonts.</strong> The fonts are served from this site's server; no third-party font library is called.</li>",
+    "        <li><strong>Server log files.</strong> The host records technical access data – this cannot be avoided when running a website.</li>",
+    "        <li><strong>Contact form.</strong> What you enter is processed to answer your enquiry. We need your consent before sending; an hCaptcha check protects against spam.</li>",
+    "        <li><strong>Appointment booking.</strong> Online booking runs through Cal.com. A connection is only made once you open it.</li>",
+    "        <li><strong>External links.</strong> The proWIN online shop, the WhatsApp channel and other third-party sites have their own privacy policies.</li>",
+    "      </ul>",
+    "      <h2>Your rights</h2>",
+    "      <p>",
+    "        Access, rectification, erasure, restriction, data portability, objection and withdrawal of consent –",
+    '        all in detail in the <a href="datenschutz.html">privacy policy</a>. The controller is',
+    c.email
+      ? `        ${esc(plainText(b.person?.name || b.name))}, reachable at <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>.`
+      : `        ${esc(plainText(b.person?.name || b.name))}.`,
+    "        You can also lodge a complaint with the competent data protection supervisory authority.",
+    "      </p>",
+    '      <p><a href="about.html">About Shine On You</a> · <a href="contact.html">Contact</a> · <a href="impressum.html">Legal notice</a></p>',
   ]);
 }
 
@@ -277,16 +412,44 @@ const PAGE_BUILDERS = {
   },
 };
 
-/** Die Dateinamen, unter denen die Seiten ausgeliefert werden. */
+const PAGE_BUILDERS_EN = {
+  about: {
+    title: (content) => `About – ${plainText(content.site?.brandName)}`,
+    description: () =>
+      "Who is behind Shine On You: independent proWIN consultation in Peiting and the surrounding area, product areas and where consultations take place.",
+    body: aboutBodyEn,
+  },
+  contact: {
+    title: (content) => `Contact – ${plainText(content.site?.brandName)}`,
+    description: () =>
+      "Ways to reach Shine On You: email, phone, WhatsApp channel, contact form and appointment booking.",
+    body: contactBodyEn,
+  },
+  privacy: {
+    title: (content) => `Privacy in brief – ${plainText(content.site?.brandName)}`,
+    description: () =>
+      "Privacy at a glance on shineonyou.de: no cookies, no tracking. The full German privacy policy is binding.",
+    body: privacyBodyEn,
+  },
+};
+
+const BUILDERS = { de: PAGE_BUILDERS, en: PAGE_BUILDERS_EN };
+
+/** Die Dateinamen, unter denen die Seiten ausgeliefert werden (ohne Sprachverzeichnis). */
 export const INFO_PAGES = Object.keys(PAGE_BUILDERS).map((slug) => ({ slug, path: `${slug}.html` }));
 
-/** Eine der Einstiegsseiten als fertiges HTML. */
-export function renderInfoPage(content, slug) {
-  const spec = PAGE_BUILDERS[slug];
-  if (!spec) throw new Error(`Unbekannte Einstiegsseite: ${slug}`);
-  return shell(content, {
-    title: spec.title(content),
-    description: spec.description(content),
-    body: spec.body(content),
+/**
+ * Eine der Einstiegsseiten als fertiges HTML. `content` ist die rohe
+ * site.json — die Sprachfassung entsteht hier.
+ */
+export function renderInfoPage(content, slug, lang = DEFAULT_LANG) {
+  const spec = BUILDERS[lang]?.[slug];
+  if (!spec) throw new Error(`Unbekannte Einstiegsseite: ${langDir(lang)}${slug}`);
+  const local = localize(content, lang);
+  return shell(local, {
+    slug,
+    title: spec.title(local),
+    description: spec.description(local),
+    body: spec.body(local),
   });
 }

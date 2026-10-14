@@ -9,6 +9,15 @@ Gepflegt werden sie entweder direkt in der Datei oder bequem über das
 Das läuft wahlweise als Docker-Container im Heimnetz (nicht öffentlich erreichbar)
 oder als Cloudflare Worker.
 
+## Sprachen
+
+Die Seite gibt es auf Deutsch (`/`) und Englisch (`/en/`). Beim ersten Aufruf
+leitet ein kleines Skript auf die Sprache des Browsers um (Deutsch bleibt
+Deutsch, alles andere landet auf Englisch); der Knopf **EN/DE** im Kopf
+schaltet um und merkt sich die Wahl. Die englischen Texte stehen in
+`content/site.json` unter `translations.en` – wer einen deutschen Text ändert,
+sollte den englischen mitziehen. Details: [`AGENTS.md`](AGENTS.md).
+
 ## Vorschau / lokal starten
 
 ```bash

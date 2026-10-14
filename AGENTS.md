@@ -12,6 +12,7 @@ Aus dieser Datei entstehen beim Build:
 | `index.html` | `shared/render.mjs` |
 | `js/config.js` | `shared/render.mjs` |
 | `about.html`, `contact.html`, `privacy.html` | `shared/infopages.mjs` |
+| `en/index.html`, `en/about.html`, `en/contact.html`, `en/privacy.html` | dieselben Renderer mit `lang = "en"` |
 | `index.md`, `llms.txt`, `pricing.md`, `sitemap.xml`, `auth.md` | `shared/agents.mjs` |
 | `.well-known/ard.json`, `.well-known/agent-skills/**` | `shared/agents.mjs` |
 
@@ -27,7 +28,30 @@ Die CI prüft, dass ein erneuter Build nichts verändert und keine unversioniert
 Datei zurücklässt. Ein Handgriff an `index.html` fliegt dort sofort auf.
 
 Hand gepflegt und **nicht** erzeugt sind: `impressum.html`, `datenschutz.html`,
-`katalog.html`, `404.html`, `robots.txt`, alles unter `css/`, `js/` und `assets/`.
+`en/impressum.html`, `en/datenschutz.html`, `katalog.html`, `404.html`,
+`robots.txt`, alles unter `css/`, `js/` und `assets/`. Einzige Ausnahme: den
+Block `<script id="soy-lang-detect">` in den vier Rechtsseiten setzt der Build
+(siehe unten) — den nicht von Hand ändern.
+
+### Sprachfassungen
+
+Deutsch liegt unter `/`, Englisch unter `/en/` mit **denselben Dateinamen**.
+Die Übersetzung steht in `content/site.json` unter `translations.en` und
+enthält nur Texte; Sektionen werden über ihre `id` zugeordnet, andere Listen
+über die Position. Fehlt ein Text, bleibt der deutsche stehen
+(`shared/i18n.mjs`).
+
+- Wer einen deutschen Text ändert, muss die Übersetzung mitziehen — sonst
+  zeigt `/en/` weiter den alten Inhalt. Der Build merkt das nicht.
+- `contactReason` an Buttons muss wörtlich einer Option in `form.reasons`
+  derselben Sprache entsprechen (Test in `backend/test/i18n.test.mjs`).
+- Die Spracherkennung ist ein Inline-Skript im `<head>` (GitHub Pages kann
+  nicht nach `Accept-Language` verzweigen). Sie greift nur beim Einstieg von
+  außen, nie für Crawler, und merkt sich eine Wahl über den Umschalter in
+  `localStorage` (`soy-lang`). Dieser Schlüssel steht in beiden
+  Datenschutzerklärungen — Änderungen dort mitpflegen.
+- `impressum.html` und `datenschutz.html` gibt es zweimal. Verbindlich ist die
+  deutsche Fassung; inhaltliche Änderungen gehören in beide.
 
 ## 2. Vor dem Commit laufen lassen
 
@@ -35,7 +59,7 @@ Hand gepflegt und **nicht** erzeugt sind: `impressum.html`, `datenschutz.html`,
 node scripts/build-site.mjs        # erzeugte Dateien aktualisieren
 node scripts/check-jsonld.mjs      # strukturierte Daten
 node scripts/check-links.mjs       # interne Verweise und Anker
-npx html-validate@9 "*.html"       # HTML-Validierung
+npx html-validate@11 "*.html" "en/*.html"  # HTML-Validierung
 cd backend && npm ci && npm test   # Renderer- und Backend-Tests
 ```
 

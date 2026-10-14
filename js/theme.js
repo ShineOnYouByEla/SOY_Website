@@ -20,11 +20,19 @@
   const ORDER = ["system", "light", "dark"];
   const mql = window.matchMedia("(prefers-color-scheme: light)");
 
-  const LABEL = {
-    system: "Design: System – klicken für Hell",
-    light: "Design: Hell – klicken für Dunkel",
-    dark: "Design: Dunkel – klicken für System",
+  const LABELS = {
+    de: {
+      system: "Design: System – klicken für Hell",
+      light: "Design: Hell – klicken für Dunkel",
+      dark: "Design: Dunkel – klicken für System",
+    },
+    en: {
+      system: "Design: system – click for light",
+      light: "Design: light – click for dark",
+      dark: "Design: dark – click for system",
+    },
   };
+  const LABEL = LABELS[(root.lang || "de").slice(0, 2).toLowerCase()] || LABELS.de;
 
   // Gespeicherten Modus lesen; alles außer "light"/"dark" gilt als "system"
   function storedMode() {

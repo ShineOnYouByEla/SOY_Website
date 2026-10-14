@@ -34,6 +34,49 @@ const CONFIG_DEFAULTS = {
 /* Gepflegte Werte aus js/config.js gewinnen; leere Felder fallen zurück. */
 const CONFIG = Object.assign({}, CONFIG_DEFAULTS, window.SOY_CONFIG || {});
 
+/* Texte, die erst im Browser entstehen – in der Sprache der Seite
+   (<html lang>). Was an die Inhaberin geht, bleibt deutsch. */
+const LANG = (document.documentElement.lang || "de").slice(0, 2).toLowerCase();
+const TEXTS = {
+  de: {
+    menuOpen: "Menü öffnen",
+    menuClose: "Menü schließen",
+    tipTitle: "Folge hier ☝🏼 meinem<br />WhatsApp&#8209;Kanal!",
+    tipSub: "Neue Angebote und Aktionen bekommst du dort als Erste:r – und verpasst garantiert keins mehr.",
+    tipCta: "Jetzt folgen",
+    tipClose: "Hinweis schließen",
+    captcha: "Bitte bestätige im Feld oberhalb des Buttons, dass du kein Roboter bist.",
+    sending: "Nachricht wird gesendet …",
+    sentTitle: "Nachricht gesendet!",
+    sentText: "Danke für deine Nachricht – ich melde mich so schnell wie möglich bei dir.",
+    failed: "Senden fehlgeschlagen – bitte per E-Mail oder Telefon melden.",
+    mailOpens: "Dein E-Mail-Programm öffnet sich – bitte die Nachricht noch absenden.",
+    mailSubject: "Kontaktanfrage von",
+    mailName: "Name",
+    mailEmail: "E-Mail",
+    mailReason: "Grund",
+  },
+  en: {
+    menuOpen: "Open menu",
+    menuClose: "Close menu",
+    tipTitle: "Follow my ☝🏼<br />WhatsApp&#8209;channel here!",
+    tipSub: "Be the first to hear about new offers and promotions – and never miss one again.",
+    tipCta: "Follow now",
+    tipClose: "Close notice",
+    captcha: "Please confirm in the field above the button that you are not a robot.",
+    sending: "Sending message …",
+    sentTitle: "Message sent!",
+    sentText: "Thank you for your message – I will get back to you as soon as possible.",
+    failed: "Sending failed – please get in touch by email or phone.",
+    mailOpens: "Your email program is opening – please remember to send the message.",
+    mailSubject: "Enquiry from",
+    mailName: "Name",
+    mailEmail: "Email",
+    mailReason: "Reason",
+  },
+};
+const T = TEXTS[LANG] || TEXTS.de;
+
 /* Kontaktdaten in die Seite schreiben (zentral pflegbar) */
 (function applyConfig() {
   const email = document.getElementById("contactEmail");
@@ -57,7 +100,7 @@ if (toggle && mobileNav) {
   toggle.addEventListener("click", () => {
     const open = mobileNav.classList.toggle("open");
     toggle.setAttribute("aria-expanded", String(open));
-    toggle.setAttribute("aria-label", open ? "Menü schließen" : "Menü öffnen");
+    toggle.setAttribute("aria-label", open ? T.menuClose : T.menuOpen);
   });
   mobileNav.querySelectorAll("a").forEach((a) =>
     a.addEventListener("click", () => {
@@ -90,15 +133,14 @@ if (toggle && mobileNav) {
     '<span class="channel-tip-icon" aria-hidden="true">' +
     icon.querySelector("svg").outerHTML +
     "</span>" +
-    '<span class="channel-tip-title">Folge hier ☝🏼 meinem<br />WhatsApp&#8209;Kanal!</span>' +
+    `<span class="channel-tip-title">${T.tipTitle}</span>` +
     "</span>" +
-    '<span class="channel-tip-sub">Neue Angebote und Aktionen bekommst du dort als Erste:r – ' +
-    "und verpasst garantiert keins mehr.</span>" +
-    '<span class="channel-tip-cta">Jetzt folgen' +
+    `<span class="channel-tip-sub">${T.tipSub}</span>` +
+    `<span class="channel-tip-cta">${T.tipCta}` +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg></span></a>' +
-    '<button type="button" class="channel-tip-close" aria-label="Hinweis schließen">' +
+    `<button type="button" class="channel-tip-close" aria-label="${T.tipClose}">` +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
     "</button>";
@@ -504,7 +546,8 @@ function loadHCaptcha() {
   if (hcaptchaRequested) return;
   hcaptchaRequested = true;
   const s = document.createElement("script");
-  s.src = "https://js.hcaptcha.com/1/api.js";
+  // hl: das Captcha in der Sprache der Seite, nicht in der des Browsers
+  s.src = "https://js.hcaptcha.com/1/api.js?hl=" + encodeURIComponent(LANG);
   s.async = true;
   s.defer = true;
   document.head.appendChild(s); // rendert automatisch alle .h-captcha-Elemente
@@ -532,47 +575,46 @@ if (contactForm) {
       if (!captchaToken) {
         loadHCaptcha(); // falls noch nicht geladen, jetzt anzeigen
         contactHint.classList.add("error");
-        contactHint.textContent =
-          "Bitte bestätige im Feld oberhalb des Buttons, dass du kein Roboter bist.";
+        contactHint.textContent = T.captcha;
         return;
       }
 
       contactForm.classList.add("is-loading");
       contactHint.classList.remove("error");
-      contactHint.textContent = "Nachricht wird gesendet …";
+      contactHint.textContent = T.sending;
       try {
         // Kanonische Web3Forms-Felder: name/email/message werden zuverlässig
         // erkannt; "email" dient zugleich als Antwort-Adresse (replyto).
         await sendViaWeb3Forms({
-          subject: `Neue Kontaktanfrage von ${data.name} – Shine On You`,
+          // Kommt die Anfrage von der englischen Seite, soll das schon im
+          // Betreff stehen – dann ist klar, in welcher Sprache zu antworten ist.
+          subject: `Neue Kontaktanfrage von ${data.name} – Shine On You` + (LANG === "de" ? "" : ` (${LANG.toUpperCase()})`),
           from_name: "Shine On You · Website",
           botcheck: data.botcheck,            // Honeypot (Spam-Schutz)
           "h-captcha-response": captchaToken, // hCaptcha-Token
           name: data.name,
           email: data.email,
           reason: data.reason,
-          message: `Grund für die Kontaktaufnahme: ${data.reason}\n\n${data.message}`,
+          message:
+            (LANG === "de" ? "" : `Sprache der Anfrage: ${LANG.toUpperCase()}\n`) +
+            `Grund für die Kontaktaufnahme: ${data.reason}\n\n${data.message}`,
         });
         contactForm.classList.remove("is-loading");
-        showSuccess(
-          contactForm,
-          "Nachricht gesendet!",
-          "Danke für deine Nachricht – ich melde mich so schnell wie möglich bei dir."
-        );
+        showSuccess(contactForm, T.sentTitle, T.sentText);
       } catch (_) {
         contactForm.classList.remove("is-loading");
         contactHint.classList.add("error");
-        contactHint.textContent = "Senden fehlgeschlagen – bitte per E-Mail oder Telefon melden.";
+        contactHint.textContent = T.failed;
       }
       return;
     }
 
     // Fallback ohne Web3Forms: vorausgefüllte E-Mail
     contactHint.classList.remove("error");
-    contactHint.textContent = "Dein E-Mail-Programm öffnet sich – bitte die Nachricht noch absenden.";
-    openMailto(`Kontaktanfrage von ${data.name}`, [
-      `Name: ${data.name}`, `E-Mail: ${data.email}`,
-      `Grund: ${data.reason}`, "", data.message,
+    contactHint.textContent = T.mailOpens;
+    openMailto(`${T.mailSubject} ${data.name}`, [
+      `${T.mailName}: ${data.name}`, `${T.mailEmail}: ${data.email}`,
+      `${T.mailReason}: ${data.reason}`, "", data.message,
     ]);
   });
 }

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact – Shine On You</title>
+  <meta name="description" content="Ways to reach Shine On You: email, phone, WhatsApp channel, contact form and appointment booking." />
+  <meta name="robots" content="noindex, follow" />
+  <meta name="theme-color" content="#041f24" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png" />
+  <link rel="alternate" hreflang="de" href="https://shineonyou.de/contact.html" />
+  <link rel="alternate" hreflang="en" href="https://shineonyou.de/en/contact.html" />
+  <link rel="alternate" hreflang="x-default" href="https://shineonyou.de/contact.html" />
+
+  <script id="soy-lang-detect">
+    (function () {
+      var KEY = "soy-lang", HERE = "en", FALLBACK = "en";
+      var TARGET = {"de":"../contact.html","en":"contact.html"};
+      var has = function (k) { return Object.prototype.hasOwnProperty.call(TARGET, k); };
+      /* Bewusste Wahl ueber den Umschalter merken */
+      document.addEventListener("click", function (e) {
+        var a = e.target && e.target.closest ? e.target.closest("a[data-lang]") : null;
+        if (a) { try { localStorage.setItem(KEY, a.getAttribute("data-lang")); } catch (err) {} }
+      });
+      try {
+        if (navigator.webdriver || /bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent)) return;
+        /* Wer innerhalb der Seite einem Link folgt, hat die Sprache gewaehlt */
+        if (document.referrer.indexOf(location.origin + "/") === 0) return;
+        var want = localStorage.getItem(KEY);
+        if (!has(want)) {
+          /* Erste Sprache aus der Systemliste, die es hier gibt; sonst Englisch */
+          var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+          want = FALLBACK;
+          for (var i = 0; i < list.length; i++) {
+            var l = String(list[i]).slice(0, 2).toLowerCase();
+            if (has(l)) { want = l; break; }
+          }
+        }
+        if (want !== HERE) location.replace(TARGET[want] + location.search + location.hash);
+      } catch (err) { /* Speicher gesperrt: auf der aufgerufenen Seite bleiben */ }
+    })();
+  </script>
+
+  <!-- Theme frueh setzen (verhindert Aufblitzen des falschen Modus) -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("soy-theme");
+        var mode = stored === "light" || stored === "dark" ? stored : "system";
+        var prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+        var theme = mode === "system" ? (prefersLight ? "light" : "dark") : mode;
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-theme-mode", mode);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-theme-mode", "system");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="../css/fonts.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html#top" class="brand" aria-label="Shine On You – Home">
+        <img src="../assets/img/wordmark.webp" alt="Shine On You" class="brand-logo" width="640" height="360" />
+      </a>
+      <span style="margin-left:auto"><a class="header-channel lang-switch" href="../contact.html" hreflang="de" lang="de" data-lang="de" aria-label="Deutsche Version" title="Deutsche Version">DE</a></span>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <div class="container">
+      <a href="index.html" class="legal-back">&larr; Back to the home page</a>
+      <h1>Contact</h1>
+      <p>
+        Shine On You – proWIN Beratung Manuela Zimmert. The quickest way is direct – by email, phone or through
+        the contact form on the home page. You will usually get a reply within a few days.
+      </p>
+      <h2>Direct contact</h2>
+      <ul>
+        <li>Email: <a href="mailto:prowin.ela@web.de">prowin.ela@web.de</a></li>
+        <li>Mobile: <a href="tel:+4915510279357">+49&nbsp;1551&nbsp;0279357</a></li>
+        <li>Landline: <a href="tel:+4988617138897">+49&nbsp;8861&nbsp;7138897</a></li>
+        <li>WhatsApp channel (offers and news): <a href="https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F" target="_blank" rel="noopener">follow</a></li>
+      </ul>
+      <h2>Appointment or message</h2>
+      <ul>
+        <li><a href="index.html#termin">Book a consultation</a> – by phone or video (about 30 minutes) or a proWINparty (about 60 minutes), both free and non-binding.</li>
+        <li><a href="index.html#kontakt">Contact form</a> – for anything that is easier in writing. The form asks for consent under the GDPR and an hCaptcha check; a person has to send it.</li>
+      </ul>
+      <h2>Where</h2>
+      <p>
+        Based in 86971 Peiting, Germany. 
+        In-person consultations in Peiting, Schongau, Weilheim in Oberbayern, Weilheim-Schongau district, Pfaffenwinkel.
+        Online works anywhere – a proWINparty over video only needs a link.
+        The full provider details are in the <a href="impressum.html">legal notice</a>.
+      </p>
+      <h2>What proWIN International handles</h2>
+      <p>
+        Orders, product prices, delivery status, returns and complaints are not handled on this site but through
+        proWIN International.
+      </p>
+      <p><a href="about.html">About Shine On You</a> · <a href="impressum.html">Legal notice</a> · <a href="datenschutz.html">Privacy policy</a></p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-legal">
+        <a href="index.html">Home</a> · <a href="impressum.html">Legal notice</a> · <a href="datenschutz.html">Privacy</a>
+      </p>
+      <p class="footer-fine">&copy; <span id="year"></span> Shine On You · Since 2026.</p>
+    </div>
+  </footer>
+
+  <script src="../js/theme.js" defer></script>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>
