@@ -620,7 +620,8 @@ function renderJsonLd(content) {
       telephone: [c.phoneHref, c.landlineHref].filter(Boolean),
       slogan: site.tagline,
       priceRange: b.priceRange || "€€",
-      knowsLanguage: site.lang || "de",
+      /* Beraten wird auf Deutsch – auch auf der englischen Seite. */
+      knowsLanguage: "de",
       address: {
         "@type": "PostalAddress",
         addressLocality: b.address?.locality,

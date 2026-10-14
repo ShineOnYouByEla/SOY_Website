@@ -753,7 +753,7 @@
             "kicker": "Appointment",
             "heading": "Book a consultation",
             "paragraphs": [
-              "Choose the date that suits you. You'll immediately receive a calendar file\n(<strong>.ics</strong>) to add to your Apple, Google or\nOutlook calendar – and I get your request straight away by email."
+              "Choose the date that suits you. You'll immediately receive a calendar file\n(<strong>.ics</strong>) to add to your Apple, Google or\nOutlook calendar – and I get your request straight away by email.\n<br /><strong>Please note:</strong> consultations and proWINparties are held in German."
             ],
             "blocks": [
               {
@@ -815,7 +815,7 @@
           "data": {
             "kicker": "Contact",
             "heading": "Write to me – I look forward to hearing from you",
-            "intro": "Got a question or want to get started right away? The best ways to reach me:",
+            "intro": "Got a question or want to get started right away? Consultations are held in German. The best ways to reach me:",
             "links": [
               {},
               {
