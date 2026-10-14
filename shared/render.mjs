@@ -9,6 +9,7 @@
 
 import { icon } from "./icons.mjs";
 import { qrSvg } from "./qrcode.mjs";
+import { DEFAULT_LANG, alternateLinks, asset, langDir, langScript, langSwitch, localize, t } from "./i18n.mjs";
 
 /* ---------- Text- und HTML-Helfer ---------- */
 
@@ -130,12 +131,12 @@ function columnClass(d) {
 }
 
 /* Partner-Logo (proWIN) – auf Wunsch als Link auf die Partnerseite. */
-function partnerLogo(logo, href, { className = "", lazy = false } = {}) {
+function partnerLogo(content, logo, href, { className = "", lazy = false } = {}) {
   if (!logo?.src) return "";
   const cls = className ? ` class="${esc(className)}"` : "";
   const loading = lazy ? ' loading="lazy" decoding="async"' : "";
   const img =
-    `<img src="${esc(logo.src)}" alt="${esc(logo.alt)}"${cls}` +
+    `<img src="${esc(asset(content, logo.src))}" alt="${esc(logo.alt)}"${cls}` +
     ` width="${esc(logo.width)}" height="${esc(logo.height)}"${loading} />`;
   if (!href) return img;
   return join([
@@ -156,12 +157,12 @@ function renderAction(a, extraClass = "") {
 
 const SECTIONS = {
   /* ---- Hero ---- */
-  hero(s) {
+  hero(s, content) {
     const d = s.data || {};
     const headline = (d.headline || [])
       .map((line, i) => (i === 0 ? esc(line) : `<span class="accent-sun">${esc(line)}</span>`))
       .join("<br />");
-    const logo = partnerLogo(d.partnerLogo, d.partnerHref);
+    const logo = partnerLogo(content, d.partnerLogo, d.partnerHref);
     const partner = d.partnerText
       ? join([
           '<p class="hero-partner">',
@@ -188,12 +189,12 @@ const SECTIONS = {
   },
 
   /* ---- Zweispaltig: Bild + Text ---- */
-  about(s) {
+  about(s, content) {
     const d = s.data || {};
     const img = d.image
       ? join([
           '<figure class="about-photo" data-parallax="0.04">',
-          `  <img src="${esc(d.image.src)}" alt="${esc(d.image.alt)}" width="${esc(d.image.width)}"` +
+          `  <img src="${esc(asset(content, d.image.src))}" alt="${esc(d.image.alt)}" width="${esc(d.image.width)}"` +
             ` height="${esc(d.image.height)}" loading="lazy" decoding="async" />`,
           "</figure>",
         ])
@@ -379,7 +380,7 @@ const SECTIONS = {
     const cta = join([
       `<a href="${esc(href)}" class="btn btn-sun channel-cta" target="_blank" rel="noopener">`,
       "  " + icon("whatsapp", { size: 22 }),
-      `  <span>${esc(d.ctaLabel || "Kanal abonnieren")}</span>`,
+      `  <span>${esc(d.ctaLabel || t(content, "channelSubscribe"))}</span>`,
       "</a>",
     ]);
 
@@ -388,13 +389,13 @@ const SECTIONS = {
        Auf schmalen Bildschirmen blendet das CSS ihn aus: wer die Seite
        schon am Handy liest, tippt den Knopf. */
     const svg = d.qr === false ? "" : qrSvg(href, {
-      attrs: `class="channel-qr-code" role="img" aria-label="${esc(d.qrAlt || "QR-Code zum WhatsApp-Kanal")}"`,
+      attrs: `class="channel-qr-code" role="img" aria-label="${esc(d.qrAlt || t(content, "qrAlt"))}"`,
     });
     const qr = svg
       ? join([
           '<figure class="channel-qr">',
           "  " + svg,
-          `  <figcaption>${esc(d.qrLabel || "Mit der Handykamera scannen")}</figcaption>`,
+          `  <figcaption>${esc(d.qrLabel || t(content, "qrLabel"))}</figcaption>`,
           "</figure>",
         ])
       : "";
@@ -446,11 +447,11 @@ const SECTIONS = {
       '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"' +
         ' stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/>' +
         '<path d="M16 2v4M8 2v4M3 10h18"/></svg>',
-      `    ${esc(d.consentButton || "Termin online buchen")}`,
+      `    ${esc(d.consentButton || t(content, "bookOnline"))}`,
       "  </button>",
       `  <p class="cal-consent-note">\n${indent(rich(consentNote), 4)}\n  </p>`,
       "</div>",
-      '<section id="calEmbed" class="cal-embed card" hidden aria-label="Online-Terminbuchung"></section>',
+      `<section id="calEmbed" class="cal-embed card" hidden aria-label="${esc(t(content, "bookingRegion"))}"></section>`,
     ]);
 
     return join([
@@ -519,24 +520,24 @@ const SECTIONS = {
     const form = join([
       '<form id="contactForm" class="card form-card" novalidate>',
       "  <!-- Honeypot gegen Spam-Bots: fuer Menschen unsichtbar. -->",
-      '  <input type="checkbox" name="botcheck" aria-label="Bitte nicht ausfüllen" tabindex="-1" aria-hidden="true" style="display:none !important;" />',
+      `  <input type="checkbox" name="botcheck" aria-label="${esc(t(content, "honeypot"))}" tabindex="-1" aria-hidden="true" style="display:none !important;" />`,
       '  <div class="field">',
-      `    <label for="c-name">${esc(f.nameLabel || "Name")}</label>`,
+      `    <label for="c-name">${esc(f.nameLabel || t(content, "name"))}</label>`,
       '    <input type="text" id="c-name" name="name" autocomplete="name" required />',
       "  </div>",
       '  <div class="field">',
-      `    <label for="c-email">${esc(f.emailLabel || "E-Mail")}</label>`,
+      `    <label for="c-email">${esc(f.emailLabel || t(content, "email"))}</label>`,
       '    <input type="email" id="c-email" name="email" autocomplete="email" required />',
       "  </div>",
       '  <div class="field">',
-      `    <label for="c-reason">${esc(f.reasonLabel || "Grund für die Kontaktaufnahme")}</label>`,
+      `    <label for="c-reason">${esc(f.reasonLabel || t(content, "reason"))}</label>`,
       '    <select id="c-reason" name="reason" required>',
-      `      <option value="" disabled selected>${esc(f.reasonPlaceholder || "Bitte auswählen …")}</option>`,
+      `      <option value="" disabled selected>${esc(f.reasonPlaceholder || t(content, "reasonPlaceholder"))}</option>`,
       options,
       "    </select>",
       "  </div>",
       '  <div class="field">',
-      `    <label for="c-message">${esc(f.messageLabel || "Nachricht")}</label>`,
+      `    <label for="c-message">${esc(f.messageLabel || t(content, "message"))}</label>`,
       '    <textarea id="c-message" name="message" rows="4" required></textarea>',
       "  </div>",
       '  <label class="consent">',
@@ -544,7 +545,7 @@ const SECTIONS = {
       `    <span>${rich(f.consent || "")}</span>`,
       "  </label>",
       captcha ? indent(captcha, 2) : "",
-      `  <button type="submit" class="btn btn-wave btn-block">${esc(f.submit || "Nachricht senden")}</button>`,
+      `  <button type="submit" class="btn btn-wave btn-block">${esc(f.submit || t(content, "submit"))}</button>`,
       '  <p class="form-hint" id="contactHint" role="status"></p>',
       "</form>",
     ]);
@@ -592,6 +593,10 @@ function renderJsonLd(content) {
   const c = content.contact || {};
   const base = site.baseUrl || "https://shineonyou.de/";
   const url = base.endsWith("/") ? base : base + "/";
+  /* Die Seite selbst liegt je Sprache woanders; Firma und Person bleiben
+     dieselben Eintraege und behalten ihre Kennung. */
+  const lang = content.page?.lang || DEFAULT_LANG;
+  const pageUrl = url + langDir(lang);
   /* Stabiler Anker fuer die Person – bleibt bestehen, damit Suchmaschinen
      die einmal erfasste Entitaet weiterhin wiedererkennen. */
   const personId = `${url}#${b.person?.id || "person"}`;
@@ -672,7 +677,7 @@ function renderJsonLd(content) {
       areaServed: (b.areaServed || []).map((a) => ({ "@type": a.type, name: a.name })),
       availableChannel: {
         "@type": "ServiceChannel",
-        serviceUrl: `${url}#termin`,
+        serviceUrl: `${pageUrl}#termin`,
         servicePhone: c.phoneHref,
         availableLanguage: "de",
       },
@@ -704,10 +709,10 @@ function renderJsonLd(content) {
     },
     {
       "@type": "WebPage",
-      "@id": `${url}#webpage`,
-      url,
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
       name: b.webPageName || site.brandName,
-      inLanguage: b.inLanguage || "de-DE",
+      inLanguage: lang === DEFAULT_LANG ? b.inLanguage || "de-DE" : lang,
       isPartOf: { "@id": `${url}#website` },
       author: { "@id": personId },
       reviewedBy: { "@id": personId },
@@ -724,6 +729,10 @@ function renderHeadTag(content) {
   const base = site.baseUrl || "https://shineonyou.de/";
   const url = base.endsWith("/") ? base : base + "/";
   const ogImage = abs(url, site.ogImage);
+  const lang = content.page?.lang || DEFAULT_LANG;
+  const pageUrl = url + langDir(lang);
+  const OG_LOCALE = { de: "de_DE", en: "en_GB" };
+  const a = (path) => esc(asset(content, path));
 
   return join([
     '<meta charset="UTF-8" />',
@@ -733,9 +742,14 @@ function renderHeadTag(content) {
     `<meta name="author" content="${esc(site.author)}" />`,
     '<meta name="robots" content="index, follow" />',
     `<meta name="theme-color" content="${esc(site.themeColor)}" />`,
-    `<link rel="canonical" href="${esc(url)}" />`,
-    "<!-- Dieselbe Seite als Markdown - fuer Agenten, die lesen statt rendern -->",
-    '<link rel="alternate" type="text/markdown" href="index.md" />',
+    `<link rel="canonical" href="${esc(pageUrl)}" />`,
+    ...alternateLinks(content, ""),
+    /* Die Markdown-Fassung gibt es nur auf Deutsch. */
+    lang === DEFAULT_LANG ? "<!-- Dieselbe Seite als Markdown - fuer Agenten, die lesen statt rendern -->" : "",
+    lang === DEFAULT_LANG ? '<link rel="alternate" type="text/markdown" href="index.md" />' : "",
+    "",
+    "<!-- Sprache des Systems: beim ersten Besuch auf die passende Fassung -->",
+    langScript(content, ""),
     "",
     "<!-- Theme frueh setzen (verhindert Aufblitzen des falschen Modus) -->",
     "<script>",
@@ -758,9 +772,9 @@ function renderHeadTag(content) {
     `<meta property="og:title" content="${esc(site.title)}" />`,
     `<meta property="og:description" content="${esc(site.ogDescription || site.description)}" />`,
     '<meta property="og:type" content="website" />',
-    `<meta property="og:url" content="${esc(url)}" />`,
+    `<meta property="og:url" content="${esc(pageUrl)}" />`,
     `<meta property="og:site_name" content="${esc(site.brandName)}" />`,
-    '<meta property="og:locale" content="de_DE" />',
+    `<meta property="og:locale" content="${OG_LOCALE[lang] || "de_DE"}" />`,
     `<meta property="og:image" content="${esc(ogImage)}" />`,
     '<meta property="og:image:width" content="1200" />',
     '<meta property="og:image:height" content="630" />',
@@ -772,12 +786,12 @@ function renderHeadTag(content) {
     `<meta name="twitter:description" content="${esc(site.ogDescription || site.description)}" />`,
     `<meta name="twitter:image" content="${esc(ogImage)}" />`,
     "",
-    '<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />',
-    '<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />',
+    `<link rel="icon" type="image/png" sizes="32x32" href="${a("assets/img/favicon-32.png")}" />`,
+    `<link rel="apple-touch-icon" href="${a("assets/img/apple-touch-icon.png")}" />`,
     "",
     "<!-- Schriften frueh laden (weniger Layout-Spruenge) -->",
-    '<link rel="preload" as="font" type="font/woff2" href="assets/fonts/montserrat-latin.woff2" crossorigin />',
-    '<link rel="preload" as="font" type="font/woff2" href="assets/fonts/inter-latin.woff2" crossorigin />',
+    `<link rel="preload" as="font" type="font/woff2" href="${a("assets/fonts/montserrat-latin.woff2")}" crossorigin />`,
+    `<link rel="preload" as="font" type="font/woff2" href="${a("assets/fonts/inter-latin.woff2")}" crossorigin />`,
     "",
     "<!-- Strukturierte Daten fuer Suchmaschinen -->",
     '<script type="application/ld+json">',
@@ -785,8 +799,8 @@ function renderHeadTag(content) {
     "</script>",
     "",
     "<!-- Fonts (lokal eingebunden, kein externer Aufruf) -->",
-    '<link rel="stylesheet" href="css/fonts.css" />',
-    '<link rel="stylesheet" href="css/styles.css" />',
+    `<link rel="stylesheet" href="${a("css/fonts.css")}" />`,
+    `<link rel="stylesheet" href="${a("css/styles.css")}" />`,
   ]);
 }
 
@@ -799,7 +813,7 @@ function renderHeader(content) {
   const channel = c.whatsappChannel
     ? join([
         `<a class="header-channel header-channel-wa" href="${esc(c.whatsappChannel)}" target="_blank" rel="noopener"` +
-          ` aria-label="${esc(h.channelLabel || "WhatsApp-Kanal folgen")}">`,
+          ` aria-label="${esc(h.channelLabel || t(content, "channelFollow"))}">`,
         "  " + icon("whatsapp"),
         "</a>",
       ])
@@ -810,14 +824,14 @@ function renderHeader(content) {
     ? join([
         `<a class="btn btn-wave mobile-channel" href="${esc(c.whatsappChannel)}" target="_blank" rel="noopener">`,
         "  " + icon("whatsapp", { size: 20 }),
-        `  <span>${esc(h.channelCta || h.channelLabel || "WhatsApp-Kanal folgen")}</span>`,
+        `  <span>${esc(h.channelCta || h.channelLabel || t(content, "channelFollow"))}</span>`,
         "</a>",
       ])
     : "";
 
   const themeToggle = join([
     '<button type="button" class="header-channel theme-toggle" data-theme-toggle' +
-      ' aria-label="Zu hellem Design wechseln" aria-pressed="false">',
+      ` aria-label="${esc(t(content, "themeToggle"))}" aria-pressed="false">`,
     '  <svg class="icon-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
       ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/>' +
       '<path d="M8 21h8M12 17v4"/></svg>',
@@ -832,26 +846,27 @@ function renderHeader(content) {
   return join([
     '<header class="site-header" id="top">',
     '  <div class="container header-inner">',
-    `    <a href="#top" class="brand" aria-label="${esc(h.brandLabel || "Startseite")}">`,
-    `      <img src="${esc(h.logo?.src)}" alt="${esc(h.logo?.alt)}" class="brand-logo"` +
+    `    <a href="#top" class="brand" aria-label="${esc(h.brandLabel || t(content, "home"))}">`,
+    `      <img src="${esc(asset(content, h.logo?.src))}" alt="${esc(h.logo?.alt)}" class="brand-logo"` +
       ` width="${esc(h.logo?.width)}" height="${esc(h.logo?.height)}" />`,
     "    </a>",
     "",
-    '    <nav class="nav" aria-label="Hauptnavigation">',
+    `    <nav class="nav" aria-label="${esc(t(content, "mainNav"))}">`,
     indent(navLinks.join("\n"), 6),
     "    </nav>",
     "",
     h.cta ? "    " + renderAction(h.cta, "nav-cta") : "",
     "",
-    '    <button type="button" class="nav-toggle" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobileNav">',
+    `    <button type="button" class="nav-toggle" aria-label="${esc(t(content, "menuOpen"))}" aria-expanded="false" aria-controls="mobileNav">`,
     "      <span></span><span></span><span></span>",
     "    </button>",
     "",
     channel ? indent(channel, 4) : "",
     "",
+    langSwitch(content, "") ? "    " + langSwitch(content, "") : "",
     indent(themeToggle, 4),
     "  </div>",
-    '  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile Navigation">',
+    `  <nav class="mobile-nav" id="mobileNav" aria-label="${esc(t(content, "mobileNav"))}">`,
     indent(navLinks.join("\n"), 4),
     h.cta ? "    " + renderAction(h.cta) : "",
     mobileChannel ? indent(mobileChannel, 4) : "",
@@ -872,11 +887,11 @@ function renderFooter(content) {
       ? join([
           '    <p class="footer-partner">',
           `      <span>${esc(f.partnerText)}</span>`,
-          indent(partnerLogo(f.partnerLogo, f.partnerHref, { className: "footer-prowin", lazy: true }), 6),
+          indent(partnerLogo(content, f.partnerLogo, f.partnerHref, { className: "footer-prowin", lazy: true }), 6),
           "    </p>",
         ])
       : "",
-    '    <nav class="footer-nav" aria-label="Footer-Navigation">',
+    `    <nav class="footer-nav" aria-label="${esc(t(content, "footerNav"))}">`,
     indent(nav.map((n) => `<a href="${esc(n.href)}">${esc(n.label)}</a>`).join("\n"), 6),
     "    </nav>",
     `    <p class="footer-legal">\n${indent(rich(f.legal), 6)}\n    </p>`,
@@ -913,9 +928,9 @@ function renderChatWidget(content) {
   const number = waNumber(w.phoneHref || content.contact?.phoneHref);
   if (!number) return "";
 
-  const label = w.label || "WhatsApp-Chat öffnen";
+  const label = w.label || t(content, "chatOpen");
   const avatar = w.avatar?.src
-    ? `<img src="${esc(w.avatar.src)}" alt="${esc(w.avatar.alt || "")}" class="chat-avatar"` +
+    ? `<img src="${esc(asset(content, w.avatar.src))}" alt="${esc(w.avatar.alt || "")}" class="chat-avatar"` +
       ` width="${esc(w.avatar.width)}" height="${esc(w.avatar.height)}" loading="lazy" decoding="async" />`
     : "";
 
@@ -939,7 +954,7 @@ function renderChatWidget(content) {
       ? join([
           '  <div class="chat-teaser" hidden>',
           `    <button type="button" class="chat-teaser-open">${rich(w.teaser)}</button>`,
-          '    <button type="button" class="chat-teaser-close" aria-label="Hinweis schließen">',
+          `    <button type="button" class="chat-teaser-close" aria-label="${esc(t(content, "closeHint"))}">`,
           '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
             ' stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
           "    </button>",
@@ -968,7 +983,7 @@ function renderChatWidget(content) {
     '      <div class="chat-panel-foot">',
     `        <a class="btn chat-start" href="${esc(waHref(number, w.prefill))}" target="_blank" rel="noopener">`,
     "          " + icon("whatsapp", { size: 20 }),
-    `          <span>${esc(w.ctaLabel || "Chat starten")}</span>`,
+    `          <span>${esc(w.ctaLabel || t(content, "chatStart"))}</span>`,
     "        </a>",
     channel && w.channelLabel
       ? `        <a class="chat-panel-channel" href="${esc(channel)}"` +
@@ -984,8 +999,12 @@ function renderChatWidget(content) {
 
 /* ---------- Gesamtseite ---------- */
 
-/** Erzeugt die vollstaendige index.html als String. */
-export function renderPage(content) {
+/**
+ * Erzeugt die vollstaendige index.html als String — fuer Deutsch die
+ * Startseite, fuer jede andere Sprache die unter <sprache>/index.html.
+ */
+export function renderPage(rawContent, lang = DEFAULT_LANG) {
+  const content = localize(rawContent, lang);
   const sections = visibleSections(content);
   let altIndex = 0;
 
@@ -1017,11 +1036,11 @@ export function renderPage(content) {
       "",
       indent(renderChatWidget(content), 2),
       "",
-      '  <script src="js/config.js"></script>',
-      '  <script src="js/theme.js" defer></script>',
-      '  <script src="js/script.js"></script>',
+      `  <script src="${esc(asset(content, "js/config.js"))}"></script>`,
+      `  <script src="${esc(asset(content, "js/theme.js"))}" defer></script>`,
+      `  <script src="${esc(asset(content, "js/script.js"))}"></script>`,
       "  <!-- In-Page-Werkzeuge fuer KI-Agenten (WebMCP). Laedt nur, wo der Browser das kann. -->",
-      '  <script src="js/webmcp.js" defer></script>',
+      `  <script src="${esc(asset(content, "js/webmcp.js"))}" defer></script>`,
       "</body>",
       "</html>",
       "",

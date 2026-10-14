@@ -40,7 +40,8 @@ jobs:
       - name: Gebaute Dateien sind aktuell
         run: |
           git diff --exit-code -- index.html index.md js/config.js llms.txt pricing.md sitemap.xml \
-              auth.md about.html contact.html privacy.html .well-known/ || {
+              auth.md about.html contact.html privacy.html .well-known/ en/ \
+              impressum.html datenschutz.html || {
             echo "::error::Erzeugte Dateien sind nicht aktuell. Bitte 'node scripts/build-site.mjs' ausfuehren und committen."
             exit 1
           }
@@ -53,7 +54,7 @@ jobs:
           }
 
       - name: HTML validieren
-        run: npx --yes html-validate@11 "*.html"
+        run: npx --yes html-validate@11 "*.html" "en/*.html"
 
       - name: Strukturierte Daten (JSON-LD) prüfen
         run: node scripts/check-jsonld.mjs

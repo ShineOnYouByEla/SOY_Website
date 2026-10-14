@@ -68,6 +68,7 @@ MCP server and no payment protocol here.
 - [Kataloge](https://shineonyou.de/katalog.html): proWIN-Kataloge als PDF und als Seitenbilder zum Durchblättern
 - [Impressum](https://shineonyou.de/impressum.html): Anbieterkennzeichnung nach § 5 DDG
 - [Datenschutz](https://shineonyou.de/datenschutz.html): Datenschutzerklärung nach DSGVO
+- [English version](https://shineonyou.de/en/): Startseite, Impressum und Datenschutz auf Englisch (verbindlich sind die deutschen Rechtstexte)
 - [Preise](https://shineonyou.de/pricing.md): wie sich die Kosten zusammensetzen (Markdown)
 - [Startseite als Markdown](https://shineonyou.de/index.md): derselbe Inhalt ohne Navigation und Bilder
 - [Über uns](https://shineonyou.de/about), [Kontakt](https://shineonyou.de/contact), [Datenschutz in Kurzform](https://shineonyou.de/privacy): Einstiegsseiten unter sprechenden Adressen

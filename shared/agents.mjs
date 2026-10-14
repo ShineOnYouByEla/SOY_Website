@@ -13,6 +13,7 @@
    ============================================================ */
 
 import { visibleSections } from "./render.mjs";
+import { availableLangs, langDir } from "./i18n.mjs";
 import { sha256Hex } from "./sha256.mjs";
 
 /* Wo die maschinenlesbaren Dateien liegen. Die Pfade stehen in llms.txt,
@@ -24,12 +25,13 @@ export const ARD_PATH = ".well-known/ard.json";
 /* Das oeffentliche Repository dieser Website. */
 export const REPO_URL = "https://github.com/ShineOnYouByEla/SOY_Website";
 
-/* Die Seiten, die ausgeliefert werden. Neue Seite -> hier ergaenzen. */
+/* Die Seiten, die ausgeliefert werden. Neue Seite -> hier ergaenzen.
+   `translated`: die Seite gibt es auch unter /en/. */
 const PAGES = [
-  { path: "", changefreq: "monthly", priority: "1.0", label: "Startseite", note: "Beratung, Produktbereiche, Ablauf einer proWINparty, Terminbuchung und Kontaktformular" },
+  { path: "", translated: true, changefreq: "monthly", priority: "1.0", label: "Startseite", note: "Beratung, Produktbereiche, Ablauf einer proWINparty, Terminbuchung und Kontaktformular" },
   { path: "katalog.html", changefreq: "monthly", priority: "0.6", label: "Kataloge", note: "proWIN-Kataloge als PDF und als Seitenbilder zum Durchblättern" },
-  { path: "impressum.html", changefreq: "yearly", priority: "0.3", label: "Impressum", note: "Anbieterkennzeichnung nach § 5 DDG" },
-  { path: "datenschutz.html", changefreq: "yearly", priority: "0.3", label: "Datenschutz", note: "Datenschutzerklärung nach DSGVO" },
+  { path: "impressum.html", translated: true, changefreq: "yearly", priority: "0.3", label: "Impressum", note: "Anbieterkennzeichnung nach § 5 DDG" },
+  { path: "datenschutz.html", translated: true, changefreq: "yearly", priority: "0.3", label: "Datenschutz", note: "Datenschutzerklärung nach DSGVO" },
 ];
 
 /** Basis-URL, immer mit Schrägstrich am Ende. */
@@ -194,6 +196,9 @@ export function renderLlmsTxt(content) {
       "## Seiten",
       "",
       ...PAGES.map((pg) => `- [${pg.label}](${page(pg.path)}): ${pg.note}`),
+      availableLangs(content).includes("en")
+        ? `- [English version](${page("en/")}): Startseite, Impressum und Datenschutz auf Englisch (verbindlich sind die deutschen Rechtstexte)`
+        : null,
       `- [Preise](${page("pricing.md")}): wie sich die Kosten zusammensetzen (Markdown)`,
       `- [Startseite als Markdown](${page("index.md")}): derselbe Inhalt ohne Navigation und Bilder`,
       `- [Über uns](${page("about")}), [Kontakt](${page("contact")}), [Datenschutz in Kurzform](${page("privacy")}): Einstiegsseiten unter sprechenden Adressen`,
@@ -291,22 +296,40 @@ export function renderSitemap(content) {
   const url = baseUrl(content);
   /* Alle Seiten entstehen aus einer Datei — sie haben denselben Stand. */
   const updated = updatedOn(content);
+  const langs = availableLangs(content);
+
+  /* Jede Sprachfassung ist ein eigener Eintrag und nennt alle Fassungen
+     derselben Seite — so verlangt es Google fuer hreflang in Sitemaps. */
+  const entries = PAGES.flatMap((pg) => {
+    const versions = pg.translated && langs.length > 1 ? langs : [langs[0]];
+    const alternates =
+      versions.length > 1
+        ? [
+            ...versions.map(
+              (l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${xml(url + langDir(l) + pg.path)}" />`
+            ),
+            `    <xhtml:link rel="alternate" hreflang="x-default" href="${xml(url + pg.path)}" />`,
+          ]
+        : [];
+    return versions.map((l) =>
+      lines([
+        "  <url>",
+        `    <loc>${xml(url + langDir(l) + pg.path)}</loc>`,
+        ...alternates,
+        updated ? `    <lastmod>${updated}</lastmod>` : null,
+        `    <changefreq>${pg.changefreq}</changefreq>`,
+        `    <priority>${pg.priority}</priority>`,
+        "  </url>",
+      ])
+    );
+  });
 
   return (
     lines([
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<!-- Erzeugt aus content/site.json (shared/agents.mjs) — nicht von Hand bearbeiten. -->',
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-      ...PAGES.map((pg) =>
-        lines([
-          "  <url>",
-          `    <loc>${xml(url + pg.path)}</loc>`,
-          updated ? `    <lastmod>${updated}</lastmod>` : null,
-          `    <changefreq>${pg.changefreq}</changefreq>`,
-          `    <priority>${pg.priority}</priority>`,
-          "  </url>",
-        ])
-      ),
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+      ...entries,
       "</urlset>",
       "",
     ])

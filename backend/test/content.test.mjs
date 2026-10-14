@@ -171,6 +171,10 @@ test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
       "about.html",
       "contact.html",
       "privacy.html",
+      "en/index.html",
+      "en/about.html",
+      "en/contact.html",
+      "en/privacy.html",
       "auth.md",
       ARD_PATH,
       SKILL_PATH,
@@ -189,6 +193,8 @@ test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
   assert.equal(byPath["sitemap.xml"], renderSitemap(stamped));
   assert.equal(byPath["index.md"], renderIndexMd(stamped));
   for (const pg of INFO_PAGES) assert.equal(byPath[pg.path], renderInfoPage(stamped, pg.slug));
+  assert.equal(byPath["en/index.html"], renderPage(stamped, "en"));
+  for (const pg of INFO_PAGES) assert.equal(byPath[`en/${pg.path}`], renderInfoPage(stamped, pg.slug, "en"));
   assert.equal(byPath["auth.md"], renderAuthMd(stamped));
   assert.equal(byPath[ARD_PATH], renderArdCatalog(stamped));
   assert.equal(byPath[SKILL_PATH], renderAgentSkill(stamped));
@@ -214,6 +220,25 @@ test("Die Vorschau lädt Vorlagen von der Live-Seite und schaltet Formulare ab",
   assert.ok(html.includes('<base href="https://shineonyou.de/" />'));
   assert.ok(!html.includes('src="js/script.js"'));
   assert.ok(html.includes("preventDefault"));
+});
+
+test("Die Vorschau leitet nicht auf eine andere Sprachfassung um", () => {
+  const html = previewHtml(live(), "https://shineonyou.de", [], "https://admin.example");
+  assert.ok(!html.includes("soy-lang-detect"));
+  assert.ok(!html.includes("location.replace"));
+});
+
+test("Ohne Übersetzung entsteht keine englische Fassung", () => {
+  const { translations, ...content } = live();
+  const paths = publishFiles(content).map((f) => f.path);
+  assert.ok(!paths.some((p) => p.startsWith("en/")));
+  assert.ok(!renderPage(content).includes('hreflang="en"'));
+});
+
+test("Übersetzungen werden auf ihre Form geprüft", () => {
+  assert.ok(validateContent({ ...live(), translations: [] }).some((e) => e.includes("translations")));
+  assert.ok(validateContent({ ...live(), translations: { fr: {} } }).some((e) => e.includes("„fr“")));
+  assert.ok(validateContent({ ...live(), translations: { en: "x" } }).some((e) => e.includes("„en“")));
 });
 
 test("Noch nicht veröffentlichte Bilder kommen in der Vorschau aus dem Backend", () => {

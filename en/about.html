@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About – Shine On You</title>
+  <meta name="description" content="Who is behind Shine On You: independent proWIN consultation in Peiting and the surrounding area, product areas and where consultations take place." />
+  <meta name="robots" content="noindex, follow" />
+  <meta name="theme-color" content="#041f24" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png" />
+  <link rel="alternate" hreflang="de" href="https://shineonyou.de/about.html" />
+  <link rel="alternate" hreflang="en" href="https://shineonyou.de/en/about.html" />
+  <link rel="alternate" hreflang="x-default" href="https://shineonyou.de/about.html" />
+
+  <script id="soy-lang-detect">
+    (function () {
+      var KEY = "soy-lang", HERE = "en", FALLBACK = "en";
+      var TARGET = {"de":"../about.html","en":"about.html"};
+      var has = function (k) { return Object.prototype.hasOwnProperty.call(TARGET, k); };
+      /* Bewusste Wahl ueber den Umschalter merken */
+      document.addEventListener("click", function (e) {
+        var a = e.target && e.target.closest ? e.target.closest("a[data-lang]") : null;
+        if (a) { try { localStorage.setItem(KEY, a.getAttribute("data-lang")); } catch (err) {} }
+      });
+      try {
+        if (navigator.webdriver || /bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent)) return;
+        /* Wer innerhalb der Seite einem Link folgt, hat die Sprache gewaehlt */
+        if (document.referrer.indexOf(location.origin + "/") === 0) return;
+        var want = localStorage.getItem(KEY);
+        if (!has(want)) {
+          /* Erste Sprache aus der Systemliste, die es hier gibt; sonst Englisch */
+          var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+          want = FALLBACK;
+          for (var i = 0; i < list.length; i++) {
+            var l = String(list[i]).slice(0, 2).toLowerCase();
+            if (has(l)) { want = l; break; }
+          }
+        }
+        if (want !== HERE) location.replace(TARGET[want] + location.search + location.hash);
+      } catch (err) { /* Speicher gesperrt: auf der aufgerufenen Seite bleiben */ }
+    })();
+  </script>
+
+  <!-- Theme frueh setzen (verhindert Aufblitzen des falschen Modus) -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("soy-theme");
+        var mode = stored === "light" || stored === "dark" ? stored : "system";
+        var prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+        var theme = mode === "system" ? (prefersLight ? "light" : "dark") : mode;
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-theme-mode", mode);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-theme-mode", "system");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="../css/fonts.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html#top" class="brand" aria-label="Shine On You – Home">
+        <img src="../assets/img/wordmark.webp" alt="Shine On You" class="brand-logo" width="640" height="360" />
+      </a>
+      <span style="margin-left:auto"><a class="header-channel lang-switch" href="../about.html" hreflang="de" lang="de" data-lang="de" aria-label="Deutsche Version" title="Deutsche Version">DE</a></span>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <div class="container">
+      <a href="index.html" class="legal-back">&larr; Back to the home page</a>
+      <h1>About Shine On You</h1>
+      <p>Independent proWIN consultation in Peiting and the surrounding area: natural products for household, cleaning, cosmetics and wellness. proWINparty at home or online.</p>
+      <p>I'm Manuela, or Ela for short – your independent proWIN consultant from Peiting. I'll accompany you on the way to a naturally clean home and more well-being. At Shine On You, everything revolves around products that work – while being gentle on people, animals and the environment.</p>
+      <p>Whether it's a personal product consultation, a relaxed product party at your home or a quick recommendation over the phone: I take my time for you and we'll find the right solution together.</p>
+      <h2>What this consultation stands for</h2>
+      <ul>
+        <li>Personal, honest advice</li>
+        <li>Sustainable products – made in Germany</li>
+        <li>Kind to skin &amp; the environment</li>
+        <li>No obligation and on equal terms</li>
+      </ul>
+      <h2>Product areas</h2>
+      <ul>
+        <li><strong>Household &amp; cleaning</strong> – Powerful, economical cleaners for kitchen, bathroom and floors – a little goes a long way, and they're gentle on surfaces.</li>
+        <li><strong>Cosmetics &amp; care</strong> – Care products for face, body and hair – kind to skin and made with high-quality ingredients.</li>
+        <li><strong>Wellness &amp; health</strong> – Products for more well-being in everyday life – from food supplements to relaxation.</li>
+        <li><strong>Air &amp; fragrance</strong> – Fresh room air and pleasant scents – for a good feeling and a cosy atmosphere in every room.</li>
+        <li><strong>BEST friends</strong> – Care and cleanliness for your pets.</li>
+        <li><strong>proWINparty &amp; consultation</strong> – Get to know the products at a live event – at home or online.</li>
+      </ul>
+      <h2>Where</h2>
+      <p>
+        In person in Peiting, Schongau, Weilheim in Oberbayern, Weilheim-Schongau district, Pfaffenwinkel – based in 86971 Peiting, Upper Bavaria, Germany.
+        A proWINparty or a product consultation also works online over video, wherever you live.
+      </p>
+      <h2>What does not happen here</h2>
+      <p>
+        This website does not sell anything itself. Orders, prices, shipping and complaints are handled by
+        proWIN International.
+        Consultation and proWINparty are free and non-binding.
+      </p>
+      <p><a href="contact.html">Contact</a> · <a href="impressum.html">Legal notice</a> · <a href="privacy.html">Privacy in brief</a></p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-legal">
+        <a href="index.html">Home</a> · <a href="impressum.html">Legal notice</a> · <a href="datenschutz.html">Privacy</a>
+      </p>
+      <p class="footer-fine">&copy; <span id="year"></span> Shine On You · Since 2026.</p>
+    </div>
+  </footer>
+
+  <script src="../js/theme.js" defer></script>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

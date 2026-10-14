@@ -3,8 +3,15 @@
 // kompletten strukturierten Daten ignorieren – genau das soll hier auffallen,
 // bevor es live geht.
 import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 
-const htmlFiles = readdirSync(".").filter((f) => f.endsWith(".html"));
+/* Startseite und Sprachfassungen (en/ …) */
+const dirs = [".", ...readdirSync(".", { withFileTypes: true })
+  .filter((d) => d.isDirectory() && /^[a-z]{2}$/.test(d.name))
+  .map((d) => d.name)];
+const htmlFiles = dirs.flatMap((dir) =>
+  readdirSync(dir).filter((f) => f.endsWith(".html")).map((f) => (dir === "." ? f : join(dir, f)))
+);
 const blockRe = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
 
 let blocks = 0;

@@ -13,7 +13,13 @@ function idsIn(html) {
   return new Set([...html.matchAll(/\bid=["']([^"']+)["']/g)].map((m) => m[1]));
 }
 
-const htmlFiles = readdirSync(".").filter((f) => f.endsWith(".html"));
+/* Startseite und Sprachfassungen (en/ …) */
+const dirs = [".", ...readdirSync(".", { withFileTypes: true })
+  .filter((d) => d.isDirectory() && /^[a-z]{2}$/.test(d.name))
+  .map((d) => d.name)];
+const htmlFiles = dirs.flatMap((dir) =>
+  readdirSync(dir).filter((f) => f.endsWith(".html")).map((f) => (dir === "." ? f : join(dir, f)))
+);
 const htmlContent = Object.fromEntries(htmlFiles.map((f) => [f, readFileSync(f, "utf8")]));
 
 for (const [file, html] of Object.entries(htmlContent)) {

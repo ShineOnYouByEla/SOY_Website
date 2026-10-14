@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legal notice – Shine On You</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#041f24" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png" />
+  <link rel="alternate" hreflang="de" href="https://shineonyou.de/impressum.html" />
+  <link rel="alternate" hreflang="en" href="https://shineonyou.de/en/impressum.html" />
+  <link rel="alternate" hreflang="x-default" href="https://shineonyou.de/impressum.html" />
+
+  <!-- Sprache des Systems: beim ersten Besuch auf die passende Fassung (Vorlage: shared/i18n.mjs) -->
+  <script id="soy-lang-detect">
+    (function () {
+      var KEY = "soy-lang", HERE = "en", FALLBACK = "en";
+      var TARGET = {"de":"../impressum.html","en":"impressum.html"};
+      var has = function (k) { return Object.prototype.hasOwnProperty.call(TARGET, k); };
+      /* Bewusste Wahl ueber den Umschalter merken */
+      document.addEventListener("click", function (e) {
+        var a = e.target && e.target.closest ? e.target.closest("a[data-lang]") : null;
+        if (a) { try { localStorage.setItem(KEY, a.getAttribute("data-lang")); } catch (err) {} }
+      });
+      try {
+        if (navigator.webdriver || /bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent)) return;
+        /* Wer innerhalb der Seite einem Link folgt, hat die Sprache gewaehlt */
+        if (document.referrer.indexOf(location.origin + "/") === 0) return;
+        var want = localStorage.getItem(KEY);
+        if (!has(want)) {
+          /* Erste Sprache aus der Systemliste, die es hier gibt; sonst Englisch */
+          var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+          want = FALLBACK;
+          for (var i = 0; i < list.length; i++) {
+            var l = String(list[i]).slice(0, 2).toLowerCase();
+            if (has(l)) { want = l; break; }
+          }
+        }
+        if (want !== HERE) location.replace(TARGET[want] + location.search + location.hash);
+      } catch (err) { /* Speicher gesperrt: auf der aufgerufenen Seite bleiben */ }
+    })();
+  </script>
+
+  <!-- Theme frueh setzen (verhindert Aufblitzen des falschen Modus) -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("soy-theme");
+        var mode = stored === "light" || stored === "dark" ? stored : "system";
+        var prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+        var theme = mode === "system" ? (prefersLight ? "light" : "dark") : mode;
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-theme-mode", mode);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-theme-mode", "system");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="../css/fonts.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html#top" class="brand" aria-label="Shine On You – Home">
+        <img src="../assets/img/wordmark.webp" alt="Shine On You" class="brand-logo" width="640" height="360" />
+      </a>
+
+      <a class="header-channel lang-switch" style="margin-left:auto" href="../impressum.html" hreflang="de" lang="de" data-lang="de" aria-label="Deutsche Version" title="Deutsche Version">DE</a>
+      <button type="button" class="header-channel theme-toggle" data-theme-toggle aria-label="Switch to light design" aria-pressed="false">
+        <svg class="icon-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="legal-main">
+    <div class="container">
+      <a href="index.html" class="legal-back">&larr; Back to the home page</a>
+      <h1>Legal notice</h1>
+      <p class="legal-note">
+        This is a courtesy translation of the German
+        <a href="../impressum.html" hreflang="de" lang="de">Impressum</a>. Only the German
+        version is legally binding.
+      </p>
+
+      <h2>Information pursuant to § 5 DDG (German Digital Services Act)</h2>
+      <p>
+        Manuela Zimmert<br />
+        Tannenstraße 7a<br />
+        86971 Peiting<br />
+        Germany
+      </p>
+      <p>Independent proWIN sales partner</p>
+
+      <h2>Contact</h2>
+      <p>
+        Phone: +49 1551 0279357<br />
+        Email: prowin.ela@web.de
+      </p>
+
+      <h2>VAT</h2>
+      <p>
+        As a small business within the meaning of § 19 UStG (German VAT Act), no VAT is
+        shown.
+      </p>
+
+      <h2>Responsible for the content pursuant to § 18 (2) MStV (German Interstate Media Treaty)</h2>
+      <p>
+        Manuela Zimmert<br />
+        Tannenstraße 7a<br />
+        86971 Peiting
+      </p>
+
+      <h2>Editorial review</h2>
+      <p>
+        All texts, images and graphics on this website have been editorially reviewed
+        and approved for publication by Manuela Zimmert.
+      </p>
+
+      <h2>EU dispute resolution</h2>
+      <p>
+        The European Commission provides a platform for online dispute resolution (ODR):
+        <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">https://ec.europa.eu/consumers/odr/</a>.
+        You can find our email address above in this legal notice.
+      </p>
+
+      <h2>Consumer dispute resolution / universal arbitration board</h2>
+      <p>
+        We are neither willing nor obliged to take part in dispute resolution proceedings
+        before a consumer arbitration board.
+      </p>
+
+      <h2>Trademark notice</h2>
+      <p>
+        “proWIN” is a trademark of proWIN International. This website is an independent
+        offering by a self-employed sales partner and is not an official representation
+        in the sense of a company presence.
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-legal">
+        <a href="index.html">Home</a> · <a href="impressum.html">Legal notice</a> · <a href="datenschutz.html">Privacy policy</a>
+      </p>
+      <p class="footer-review">The texts and graphics on this website have been editorially reviewed by Manuela Zimmert.</p>
+      <p class="footer-fine">&copy; <span id="year"></span> Shine On You · Since 2026.</p>
+    </div>
+  </footer>
+
+  <script src="../js/theme.js" defer></script>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

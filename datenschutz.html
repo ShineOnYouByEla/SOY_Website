@@ -7,6 +7,39 @@
   <meta name="robots" content="noindex" />
   <meta name="theme-color" content="#041f24" />
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
+  <link rel="alternate" hreflang="de" href="https://shineonyou.de/datenschutz.html" />
+  <link rel="alternate" hreflang="en" href="https://shineonyou.de/en/datenschutz.html" />
+  <link rel="alternate" hreflang="x-default" href="https://shineonyou.de/datenschutz.html" />
+
+  <!-- Sprache des Systems: beim ersten Besuch auf die passende Fassung (Vorlage: shared/i18n.mjs) -->
+  <script id="soy-lang-detect">
+    (function () {
+      var KEY = "soy-lang", HERE = "de", FALLBACK = "en";
+      var TARGET = {"de":"datenschutz.html","en":"en/datenschutz.html"};
+      var has = function (k) { return Object.prototype.hasOwnProperty.call(TARGET, k); };
+      /* Bewusste Wahl ueber den Umschalter merken */
+      document.addEventListener("click", function (e) {
+        var a = e.target && e.target.closest ? e.target.closest("a[data-lang]") : null;
+        if (a) { try { localStorage.setItem(KEY, a.getAttribute("data-lang")); } catch (err) {} }
+      });
+      try {
+        if (navigator.webdriver || /bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent)) return;
+        /* Wer innerhalb der Seite einem Link folgt, hat die Sprache gewaehlt */
+        if (document.referrer.indexOf(location.origin + "/") === 0) return;
+        var want = localStorage.getItem(KEY);
+        if (!has(want)) {
+          /* Erste Sprache aus der Systemliste, die es hier gibt; sonst Englisch */
+          var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+          want = FALLBACK;
+          for (var i = 0; i < list.length; i++) {
+            var l = String(list[i]).slice(0, 2).toLowerCase();
+            if (has(l)) { want = l; break; }
+          }
+        }
+        if (want !== HERE) location.replace(TARGET[want] + location.search + location.hash);
+      } catch (err) { /* Speicher gesperrt: auf der aufgerufenen Seite bleiben */ }
+    })();
+  </script>
 
   <!-- Theme früh setzen (verhindert Aufblitzen des falschen Modus) -->
   <script>
@@ -35,7 +68,8 @@
         <img src="assets/img/wordmark.webp" alt="Shine On You" class="brand-logo" width="640" height="360" />
       </a>
 
-      <button type="button" class="header-channel theme-toggle" data-theme-toggle style="margin-left:auto" aria-label="Zu hellem Design wechseln" aria-pressed="false">
+      <a class="header-channel lang-switch" style="margin-left:auto" href="en/datenschutz.html" hreflang="en" lang="en" data-lang="en" aria-label="English version" title="English version">EN</a>
+      <button type="button" class="header-channel theme-toggle" data-theme-toggle aria-label="Zu hellem Design wechseln" aria-pressed="false">
         <svg class="icon-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -130,7 +164,7 @@
         werden keine Profile über Sie erstellt.
       </p>
       <p>
-        Lediglich zwei technisch notwendige Einstellungen werden im lokalen Speicher
+        Lediglich einige technisch notwendige Einstellungen werden im lokalen Speicher
         („localStorage“) Ihres Browsers abgelegt, damit die Website sich Ihre
         Bedienentscheidungen merken kann:
       </p>
@@ -138,6 +172,11 @@
         <li>
           <code>soy-theme</code> – speichert, ob Sie das helle oder dunkle
           Erscheinungsbild gewählt haben.
+        </li>
+        <li>
+          <code>soy-lang</code> – speichert, welche Sprachfassung (Deutsch oder Englisch)
+          Sie über den Umschalter gewählt haben. Der Eintrag entsteht nur, wenn Sie selbst
+          umschalten; ohne ihn richtet sich die Sprache nach der Einstellung Ihres Browsers.
         </li>
         <li>
           <code>soy-channel-tip</code> – speichert, dass Sie den einmaligen Hinweis auf
