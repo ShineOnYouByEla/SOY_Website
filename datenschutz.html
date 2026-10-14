@@ -320,7 +320,9 @@
         Ihres Arbeitsplatzes oder des Orts des mutmaßlichen Verstoßes.
       </p>
 
-      <p class="legal-updated">Stand: <span id="stand"></span></p>
+      <!-- Stand von Hand nachziehen, sobald sich der Inhalt aendert –
+           nicht automatisch: ein mitlaufendes Datum behauptet eine Pruefung, die es nicht gab. -->
+      <p class="legal-updated">Stand: <time datetime="2026-10">Oktober 2026</time></p>
     </div>
   </main>
 
@@ -337,8 +339,6 @@
   <script src="js/theme.js" defer></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
-    document.getElementById("stand").textContent =
-      new Date().toLocaleDateString("de-DE", { month: "long", year: "numeric" });
   </script>
 </body>
 </html>

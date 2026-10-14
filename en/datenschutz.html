@@ -310,7 +310,9 @@
         residence, your place of work or the place of the alleged infringement.
       </p>
 
-      <p class="legal-updated">Last updated: <span id="stand"></span></p>
+      <!-- Stand von Hand nachziehen, sobald sich der Inhalt aendert –
+           nicht automatisch: ein mitlaufendes Datum behauptet eine Pruefung, die es nicht gab. -->
+      <p class="legal-updated">Last updated: <time datetime="2026-10">October 2026</time></p>
     </div>
   </main>
 
@@ -327,8 +329,6 @@
   <script src="../js/theme.js" defer></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
-    document.getElementById("stand").textContent =
-      new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" });
   </script>
 </body>
 </html>
