@@ -19,7 +19,7 @@
     "hono": "^4.13.14"
   },
   "devDependencies": {
-    "wrangler": "^4.137.0"
+    "wrangler": "^4.153.0"
   },
   "engines": {
     "node": ">=22.13"
