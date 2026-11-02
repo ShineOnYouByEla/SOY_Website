@@ -15,11 +15,11 @@
     "setup": "node scripts/create-admin.mjs"
   },
   "dependencies": {
-    "@hono/node-server": "^2.1.1",
+    "@hono/node-server": "^2.1.6",
     "hono": "^4.13.14"
   },
   "devDependencies": {
-    "wrangler": "^4.154.0"
+    "wrangler": "^4.156.2"
   },
   "engines": {
     "node": ">=22.13"
