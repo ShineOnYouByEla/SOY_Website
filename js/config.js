@@ -18,8 +18,8 @@ window.SOY_CONFIG = {
     "summary": "Unabhängige proWIN-Beratung in Peiting und Umgebung: natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online.",
     "priceRange": "€€",
     "whatsappChannel": "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F",
-    "shopUrl": "",
-    "partnerUrl": "",
+    "shopUrl": "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
+    "partnerUrl": "https://prowin.net/de/vertrieb/m.zimmert",
     "locality": "86971 Peiting",
     "areaServed": [
       "Peiting",
