@@ -61,7 +61,11 @@ CREATE TABLE IF NOT EXISTS draft (
   id          INTEGER PRIMARY KEY CHECK (id = 1),
   content     TEXT NOT NULL,
   updated_at  INTEGER NOT NULL,
-  updated_by  TEXT
+  updated_by  TEXT,
+  -- Commit auf main, auf dem der Entwurf beruht. Beim Veroeffentlichen wird
+  -- damit erkannt, ob main sich inzwischen bewegt hat. Bestehende
+  -- Datenbanken bekommen die Spalte ueber src/migrate.js.
+  base_sha    TEXT
 );
 
 -- Bilder, die zum Entwurf gehoeren, aber noch nicht im Repository liegen.

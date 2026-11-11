@@ -45,6 +45,8 @@ import {
   verifyTotp,
 } from "./totp.js";
 import * as gh from "./github.js";
+import { mergeContent, sameContent } from "./merge.js";
+import { ensureMigrated } from "./migrate.js";
 import { iconChoices } from "../../shared/icons.mjs";
 import { TITEL_DATEI, baueKataloge, katalogBase, serialisiereEintraege } from "../../shared/kataloge.mjs";
 import {
@@ -200,6 +202,14 @@ app.use("/api/*", async (c, next) => {
 app.use("/api/*", async (c, next) => {
   const token = readCookie(c.req.raw, SESSION_COOKIE);
   c.set("session", token ? await loadSession(c.env, token, now()) : null);
+  return next();
+});
+
+/* Der Worker hat keinen Startzeitpunkt: neue Spalten kommen deshalb vor der
+   ersten Anfrage in die Datenbank (siehe migrate.js). Je Datenbankobjekt nur
+   einmal, danach kostet das nichts mehr. */
+app.use("/api/*", async (c, next) => {
+  await ensureMigrated(c.env.DB);
   return next();
 });
 
@@ -546,20 +556,110 @@ app.post("/api/auth/recovery-codes", async (c) => {
    Inhalte
    ============================================================ */
 
-/** Entwurf aus D1 oder — falls keiner da ist — den Live-Stand aus dem Repo. */
+const SITE_JSON = "content/site.json";
+
+/** Commit-Kennungen, wie sie GitHub liefert — mehr wird nicht gespeichert. */
+const istSha = (v) => typeof v === "string" && /^[0-9a-z]{1,64}$/i.test(v);
+
+/** site.json auf einem bestimmten Commit oder Branch; null, wenn es sie dort nicht gibt. */
+async function siteJsonAuf(env, ref) {
+  const file = await gh.getFile(env, SITE_JSON, ref);
+  return file ? JSON.parse(new TextDecoder().decode(file.bytes)) : null;
+}
+
+/**
+ * Entwurf aus D1 oder — falls keiner da ist — den Live-Stand aus dem Repo.
+ * `base` ist der Commit auf main, auf dem dieser Stand beruht. Beim Live-Stand
+ * wird erst der Head gelesen und dann die Datei genau dort: sonst koennte
+ * dazwischen ein Commit landen, und Inhalt und Basis passten nicht zusammen.
+ */
 async function loadWorking(c) {
-  const draft = await c.env.DB.prepare("SELECT content, updated_at, updated_by FROM draft WHERE id = 1").first();
+  const draft = await c.env.DB.prepare("SELECT content, updated_at, updated_by, base_sha FROM draft WHERE id = 1").first();
   if (draft) {
-    return { content: JSON.parse(draft.content), source: "draft", updatedAt: draft.updated_at, updatedBy: draft.updated_by };
+    return {
+      content: JSON.parse(draft.content),
+      source: "draft",
+      updatedAt: draft.updated_at,
+      updatedBy: draft.updated_by,
+      base: draft.base_sha || null,
+    };
   }
-  const file = await gh.getFile(c.env, "content/site.json");
-  if (!file) {
+  const head = await gh.getBranchHead(c.env).catch(() => null);
+  const content = await siteJsonAuf(c.env, head || c.env.GITHUB_BRANCH);
+  if (!content) {
     throw new Error(
       `content/site.json wurde in ${c.env.GITHUB_REPO} im Branch „${c.env.GITHUB_BRANCH}" nicht gefunden. ` +
         "Entweder zeigt GITHUB_BRANCH auf den falschen Branch, oder die Datei ist dort noch nicht vorhanden."
     );
   }
-  return { content: JSON.parse(new TextDecoder().decode(file.bytes)), source: "live", updatedAt: null, updatedBy: null };
+  return { content, source: "live", updatedAt: null, updatedBy: null, base: head };
+}
+
+/**
+ * site.contentUpdated setzt publishFiles bei jedem Veroeffentlichen selbst.
+ * Im Entwurf fehlt es meist, auf main steht jedes Mal ein anderes Datum —
+ * im Abgleich waere das ein Dauerkonflikt um etwas, das niemand bearbeitet.
+ */
+function ohneStempel(content) {
+  if (!content?.site || !("contentUpdated" in content.site)) return content;
+  const { contentUpdated, ...site } = content.site;
+  return { ...content, site };
+}
+
+/**
+ * Den Entwurf gegen den jetzigen Stand von main halten.
+ *
+ * Hat sich site.json auf main seit der Basis des Entwurfs nicht veraendert,
+ * bleibt der Entwurf, wie er ist. Sonst wird drei-Wege-gemischt (merge.js):
+ * Aenderungen beider Seiten bleiben erhalten, nur echte Ueberschneidungen
+ * landen in `conflicts`. Ist die Basis unbekannt (Entwurf aus der Zeit vor
+ * dieser Spalte, oder der Commit ist verschwunden), laesst sich nicht sagen,
+ * wer was geaendert hat — dann zaehlt jeder Unterschied als Konflikt.
+ *
+ * @param {Record<string, "ours"|"theirs">} [resolve] Entscheidungen je Konfliktpfad
+ */
+async function abgleich(env, entwurf, baseSha, resolve = {}) {
+  const ours = ohneStempel(entwurf);
+  const head = await gh.getBranchHead(env);
+  if (baseSha && baseSha === head) {
+    return { head, base: baseSha, liveChanged: false, unknownBase: false, content: ours, conflicts: [] };
+  }
+
+  const theirs = ohneStempel(await siteJsonAuf(env, head));
+  if (!theirs) throw new Error(`${SITE_JSON} fehlt auf ${env.GITHUB_BRANCH}.`);
+  const base = baseSha ? ohneStempel(await siteJsonAuf(env, baseSha)) : null;
+
+  if (base && sameContent(base, theirs)) {
+    // main hat sich bewegt, aber nicht an den Inhalten (z. B. Abhaengigkeiten).
+    return { head, base: baseSha, liveChanged: false, unknownBase: false, content: ours, conflicts: [] };
+  }
+
+  const { result, conflicts } = mergeContent(base, theirs, ours, { resolve });
+  return { head, base: baseSha, liveChanged: true, unknownBase: !base, content: result, conflicts };
+}
+
+/** Kurzfassung fuer die Oberflaeche — ohne die vollen Inhalte. */
+function liveStand(ab) {
+  return {
+    head: ab.head,
+    base: ab.base,
+    changed: ab.liveChanged,
+    unknownBase: ab.unknownBase,
+    conflicts: ab.conflicts,
+  };
+}
+
+/** Antwort, wenn main und Entwurf sich an denselben Stellen widersprechen. */
+function konfliktAntwort(c, ab) {
+  const n = ab.conflicts.length;
+  const message = ab.unknownBase
+    ? `Es ist nicht bekannt, auf welchem Stand der Live-Seite dieser Entwurf beruht. ` +
+      `Er weicht an ${n} Stelle${n === 1 ? "" : "n"} von der Live-Seite ab — bitte jeweils entscheiden, ` +
+      "welcher Stand gelten soll, bevor er weitergeht."
+    : `Die Live-Seite hat sich seit Beginn deines Entwurfs geändert, und zwar an ${n} ` +
+      `Stelle${n === 1 ? "" : "n"}, die du ebenfalls geändert hast. Bitte zuerst entscheiden, ` +
+      "welcher Stand jeweils gelten soll — sonst würden die Änderungen auf der Live-Seite überschrieben.";
+  return fail(c, 409, message, { code: "live_changed", live: liveStand(ab) });
 }
 
 /**
@@ -586,11 +686,26 @@ app.get("/api/content", async (c) => {
     const working = await loadWorking(c);
     const pending = await c.env.DB.prepare("SELECT path, mime, bytes FROM pending_media ORDER BY path").all();
 
+    /* Beim Entwurf gleich mitteilen, ob die Live-Seite inzwischen weiter ist —
+       besser beim Laden als erst beim Veroeffentlichen. Scheitert der
+       Abgleich (GitHub nicht erreichbar), bleibt der Entwurf trotzdem
+       bearbeitbar; geprueft wird spaetestens beim Veroeffentlichen erneut. */
+    let live = null;
+    let head = working.source === "live" ? working.base : null;
+    if (working.source === "draft") {
+      const ab = await abgleich(c.env, working.content, working.base).catch(() => null);
+      if (ab) {
+        live = liveStand(ab);
+        head = ab.head;
+      }
+    }
+
     return c.json({
       ...working,
       siteUrl: c.env.SITE_URL,
       pendingMedia: pending.results || [],
-      head: await gh.getBranchHead(c.env).catch(() => null),
+      head,
+      live,
     });
   } catch (err) {
     // Haeufigster Fall: GITHUB_TOKEN fehlt oder ist abgelaufen.
@@ -612,14 +727,38 @@ app.put("/api/content", async (c) => {
   const errors = validateContent(body.content);
   if (errors.length) return fail(c, 400, "Die Inhalte sind noch nicht in Ordnung.", { errors });
 
+  const vorhanden = await c.env.DB.prepare("SELECT base_sha FROM draft WHERE id = 1").first();
+
+  /* Ein zweiter Tab mit altem Stand wuerde sonst einen gerade mit der
+     Live-Seite abgeglichenen Entwurf wieder auf den alten Inhalt setzen —
+     und weil die Basis schon weitergerueckt ist, fiele das beim
+     Veroeffentlichen nicht mehr auf. */
+  if (vorhanden?.base_sha && istSha(body.base) && body.base !== vorhanden.base_sha) {
+    return fail(
+      c,
+      409,
+      "Der Entwurf wurde inzwischen an anderer Stelle mit der Live-Seite abgeglichen. Bitte die Seite neu laden.",
+      { code: "draft_moved" }
+    );
+  }
+
+  /* Die Basis wird nur beim Anlegen festgehalten — danach bleibt sie, bis
+     der Entwurf ausdruecklich mit main abgeglichen wird. Bevorzugt die, mit
+     der die Oberflaeche geladen hat: Ihr Inhalt stammt von dort, auch wenn
+     main sich seither bewegt haben sollte. */
+  let base = null;
+  if (!vorhanden) {
+    base = istSha(body.base) ? body.base : await gh.getBranchHead(c.env).catch(() => null);
+  }
+
   await c.env.DB.prepare(
-    `INSERT INTO draft (id, content, updated_at, updated_by) VALUES (1, ?, ?, ?)
+    `INSERT INTO draft (id, content, updated_at, updated_by, base_sha) VALUES (1, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at, updated_by = excluded.updated_by`
   )
-    .bind(JSON.stringify(body.content), now(), s.email)
+    .bind(JSON.stringify(body.content), now(), s.email, base)
     .run();
 
-  return c.json({ ok: true, savedAt: now() });
+  return c.json({ ok: true, savedAt: now(), base: vorhanden ? vorhanden.base_sha || null : base });
 });
 
 app.delete("/api/content", async (c) => {
@@ -667,11 +806,25 @@ app.post("/api/content/testing", async (c) => {
   }
 
   try {
-    const { content, source } = await loadWorking(c);
+    const working = await loadWorking(c);
     // Ohne Entwurf gibt es nichts zu zeigen, was nicht ohnehin schon live ist.
-    if (source !== "draft") return c.json({ ok: true, branch, unchanged: true, testingUrl: c.env.TESTING_URL || null });
+    if (working.source !== "draft") return c.json({ ok: true, branch, unchanged: true, testingUrl: c.env.TESTING_URL || null });
 
+    /* Auch die Testseite soll zeigen, was beim Veroeffentlichen herauskaeme —
+       also den Entwurf samt allem, was seither auf main dazugekommen ist. */
+    const ab = await abgleich(c.env, working.content, working.base);
+    if (ab.conflicts.length) return konfliktAntwort(c, ab);
+    const content = ab.content;
     assertValid(content);
+
+    // Der Entwurf rueckt auf den neuen Stand vor; die Oberflaeche bekommt ihn mit.
+    const nachgezogen = ab.head !== working.base;
+    if (nachgezogen) {
+      await c.env.DB.prepare("UPDATE draft SET content = ?, base_sha = ? WHERE id = 1")
+        .bind(JSON.stringify(content), ab.head)
+        .run();
+    }
+
     const files = await inhaltsDateien(c, content);
 
     await gh.ensureBranch(c.env, branch);
@@ -690,7 +843,17 @@ app.post("/api/content/testing", async (c) => {
       now: now(),
     });
 
-    return c.json({ ok: true, branch, commit: result, files: files.length, testingUrl: c.env.TESTING_URL || null });
+    return c.json({
+      ok: true,
+      branch,
+      commit: result,
+      files: files.length,
+      testingUrl: c.env.TESTING_URL || null,
+      base: ab.head,
+      // Nur wenn sich am Inhalt etwas getan hat, muss die Oberflaeche ihn ersetzen.
+      merged: ab.liveChanged,
+      ...(ab.liveChanged ? { content } : {}),
+    });
   } catch (err) {
     if (err instanceof ValidationError) return fail(c, 400, "Die Inhalte sind noch nicht in Ordnung.", { errors: err.errors });
     if (err instanceof gh.GitHubError) return fail(c, err.status === 409 ? 409 : 502, err.message);
@@ -731,8 +894,15 @@ app.post("/api/content/publish", async (c) => {
   }
 
   try {
-    const { content, source } = await loadWorking(c);
-    if (source !== "draft") return fail(c, 400, "Es gibt keine ungespeicherten Änderungen zum Veröffentlichen.");
+    const working = await loadWorking(c);
+    if (working.source !== "draft") return fail(c, 400, "Es gibt keine ungespeicherten Änderungen zum Veröffentlichen.");
+
+    /* Nie blind ueber main schreiben: Was seit Beginn des Entwurfs dort
+       hinzugekommen ist, wird eingemischt; widerspricht es dem Entwurf,
+       geht nichts raus. */
+    const ab = await abgleich(c.env, working.content, working.base);
+    if (ab.conflicts.length) return konfliktAntwort(c, ab);
+    const content = ab.content;
 
     assertValid(content);
 
@@ -747,7 +917,9 @@ app.post("/api/content/publish", async (c) => {
     const result = await gh.commitFiles(c.env, files, {
       message: `${summary}\n\nGeändert über den Website-Admin von ${s.email}.`,
       author: authorLine(s),
-      expectedHead: body.expectedHead || undefined,
+      /* Gemischt wurde gegen genau diesen Head. Kommt bis zum Commit noch
+         etwas dazu, bricht commitFiles ab, statt es zu ueberschreiben. */
+      expectedHead: ab.head,
     });
 
     /* Die Testseite zieht nach: Sie soll ab jetzt wieder denselben Stand
@@ -776,11 +948,70 @@ app.post("/api/content/publish", async (c) => {
       now: t,
     });
 
-    return c.json({ ok: true, commit: result, files: files.length, testing });
+    return c.json({
+      ok: true,
+      commit: result,
+      files: files.length,
+      testing,
+      merged: ab.liveChanged,
+      ...(ab.liveChanged ? { content } : {}),
+    });
   } catch (err) {
     if (err instanceof ValidationError) return fail(c, 400, "Die Inhalte sind noch nicht in Ordnung.", { errors: err.errors });
     if (err instanceof gh.GitHubError) return fail(c, err.status === 409 ? 409 : 502, err.message);
     return fail(c, 500, `Veröffentlichen fehlgeschlagen: ${err.message}`);
+  }
+});
+
+/* ---------- Mit der Live-Seite abgleichen ---------- */
+
+/**
+ * Holt die Aenderungen, die seit Beginn des Entwurfs auf main gelandet sind,
+ * in den Entwurf. `resolve` entscheidet gemeldete Konflikte je Pfad:
+ * "ours" behaelt den Entwurf, "theirs" nimmt die Live-Seite. Bleibt ein
+ * Konflikt offen, aendert sich nichts.
+ */
+app.post("/api/content/rebase", async (c) => {
+  const guard = await requireUser(c);
+  if (guard) return guard;
+  const s = c.get("session");
+
+  if (!githubConfigured(c.env)) {
+    return fail(c, 503, "Das Backend ist noch nicht mit GitHub verbunden (GITHUB_TOKEN fehlt).");
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const resolve = {};
+  for (const [pfad, wahl] of Object.entries(body.resolve || {})) {
+    if (wahl === "ours" || wahl === "theirs") resolve[pfad] = wahl;
+  }
+
+  try {
+    const working = await loadWorking(c);
+    if (working.source !== "draft") return fail(c, 400, "Es gibt keinen Entwurf, der abgeglichen werden müsste.");
+
+    const ab = await abgleich(c.env, working.content, working.base, resolve);
+    if (ab.conflicts.length) return konfliktAntwort(c, ab);
+
+    const errors = validateContent(ab.content);
+    if (errors.length) return fail(c, 400, "Nach dem Zusammenführen sind die Inhalte nicht in Ordnung.", { errors });
+
+    await c.env.DB.prepare("UPDATE draft SET content = ?, base_sha = ?, updated_at = ?, updated_by = ? WHERE id = 1")
+      .bind(JSON.stringify(ab.content), ab.head, now(), s.email)
+      .run();
+    await audit(c.env, {
+      userId: s.user_id,
+      email: s.email,
+      action: "rebase",
+      detail: `${working.base ? working.base.slice(0, 7) : "unbekannt"} → ${ab.head.slice(0, 7)} · ${Object.keys(resolve).length} Entscheidung(en)`,
+      ip: clientIp(c),
+      now: now(),
+    });
+
+    return c.json({ ok: true, content: ab.content, base: ab.head, head: ab.head, merged: ab.liveChanged });
+  } catch (err) {
+    if (err instanceof gh.GitHubError) return fail(c, 502, err.message);
+    return fail(c, 500, `Der Abgleich mit der Live-Seite ist fehlgeschlagen: ${err.message}`);
   }
 });
 

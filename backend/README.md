@@ -68,6 +68,31 @@ Nebenbei:
 Branch, endet das Veröffentlichen dort als Commit – bis dieser Branch nach
 `main` gemergt ist, ändert sich an der Live-Seite nichts.
 
+### Wenn `main` dem Entwurf davonläuft
+
+Ein Entwurf merkt sich beim ersten Speichern, auf welchem Commit von `main` er
+beruht (Spalte `draft.base_sha`). Landen danach Änderungen an
+`content/site.json` auf `main` – etwa per Pull Request –, wird vor jedem
+„Speichern" auf die Testseite und vor jedem „Veröffentlichen" **drei-Wege
+gemischt** (`src/merge.js`): Basis, aktueller Stand von `main` und Entwurf.
+
+- Hat nur eine Seite eine Stelle geändert, gilt diese Änderung. Neue Felder auf
+  `main` bleiben also erhalten. Bereiche werden über ihre `id` zugeordnet,
+  nicht über die Position.
+- Haben beide dieselbe Stelle verschieden geändert, ist das ein **Konflikt**:
+  Es wird nichts committet, das Admin zeigt oben einen Hinweis („Die Live-Seite
+  hat sich seit Beginn deines Entwurfs geändert") und lässt je Stelle wählen,
+  ob der Entwurf oder die Live-Seite gelten soll.
+- Entwürfe aus der Zeit vor `base_sha` haben keine bekannte Basis. Dann zählt
+  jeder Unterschied zur Live-Seite als Konflikt – lieber einmal zu viel
+  nachgefragt als wieder etwas still überschrieben.
+
+Bestehende Datenbanken bekommen die neue Spalte automatisch (`src/migrate.js`):
+unter Node beim Start, im Worker vor der ersten Anfrage. `npm run db:init`
+muss dafür nicht noch einmal laufen.
+
+### Testing-Branch nach dem Veröffentlichen
+
 Lässt sich der Testing-Branch nach dem Veröffentlichen nicht mit `main`
 mischen, weil beide Seiten dieselben Zeilen geändert haben, wird er **hart auf
 den Live-Stand gesetzt**. Auf dem Testing-Branch soll deshalb nichts liegen,
@@ -471,6 +496,8 @@ backend/
 │   ├── crypto.js       Passwort-Hashing, Zufall, Vergleiche
 │   ├── totp.js         Zweiter Faktor nach RFC 6238
 │   ├── github.js       Commits über die Git-Data-API
+│   ├── merge.js        Drei-Wege-Merge von site.json (Entwurf gegen main)
+│   ├── migrate.js      neue Spalten für bestehende Datenbanken
 │   └── content.js      Prüfung der Inhalte und Vorschau
 ├── public/             Admin-Oberfläche (kein Build-Schritt)
 └── test/               Tests
@@ -508,6 +535,8 @@ die Vorschau im Worker und `index.html` im Build.
 | „Diese Oberfläche kennt den Typ … noch nicht" bei einem Bereich | Das laufende Backend ist älter als die Inhalte: die Sektionen kommen live aus GitHub, die Eingabemasken stecken im Image. Neu bauen und den Container ersetzen – siehe A, „Aktualisieren" |
 | Einladungslink funktioniert nicht | Er gilt sieben Tage und genau einmal. Unter „Benutzer & Zugänge" eine neue Einladung erstellen |
 | Alle Zugänge gesperrt/verloren | Das letzte aktive Konto lässt sich nicht sperren. Hilft das nicht: `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` bzw. direkt in der SQLite-Datei löschen, `npm run setup` |
-| „Das Repository wurde zwischenzeitlich geändert" | Jemand hat parallel committet: Seite neu laden, erneut veröffentlichen |
+| „Das Repository wurde zwischenzeitlich geändert" | Zwischen Abgleich und Commit kam etwas auf `main` dazu: einfach erneut veröffentlichen |
+| „Die Live-Seite hat sich seit Beginn deines Entwurfs geändert" | Auf `main` wurden dieselben Stellen geändert wie im Entwurf. Über „Konflikte klären" je Stelle entscheiden, dann erneut veröffentlichen |
+| „Der Entwurf wurde inzwischen an anderer Stelle … abgeglichen" | Ein zweites Admin-Fenster hat den Entwurf mit der Live-Seite zusammengeführt. Dieses Fenster neu laden, sonst ginge der Abgleich verloren |
 | Handy verloren | Mit einem Wiederherstellungscode anmelden, im Menü unter „Konto & Sicherheit" neu einrichten |
 | Alle Zugänge verloren | `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` löschen, `npm run setup` |

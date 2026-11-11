@@ -14,6 +14,11 @@ export class ApiError extends Error {
     this.mfaRequired = Boolean(details?.mfaRequired);
     /* Bei einem 403 wegen fremder Herkunft: was das Backend erlauben würde. */
     this.allowedOrigins = details?.allowed || null;
+    /* Maschinenlesbarer Grund, z. B. "live_changed" — die Meldung allein
+       reicht der Oberflaeche nicht, um passend zu reagieren. */
+    this.code = details?.code || null;
+    /** Abgleich mit der Live-Seite: Basis, Head und offene Konflikte. */
+    this.live = details?.live || null;
   }
 }
 
@@ -81,11 +86,14 @@ export const api = {
 
   /* --- Inhalte --- */
   getContent: () => request("GET", "/api/content"),
-  saveDraft: (content) => request("PUT", "/api/content", { json: { content } }),
+  /** `base`: Commit auf main, auf dem der Inhalt beruht (siehe /api/content). */
+  saveDraft: (content, base) => request("PUT", "/api/content", { json: { content, base } }),
   discardDraft: () => request("DELETE", "/api/content"),
   /** Den gespeicherten Entwurf auf den Testing-Branch stellen. */
   toTesting: () => request("POST", "/api/content/testing"),
-  publish: (message, expectedHead) => request("POST", "/api/content/publish", { json: { message, expectedHead } }),
+  publish: (message) => request("POST", "/api/content/publish", { json: { message } }),
+  /** Aenderungen der Live-Seite in den Entwurf holen; `resolve` entscheidet Konflikte je Pfad. */
+  rebase: (resolve) => request("POST", "/api/content/rebase", { json: { resolve: resolve || {} } }),
   contentStatus: () => request("GET", "/api/content/status"),
 
   /* --- Dateien --- */

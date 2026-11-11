@@ -25,6 +25,10 @@ import {
 const state = {
   content: null,
   head: null,
+  /** Commit auf main, auf dem der Entwurf beruht — geht bei jedem Speichern mit. */
+  base: null,
+  /** Abgleich mit der Live-Seite (siehe /api/content), null = nichts zu melden. */
+  live: null,
   dirty: false,
   saving: false,
   /** Kennung des offenen Bereichs, z. B. "section:ueber" oder "settings:seo". */
@@ -60,6 +64,8 @@ export async function startEditor(user) {
 
   state.content = content.content;
   state.head = content.head;
+  state.base = content.base || null;
+  state.live = content.live || null;
   state.siteUrl = content.siteUrl || "";
   setSiteUrl(state.siteUrl);
 
@@ -79,6 +85,7 @@ export async function startEditor(user) {
   renderSidebar();
   openPanel(`section:${state.content.sections[0]?.id}`);
   refreshPreview();
+  showLiveBanner();
 }
 
 /**
@@ -158,7 +165,8 @@ async function saveDraft({ silent = false } = {}) {
   $("#btnSave").disabled = true;
 
   try {
-    await api.saveDraft(state.content);
+    const saved = await api.saveDraft(state.content, state.base);
+    if (saved?.base) state.base = saved.base;
     setDirty(true);
     showErrors(null);
     if (!silent) await stelleAufTestseite();
@@ -167,6 +175,10 @@ async function saveDraft({ silent = false } = {}) {
     if (err instanceof ApiError && err.errors) {
       showErrors(err.errors);
       if (!silent) toast("Bitte zuerst die markierten Punkte korrigieren.", "error");
+    } else if (err instanceof ApiError && err.code === "draft_moved") {
+      // Laut und dauerhaft: jede weitere Eingabe in diesem Tab ginge verloren.
+      showLiveBanner({ moved: true });
+      toast(err.message, "error");
     } else {
       toast(err.message, "error");
     }
@@ -191,6 +203,14 @@ async function stelleAufTestseite() {
   toast("Gespeichert. Die Testseite wird aktualisiert …");
   try {
     const result = await api.toTesting();
+    if (result.base) state.base = result.base;
+    if (result.merged && result.content) {
+      inhaltErsetzen(result.content);
+      state.live = null;
+      showLiveBanner();
+      toast("Gespeichert. Die zwischenzeitlichen Änderungen der Live-Seite wurden übernommen und stehen mit auf der Testseite.", "ok");
+      return;
+    }
     // Ohne Änderung gegenüber dem Testing-Branch entsteht kein Commit.
     const schonDa = result.unchanged || result.commit?.unchanged;
     toast(
@@ -200,8 +220,183 @@ async function stelleAufTestseite() {
       "ok"
     );
   } catch (err) {
+    if (err instanceof ApiError && err.code === "live_changed") {
+      state.live = err.live;
+      showLiveBanner();
+      toast("Gespeichert – auf die Testseite kommt der Entwurf erst, wenn die Konflikte mit der Live-Seite geklärt sind.", "error");
+      return;
+    }
     toast(`Gespeichert – die Testseite konnte aber nicht aktualisiert werden: ${err.message}`, "error");
   }
+}
+
+/* ============================================================
+   Abgleich mit der Live-Seite
+   ============================================================ */
+
+/**
+ * Neuer Inhalt vom Server (nach dem Zusammenfuehren): Formulare und Vorschau
+ * muessen ihn zeigen, sonst ueberschreibt das naechste automatische Speichern
+ * die uebernommenen Aenderungen wieder mit dem alten Stand dieses Tabs.
+ */
+function inhaltErsetzen(content) {
+  clearTimeout(saveTimer);
+  state.content = content;
+  const [kind, id] = String(state.panel).split(":");
+  const nochDa = kind !== "section" || state.content.sections.some((s) => s.id === id);
+  renderSidebar();
+  openPanel(nochDa ? state.panel : `section:${state.content.sections[0]?.id}`);
+  refreshPreview();
+}
+
+function showLiveBanner({ moved = false } = {}) {
+  const banner = $("#liveBanner");
+  if (!banner) return;
+  clear(banner);
+
+  if (moved) {
+    banner.className = "live-banner is-conflict";
+    banner.append(
+      el("p", {
+        text:
+          "Dieser Entwurf wurde in einem anderen Fenster mit der Live-Seite abgeglichen. " +
+          "Was hier noch steht, ist veraltet — bitte die Seite neu laden.",
+      }),
+      el("button", { class: "btn btn-sm", type: "button", onClick: () => location.reload() }, "Neu laden")
+    );
+    banner.hidden = false;
+    return;
+  }
+
+  const live = state.live;
+  if (!live?.changed) {
+    banner.hidden = true;
+    return;
+  }
+
+  const n = live.conflicts?.length || 0;
+  let text;
+  if (live.unknownBase) {
+    text =
+      "Unbekannt, auf welchem Stand der Live-Seite dieser Entwurf beruht (er stammt aus einer älteren Version des Admins). " +
+      `Er weicht an ${n} Stelle${n === 1 ? "" : "n"} von der Live-Seite ab — bitte vor dem Veröffentlichen jede davon entscheiden.`;
+  } else if (n) {
+    text =
+      "Die Live-Seite hat sich seit Beginn deines Entwurfs geändert. " +
+      `${n} Stelle${n === 1 ? " hast" : "n hast"} du ebenfalls geändert — bitte entscheiden, was gelten soll.`;
+  } else {
+    text =
+      "Die Live-Seite hat sich seit Beginn deines Entwurfs geändert. Die Änderungen widersprechen deinem Entwurf nicht " +
+      "und werden spätestens beim Veröffentlichen übernommen.";
+  }
+
+  banner.className = `live-banner${n ? " is-conflict" : ""}`;
+  banner.append(
+    el("p", { text }),
+    el(
+      "button",
+      { class: "btn btn-sm", type: "button", onClick: () => liveUebernehmen() },
+      n ? "Konflikte klären" : "Jetzt übernehmen"
+    )
+  );
+  banner.hidden = false;
+}
+
+/** Die Aenderungen der Live-Seite in den Entwurf holen — bei Konflikten nach Rueckfrage. */
+async function liveUebernehmen() {
+  // Erst die letzte Eingabe sichern, sonst fehlt sie im Abgleich.
+  clearTimeout(saveTimer);
+  if (!(await saveDraft({ silent: true }))) return false;
+
+  let resolve = {};
+  if (state.live?.conflicts?.length) {
+    resolve = await konfliktDialog(state.live);
+    if (!resolve) return false;
+  }
+
+  try {
+    const result = await api.rebase(resolve);
+    state.base = result.base;
+    state.head = result.head;
+    state.live = null;
+    inhaltErsetzen(result.content);
+    showLiveBanner();
+    toast("Die Änderungen der Live-Seite sind jetzt im Entwurf.", "ok");
+    return true;
+  } catch (err) {
+    if (err instanceof ApiError && err.code === "live_changed") {
+      // Inzwischen ist auf main noch mehr passiert — neu entscheiden lassen.
+      state.live = err.live;
+      showLiveBanner();
+    }
+    if (err instanceof ApiError && err.errors) showErrors(err.errors);
+    toast(err.message, "error");
+    return false;
+  }
+}
+
+/** Pfad aus merge.js lesbar machen: Bereichs-ids durch ihren Namen ersetzen. */
+function konfliktOrt(pfad) {
+  return pfad.replace(/^((?:translations\.en\.)?)sections\[#([^\]]+)\]/, (_, en, id) => {
+    const s = state.content.sections.find((x) => x.id === id);
+    return `${en ? "Englisch › " : ""}Bereich „${s?.title || id}“`;
+  });
+}
+
+function wertText(v) {
+  if (v === undefined) return "(nicht vorhanden)";
+  if (typeof v === "string") return v || "(leer)";
+  const text = JSON.stringify(v, null, 2);
+  return text.length > 1200 ? `${text.slice(0, 1200)} …` : text;
+}
+
+/** Je Konflikt eine Wahl: Entwurf oder Live-Seite. Gibt die Entscheidungen zurück oder null. */
+function konfliktDialog(live) {
+  return dialog((body, close) => {
+    const wahl = {};
+    const los = el("button", { class: "btn btn-primary", type: "button", disabled: true, onClick: () => close(wahl) }, "Übernehmen");
+    const pruefe = () => (los.disabled = live.conflicts.some((k) => !wahl[k.path]));
+
+    body.append(
+      el("h2", { text: "Konflikte mit der Live-Seite" }),
+      el("p", {
+        class: "auth-note",
+        text: live.unknownBase
+          ? "Für diesen Entwurf ist nicht bekannt, auf welchem Stand er beruht. Jede Abweichung von der Live-Seite muss deshalb einzeln entschieden werden."
+          : "Diese Stellen wurden seit Beginn deines Entwurfs auf der Live-Seite geändert — und von dir auch. Alles andere wird automatisch zusammengeführt.",
+      }),
+      ...live.conflicts.map((k, i) => {
+        const option = (wert, label, inhalt) =>
+          el(
+            "label",
+            {},
+            el("input", {
+              type: "radio",
+              name: `konflikt-${i}`,
+              value: wert,
+              onChange: () => {
+                wahl[k.path] = wert;
+                pruefe();
+              },
+            }),
+            el("span", {}, el("strong", { text: label }), el("pre", { text: wertText(inhalt) }))
+          );
+        return el(
+          "div",
+          { class: "conflict" },
+          el("p", { class: "conflict-path", text: konfliktOrt(k.path) }),
+          option("ours", "Mein Entwurf", k.ours),
+          option("theirs", "Live-Seite", k.theirs)
+        );
+      }),
+      el(
+        "div",
+        { class: "dialog-actions" },
+        el("button", { class: "btn", type: "button", onClick: () => close(null) }, "Abbrechen"),
+        los
+      )
+    );
+  }).then((r) => r || null);
 }
 
 /** Link auf die Testseite in der Vorschauleiste, sofern eine hinterlegt ist. */
@@ -608,6 +803,9 @@ function bindToolbar() {
       const fresh = await api.getContent();
       state.content = fresh.content;
       state.head = fresh.head;
+      state.base = fresh.base || null;
+      state.live = null;
+      showLiveBanner();
       setDirty(false);
       renderSidebar();
       openPanel(`section:${state.content.sections[0]?.id}`);
@@ -672,6 +870,10 @@ async function publish() {
   clearTimeout(saveTimer);
   if (!(await saveDraft({ silent: true }))) return;
 
+  /* Konflikte mit der Live-Seite zuerst klaeren: Das Backend wuerde sonst
+     ohnehin ablehnen, und so sieht man vorher, worum es geht. */
+  if (state.live?.conflicts?.length && !(await liveUebernehmen())) return;
+
   const message = await dialog((body, close) => {
     let text = "";
     const hinweise = [
@@ -707,9 +909,14 @@ async function publish() {
   $("#btnPublish").disabled = true;
   toast("Wird veröffentlicht …");
   try {
-    const result = await api.publish(message, state.head);
+    const result = await api.publish(message);
     setDirty(false);
     state.head = result.commit.sha;
+    state.base = result.commit.sha;
+    state.live = null;
+    showLiveBanner();
+    // Beim Zusammenfuehren ist etwas von der Live-Seite dazugekommen.
+    if (result.merged && result.content) inhaltErsetzen(result.content);
     // Der Sync der Testseite ist Beiwerk – gescheitert ist er nur einen
     // Hinweis wert, veroeffentlicht wurde trotzdem.
     if (result.testing?.error) {
@@ -725,6 +932,11 @@ async function publish() {
     if (err instanceof ApiError && err.errors) {
       showErrors(err.errors);
       toast("Bitte zuerst die markierten Punkte korrigieren.", "error");
+    } else if (err instanceof ApiError && err.code === "live_changed") {
+      // Waehrend des Dialogs ist auf main etwas dazugekommen.
+      state.live = err.live;
+      showLiveBanner();
+      toast(err.message, "error");
     } else {
       toast(err.message, "error");
     }
@@ -1082,6 +1294,7 @@ async function auditDialog() {
     publish: "Veröffentlicht",
     testing: "Auf die Testseite gestellt",
     draft_discarded: "Entwurf verworfen",
+    rebase: "Mit der Live-Seite abgeglichen",
     katalog_upload: "Katalog hochgeladen",
     katalog_update: "Katalog geändert",
     katalog_order: "Katalog-Reihenfolge geändert",

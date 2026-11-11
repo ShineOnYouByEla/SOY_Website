@@ -17,6 +17,7 @@ import { serve } from "@hono/node-server";
 import app, { cleanup } from "./app.js";
 import { createAssets } from "./assets-fs.js";
 import { openDatabase } from "./db-sqlite.js";
+import { migrate } from "./migrate.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
@@ -101,6 +102,8 @@ const db = openDatabase(config.databasePath);
 // Das Schema ist zwischen D1 und SQLite identisch und wird bei jedem Start
 // angewandt (alle Anweisungen sind IF NOT EXISTS).
 db.exec(readFileSync(join(root, "schema.sql"), "utf8"));
+// Spalten, die nach dem ersten Anlegen dazugekommen sind.
+await migrate(db);
 
 /* ---------- Umgebung wie bei Cloudflare ---------- */
 
