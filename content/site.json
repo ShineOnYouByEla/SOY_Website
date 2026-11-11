@@ -161,7 +161,7 @@
           "Natürlich sauber.",
           "Natürlich du."
         ],
-        "lead": "Hochwertige Produkte für Haushalt, Reinigung, Kosmetik und Wellness –\nnachhaltig, alltagstauglich und persönlich beraten.\n<br />\nLass uns gemeinsam dein\nZuhause dich zum Strahlen bringen.",
+        "lead": "Hochwertige Produkte für Haushalt, Reinigung, Kosmetik und Wellness –\nnachhaltig, alltagstauglich und persönlich beraten.\n<br />\nLass uns gemeinsam dein\nZuhause zum Strahlen bringen.",
         "actions": [
           {
             "href": "#termin",
@@ -642,7 +642,7 @@
         "ctaLabel": "Start chat",
         "prefill": "Hi Ela, I have a question: ",
         "channelLabel": "Or follow my WhatsApp channel",
-        "note": "Opens WhatsApp with my number. Only then is any data sent to WhatsApp. Consultations are held in German."
+        "note": "Opens WhatsApp with my number. Only then is data sent to WhatsApp."
       },
       "sections": [
         {
