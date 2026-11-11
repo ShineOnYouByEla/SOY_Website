@@ -16,6 +16,7 @@
   --sun-deep:      #d99a68;  /* Sonne kräftiger (Hover) */
   --wave:          #8ed2d9;  /* Welle / Türkis */
   --wave-deep:     #5fb6c2;  /* Welle kräftiger (Hover) */
+  --prowin-gold:   #c2993d;  /* Goldton aus dem proWIN-Logo */
 
   --maxw: 1120px;
   --radius: 16px;
@@ -64,6 +65,7 @@
   --sun-deep:      #97500f;
   --wave:          #0f7d8a;  /* Welle kräftiger für Kontrast auf hell */
   --wave-deep:     #0a626d;
+  --prowin-gold:   #806014;  /* dunkler, damit der Schriftzug auf hell lesbar bleibt */
 
   --shadow: 0 18px 40px -24px rgba(18, 51, 56, 0.28);
 
@@ -452,6 +454,14 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 /* Partner-Logo als Link auf die proWIN-Seite */
 .partner-link { display: inline-flex; align-items: center; transition: opacity .2s ease; }
 .partner-link:hover { opacity: .75; }
+/* proWIN als Schriftzug statt Bildlogo: Groß-/Kleinschreibung der Marke
+   bleibt erhalten, darum die Versalien der umgebenden Zeile aufheben. */
+.partner-wordmark {
+  font-family: var(--font-head); font-weight: 700;
+  font-size: 1.25rem; line-height: 1;
+  text-transform: none; letter-spacing: .01em;
+  color: var(--prowin-gold);
+}
 
 /* dezente Wellenkante unten am Hero */
 .hero-wave {

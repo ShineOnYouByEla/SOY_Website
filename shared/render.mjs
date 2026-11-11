@@ -130,18 +130,27 @@ function columnClass(d) {
   return n >= 2 && n <= 4 ? ` cols-${n}` : "";
 }
 
-/* Partner-Logo (proWIN) – auf Wunsch als Link auf die Partnerseite. */
-function partnerLogo(content, logo, href, { className = "", lazy = false } = {}) {
-  if (!logo?.src) return "";
-  const cls = className ? ` class="${esc(className)}"` : "";
-  const loading = lazy ? ' loading="lazy" decoding="async"' : "";
-  const img =
-    `<img src="${esc(asset(content, logo.src))}" alt="${esc(logo.alt)}"${cls}` +
-    ` width="${esc(logo.width)}" height="${esc(logo.height)}"${loading} />`;
-  if (!href) return img;
+/* Partner-Kennzeichnung (proWIN) – als Schriftzug, wenn ein Name gesetzt ist,
+   sonst als Bildlogo; auf Wunsch als Link auf die Partnerseite. Der Schriftzug
+   hat Vorrang, weil das Bildlogo den Teamnamen „rekoteam creates YOU“ trägt,
+   der hier nicht erscheinen soll. */
+function partnerLogo(content, logo, href, { className = "", lazy = false, name = "" } = {}) {
+  let mark;
+  if (name) {
+    mark = `<span class="partner-wordmark">${esc(name)}</span>`;
+  } else if (logo?.src) {
+    const cls = className ? ` class="${esc(className)}"` : "";
+    const loading = lazy ? ' loading="lazy" decoding="async"' : "";
+    mark =
+      `<img src="${esc(asset(content, logo.src))}" alt="${esc(logo.alt)}"${cls}` +
+      ` width="${esc(logo.width)}" height="${esc(logo.height)}"${loading} />`;
+  } else {
+    return "";
+  }
+  if (!href) return mark;
   return join([
     `<a href="${esc(href)}" class="partner-link" target="_blank" rel="noopener">`,
-    "  " + img,
+    "  " + mark,
     "</a>",
   ]);
 }
@@ -162,7 +171,7 @@ const SECTIONS = {
     const headline = (d.headline || [])
       .map((line, i) => (i === 0 ? esc(line) : `<span class="accent-sun">${esc(line)}</span>`))
       .join("<br />");
-    const logo = partnerLogo(content, d.partnerLogo, d.partnerHref);
+    const logo = partnerLogo(content, d.partnerLogo, d.partnerHref, { name: d.partnerName });
     const partner = d.partnerText
       ? join([
           '<p class="hero-partner">',
@@ -888,7 +897,7 @@ function renderFooter(content) {
       ? join([
           '    <p class="footer-partner">',
           `      <span>${esc(f.partnerText)}</span>`,
-          indent(partnerLogo(content, f.partnerLogo, f.partnerHref, { className: "footer-prowin", lazy: true }), 6),
+          indent(partnerLogo(content, f.partnerLogo, f.partnerHref, { className: "footer-prowin", lazy: true, name: f.partnerName }), 6),
           "    </p>",
         ])
       : "",
