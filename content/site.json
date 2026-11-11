@@ -3,6 +3,7 @@
   "site": {
     "lang": "de",
     "baseUrl": "https://shineonyou.de/",
+    "contentUpdated": "2026-11-11",
     "brandName": "Shine On You",
     "tagline": "Natürlich sauber. Natürlich du.",
     "title": "proWIN Beratung in Peiting – Manuela Zimmert | Shine On You",
@@ -34,6 +35,8 @@
     "logo": "assets/img/logo-stacked-dark.png",
     "priceRange": "€€",
     "inLanguage": "de-DE",
+    "shopUrl": "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
+    "partnerUrl": "https://prowin.net/de/vertrieb/m.zimmert",
     "address": {
       "locality": "Peiting",
       "postalCode": "86971",
@@ -71,11 +74,19 @@
       "id": "manuela",
       "name": "Manuela Zimmert",
       "alternateName": "Ela",
-      "jobTitle": "Unabhängige proWIN-Vertriebsberaterin"
+      "jobTitle": "Unabhängige proWIN-Vertriebsberaterin",
+      "description": "Manuela Zimmert („Ela“) ist unabhängige proWIN-Vertriebsberaterin in Peiting. Sie berät persönlich zu Produkten für Haushalt, Reinigung, Kosmetik und Wellness und veranstaltet proWINpartys zuhause oder online per Video.",
+      "sameAs": [
+        "https://prowin.net/de/vertrieb/m.zimmert",
+        "https://kontakt.shineonyou.de"
+      ]
     },
     "sameAs": [
       "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F",
-      "https://kontakt.shineonyou.de"
+      "https://kontakt.shineonyou.de",
+      "https://prowin.net/de/vertrieb/m.zimmert",
+      "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
+      "https://github.com/ShineOnYouByEla"
     ]
   },
   "header": {
@@ -94,6 +105,48 @@
       "style": "sun"
     }
   },
+  "chat": {
+    "enabled": true,
+    "label": "WhatsApp-Chat mit Ela öffnen",
+    "teaser": "Fragen? Schreib mir kurz 👋",
+    "teaserDelay": 9,
+    "autoOpen": true,
+    "autoOpenDelay": 12,
+    "name": "Ela",
+    "role": "proWIN-Beratung · Peiting",
+    "avatar": {
+      "src": "assets/img/manuela.webp",
+      "width": 760,
+      "height": 1013
+    },
+    "messages": [
+      "Hallo, ich bin Ela 👋",
+      "Frag mich einfach – zu Produkten, einer proWINparty oder einer Bestellung. Ich antworte persönlich, ganz ohne Formular."
+    ],
+    "status": "Antwort meist noch am selben Tag",
+    "quickReplies": [
+      {
+        "label": "Produktfrage",
+        "message": "Hallo Ela, ich habe eine Frage zu einem proWIN Produkt: "
+      },
+      {
+        "label": "Produkte bestellen",
+        "message": "Hallo Ela, ich möchte proWIN Produkte bestellen: "
+      },
+      {
+        "label": "proWINparty planen",
+        "message": "Hallo Ela, ich interessiere mich für eine proWINparty. "
+      },
+      {
+        "label": "Im Team mitmachen",
+        "message": "Hallo Ela, ich würde gerne wissen, wie das Mitmachen in deinem Team funktioniert. "
+      }
+    ],
+    "ctaLabel": "Chat starten",
+    "prefill": "Hallo Ela, ich habe eine Frage: ",
+    "channelLabel": "Oder folge meinem WhatsApp-Kanal",
+    "note": "Öffnet WhatsApp mit meiner Nummer. Erst dann werden Daten an WhatsApp übertragen."
+  },
   "sections": [
     {
       "id": "hero",
@@ -108,7 +161,7 @@
           "Natürlich sauber.",
           "Natürlich du."
         ],
-        "lead": "Hochwertige Produkte für Haushalt, Reinigung, Kosmetik und Wellness –\nnachhaltig, alltagstauglich und persönlich beraten.\n<br />\nLass uns gemeinsam dein\nZuhause dich zum Strahlen bringen.",
+        "lead": "Hochwertige Produkte für Haushalt, Reinigung, Kosmetik und Wellness –\nnachhaltig, alltagstauglich und persönlich beraten.\n<br />\nLass uns gemeinsam dein\nZuhause zum Strahlen bringen.",
         "actions": [
           {
             "href": "#termin",
@@ -491,7 +544,7 @@
             "kind": "url",
             "icon": "link",
             "text": "Digitale Visitenkarte",
-            "href": "http://kontakt.shineonyou.de",
+            "href": "https://kontakt.shineonyou.de",
             "external": true
           }
         ],
@@ -547,7 +600,8 @@
         },
         "webPageName": "Shine On You – proWIN consultation Manuela Zimmert",
         "person": {
-          "jobTitle": "Independent proWIN sales consultant"
+          "jobTitle": "Independent proWIN sales consultant",
+          "description": "Manuela Zimmert (“Ela”) is an independent proWIN sales consultant in Peiting. She gives personal advice on products for household, cleaning, cosmetics and wellness and hosts proWINparties at home or online by video."
         }
       },
       "header": {
@@ -557,6 +611,38 @@
         "cta": {
           "label": "Book now"
         }
+      },
+      "chat": {
+        "label": "Open WhatsApp chat with Ela",
+        "teaser": "Questions? Drop me a line 👋",
+        "role": "proWIN consultation · Peiting",
+        "messages": [
+          "Hi, I'm Ela 👋",
+          "Just ask – about products, a proWINparty or an order. I reply personally, no form needed."
+        ],
+        "status": "Usually replies the same day",
+        "quickReplies": [
+          {
+            "label": "Product question",
+            "message": "Hi Ela, I have a question about a proWIN product: "
+          },
+          {
+            "label": "Order products",
+            "message": "Hi Ela, I'd like to order proWIN products: "
+          },
+          {
+            "label": "Plan a proWINparty",
+            "message": "Hi Ela, I'm interested in a proWINparty. "
+          },
+          {
+            "label": "Join the team",
+            "message": "Hi Ela, I'd like to know how joining your team works. "
+          }
+        ],
+        "ctaLabel": "Start chat",
+        "prefill": "Hi Ela, I have a question: ",
+        "channelLabel": "Or follow my WhatsApp channel",
+        "note": "Opens WhatsApp with my number. Only then is data sent to WhatsApp."
       },
       "sections": [
         {
