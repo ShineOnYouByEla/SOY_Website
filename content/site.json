@@ -102,12 +102,7 @@
       "enabled": true,
       "data": {
         "partnerText": "Selbstständige Beraterin von",
-        "partnerLogo": {
-          "src": "assets/img/prowin-gold.webp",
-          "alt": "proWIN rekoteam creates YOU – Logo",
-          "width": 244,
-          "height": 44
-        },
+        "partnerName": "proWIN",
         "partnerHref": "https://prowin.net/de/vertrieb/m.zimmert",
         "headline": [
           "Natürlich sauber.",
@@ -520,12 +515,7 @@
   ],
   "footer": {
     "partnerText": "Offizielle Beraterin von",
-    "partnerLogo": {
-      "src": "assets/img/prowin-gold.webp",
-      "alt": "proWIN rekoteam creates YOU – Logo",
-      "width": 244,
-      "height": 44
-    },
+    "partnerName": "proWIN",
     "partnerHref": "https://prowin.net/de/vertrieb/m.zimmert",
     "legal": "Manuela Zimmert · unabhängige proWIN‑Vertriebsberaterin · 86971 Peiting · <a href=\"impressum.html\">Impressum</a> · <a href=\"datenschutz.html\">Datenschutz</a>",
     "review": "Texte und Grafiken dieser Website wurden von Manuela Zimmert redaktionell geprüft.",
@@ -573,9 +563,6 @@
           "id": "hero",
           "data": {
             "partnerText": "Independent consultant for",
-            "partnerLogo": {
-              "alt": "proWIN rekoteam creates YOU – logo"
-            },
             "headline": [
               "Naturally clean.",
               "Naturally you."
@@ -851,9 +838,6 @@
       ],
       "footer": {
         "partnerText": "Official consultant for",
-        "partnerLogo": {
-          "alt": "proWIN rekoteam creates YOU – logo"
-        },
         "legal": "Manuela Zimmert · independent proWIN sales consultant · 86971 Peiting · <a href=\"impressum.html\">Legal notice</a> · <a href=\"datenschutz.html\">Privacy policy</a>",
         "review": "The texts and graphics on this website have been editorially reviewed by Manuela Zimmert.",
         "fine": "Shine On You · Since 2026 <br />“proWIN” is a trademark of proWIN International. This site is an independent offering."
