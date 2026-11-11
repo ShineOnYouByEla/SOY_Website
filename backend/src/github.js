@@ -128,6 +128,22 @@ export async function getFile(env, path, ref = null) {
   }
 }
 
+/**
+ * Einen Blob ueber seine Kennung lesen — auch einen, der in keinem aktuellen
+ * Branch mehr vorkommt. So bleibt der Stand greifbar, auf dem ein Entwurf
+ * beruht. Gibt null zurueck, wenn es ihn nicht gibt.
+ */
+export async function getBlob(env, sha) {
+  try {
+    const data = await gh(env, `/repos/${env.GITHUB_REPO}/git/blobs/${encodeURIComponent(sha)}`);
+    const bytes = Uint8Array.from(atob(String(data.content || "").replace(/\n/g, "")), (ch) => ch.charCodeAt(0));
+    return { sha: data.sha, bytes };
+  } catch (err) {
+    if (err instanceof GitHubError && (err.status === 404 || err.status === 422)) return null;
+    throw err;
+  }
+}
+
 /** Verzeichnisinhalt auflisten. */
 export async function listDirectory(env, path) {
   try {

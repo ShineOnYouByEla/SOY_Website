@@ -14,6 +14,9 @@ export class ApiError extends Error {
     this.mfaRequired = Boolean(details?.mfaRequired);
     /* Bei einem 403 wegen fremder Herkunft: was das Backend erlauben würde. */
     this.allowedOrigins = details?.allowed || null;
+    /* Beim Veroeffentlichen: warum zusammenfuehren nicht ohne Rueckfrage ging. */
+    this.code = details?.code || null;
+    this.conflicts = details?.conflicts || null;
   }
 }
 
@@ -81,11 +84,12 @@ export const api = {
 
   /* --- Inhalte --- */
   getContent: () => request("GET", "/api/content"),
-  saveDraft: (content) => request("PUT", "/api/content", { json: { content } }),
+  saveDraft: (content, base) => request("PUT", "/api/content", { json: { content, base } }),
   discardDraft: () => request("DELETE", "/api/content"),
   /** Den gespeicherten Entwurf auf den Testing-Branch stellen. */
   toTesting: () => request("POST", "/api/content/testing"),
-  publish: (message, expectedHead) => request("POST", "/api/content/publish", { json: { message, expectedHead } }),
+  publish: (message, expectedHead, force = false) =>
+    request("POST", "/api/content/publish", { json: { message, expectedHead, force } }),
   contentStatus: () => request("GET", "/api/content/status"),
 
   /* --- Dateien --- */

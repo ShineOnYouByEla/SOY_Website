@@ -45,6 +45,7 @@ import {
   verifyTotp,
 } from "./totp.js";
 import * as gh from "./github.js";
+import { mergeContent } from "./merge.js";
 import { iconChoices } from "../../shared/icons.mjs";
 import { TITEL_DATEI, baueKataloge, katalogBase, serialisiereEintraege } from "../../shared/kataloge.mjs";
 import {
@@ -546,11 +547,41 @@ app.post("/api/auth/recovery-codes", async (c) => {
    Inhalte
    ============================================================ */
 
+/* ---------- Basis des Entwurfs ---------- */
+
+/* Die Tabelle kam nach dem ersten Einrichten dazu. Damit ein bestehendes
+   Backend nicht erst `npm run db:init` braucht, legt es sie selbst an —
+   einmal je Datenbank und Prozess. */
+const basisTabelleDa = new WeakSet();
+async function basisTabelle(env) {
+  if (basisTabelleDa.has(env.DB)) return;
+  await env.DB.prepare(
+    "CREATE TABLE IF NOT EXISTS draft_base (id INTEGER PRIMARY KEY CHECK (id = 1), sha TEXT NOT NULL)"
+  ).run();
+  basisTabelleDa.add(env.DB);
+}
+
+/** Blob-Kennung von content/site.json, auf der der Entwurf beruht — oder null. */
+async function entwurfsBasis(env) {
+  await basisTabelle(env);
+  const row = await env.DB.prepare("SELECT sha FROM draft_base WHERE id = 1").first();
+  return row?.sha || null;
+}
+
+/* Git-Kennungen sind hex; der Nachbau in den Tests nimmt sprechende Namen. */
+const BASIS_FORM = /^[A-Za-z0-9]{1,64}$/;
+
 /** Entwurf aus D1 oder — falls keiner da ist — den Live-Stand aus dem Repo. */
 async function loadWorking(c) {
   const draft = await c.env.DB.prepare("SELECT content, updated_at, updated_by FROM draft WHERE id = 1").first();
   if (draft) {
-    return { content: JSON.parse(draft.content), source: "draft", updatedAt: draft.updated_at, updatedBy: draft.updated_by };
+    return {
+      content: JSON.parse(draft.content),
+      source: "draft",
+      updatedAt: draft.updated_at,
+      updatedBy: draft.updated_by,
+      base: await entwurfsBasis(c.env),
+    };
   }
   const file = await gh.getFile(c.env, "content/site.json");
   if (!file) {
@@ -559,8 +590,77 @@ async function loadWorking(c) {
         "Entweder zeigt GITHUB_BRANCH auf den falschen Branch, oder die Datei ist dort noch nicht vorhanden."
     );
   }
-  return { content: JSON.parse(new TextDecoder().decode(file.bytes)), source: "live", updatedAt: null, updatedBy: null };
+  return {
+    content: JSON.parse(new TextDecoder().decode(file.bytes)),
+    source: "live",
+    updatedAt: null,
+    updatedBy: null,
+    base: file.sha,
+  };
 }
+
+/** Fehler, der den Publish anhaelt, bis jemand entschieden hat. */
+class MergeStop extends Error {
+  constructor(code, message, extra = {}) {
+    super(message);
+    this.code = code;
+    this.extra = extra;
+  }
+}
+
+/**
+ * Den Entwurf auf den aktuellen Live-Stand setzen, statt ihn darueber zu
+ * kippen. Ohne diesen Schritt loescht ein alter Entwurf alles, was seitdem
+ * per Pull Request auf den Live-Branch gekommen ist.
+ *
+ * Mit `erzwingen` gewinnt bei Konflikten der Entwurf, und ein Entwurf ohne
+ * bekannte Basis geht unveraendert raus — so wie vor dieser Pruefung.
+ * @returns {Promise<{content: object, head: string, konflikte: string[], basisUnbekannt: boolean}>}
+ */
+async function aufLiveStand(c, entwurf, basisSha, { erzwingen = false } = {}) {
+  // Erst den Kopf, dann die Datei genau dieses Standes: Committet wird spaeter
+  // nur, wenn der Branch sich dazwischen nicht bewegt hat.
+  const head = await gh.getBranchHead(c.env);
+  const liveDatei = await gh.getFile(c.env, "content/site.json", head);
+  if (!liveDatei) return { content: entwurf, head, konflikte: [], basisUnbekannt: false };
+  if (basisSha && liveDatei.sha === basisSha) return { content: entwurf, head, konflikte: [], basisUnbekannt: false };
+
+  const live = JSON.parse(new TextDecoder().decode(liveDatei.bytes));
+
+  if (!basisSha) {
+    if (gleichJson(entwurf, live) || erzwingen) return { content: entwurf, head, konflikte: [], basisUnbekannt: true };
+    throw new MergeStop(
+      "basis_unbekannt",
+      "Dieser Entwurf stammt aus der Zeit vor der Konfliktprüfung. Es lässt sich nicht feststellen, " +
+        "worauf er aufbaut. Wer trotzdem veröffentlicht, überschreibt alles, was seitdem direkt im " +
+        "Repository an den Inhalten geändert wurde."
+    );
+  }
+
+  const basisDatei = await gh.getBlob(c.env, basisSha);
+  if (!basisDatei) {
+    if (erzwingen) return { content: entwurf, head, konflikte: [], basisUnbekannt: true };
+    throw new MergeStop(
+      "basis_unbekannt",
+      "Der Stand, auf dem dieser Entwurf aufbaut, ist im Repository nicht mehr zu finden."
+    );
+  }
+  const basis = JSON.parse(new TextDecoder().decode(basisDatei.bytes));
+
+  const { ergebnis, konflikte } = mergeContent(basis, entwurf, live);
+  if (konflikte.length && !erzwingen) {
+    throw new MergeStop(
+      "konflikt",
+      "Seit dieser Entwurf begonnen wurde, hat sich die Live-Seite an denselben Stellen geändert: " +
+        konflikte.join(", ") +
+        ". Wer trotzdem veröffentlicht, behält dort den Stand des Entwurfs.",
+      { conflicts: konflikte }
+    );
+  }
+  return { content: ergebnis, head, konflikte, basisUnbekannt: false };
+}
+
+const gleichJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 /**
  * Die Dateien, die ein Stand der Inhalte im Repository ergibt: site.json plus
@@ -612,12 +712,25 @@ app.put("/api/content", async (c) => {
   const errors = validateContent(body.content);
   if (errors.length) return fail(c, 400, "Die Inhalte sind noch nicht in Ordnung.", { errors });
 
-  await c.env.DB.prepare(
-    `INSERT INTO draft (id, content, updated_at, updated_by) VALUES (1, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at, updated_by = excluded.updated_by`
-  )
-    .bind(JSON.stringify(body.content), now(), s.email)
-    .run();
+  /* Die Basis kommt vom Editor: Es ist der Stand, den er geladen hat. Ohne
+     Angabe (ein noch offener Tab mit dem alten Editor) bleibt die bisherige. */
+  const basis = typeof body.base === "string" && BASIS_FORM.test(body.base) ? body.base : null;
+  await basisTabelle(c.env);
+
+  const statements = [
+    c.env.DB.prepare(
+      `INSERT INTO draft (id, content, updated_at, updated_by) VALUES (1, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at, updated_by = excluded.updated_by`
+    ).bind(JSON.stringify(body.content), now(), s.email),
+  ];
+  if (basis) {
+    statements.push(
+      c.env.DB.prepare(
+        "INSERT INTO draft_base (id, sha) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET sha = excluded.sha"
+      ).bind(basis)
+    );
+  }
+  await c.env.DB.batch(statements);
 
   return c.json({ ok: true, savedAt: now() });
 });
@@ -625,8 +738,10 @@ app.put("/api/content", async (c) => {
 app.delete("/api/content", async (c) => {
   const guard = await requireUser(c);
   if (guard) return guard;
+  await basisTabelle(c.env);
   await c.env.DB.batch([
     c.env.DB.prepare("DELETE FROM draft WHERE id = 1"),
+    c.env.DB.prepare("DELETE FROM draft_base WHERE id = 1"),
     c.env.DB.prepare("DELETE FROM pending_media"),
   ]);
 
@@ -667,10 +782,15 @@ app.post("/api/content/testing", async (c) => {
   }
 
   try {
-    const { content, source } = await loadWorking(c);
+    const working = await loadWorking(c);
     // Ohne Entwurf gibt es nichts zu zeigen, was nicht ohnehin schon live ist.
-    if (source !== "draft") return c.json({ ok: true, branch, unchanged: true, testingUrl: c.env.TESTING_URL || null });
+    if (working.source !== "draft") return c.json({ ok: true, branch, unchanged: true, testingUrl: c.env.TESTING_URL || null });
 
+    /* Die Testseite soll zeigen, was ein Veroeffentlichen ergaebe. Konflikte
+       halten sie nicht auf — dort gewinnt vorerst der Entwurf, die Entscheidung
+       faellt erst beim Veroeffentlichen. */
+    const stand = await aufLiveStand(c, working.content, working.base, { erzwingen: true });
+    const content = stand.content;
     assertValid(content);
     const files = await inhaltsDateien(c, content);
 
@@ -690,7 +810,15 @@ app.post("/api/content/testing", async (c) => {
       now: now(),
     });
 
-    return c.json({ ok: true, branch, commit: result, files: files.length, testingUrl: c.env.TESTING_URL || null });
+    return c.json({
+      ok: true,
+      branch,
+      commit: result,
+      files: files.length,
+      testingUrl: c.env.TESTING_URL || null,
+      conflicts: stand.konflikte,
+      baseUnknown: stand.basisUnbekannt,
+    });
   } catch (err) {
     if (err instanceof ValidationError) return fail(c, 400, "Die Inhalte sind noch nicht in Ordnung.", { errors: err.errors });
     if (err instanceof gh.GitHubError) return fail(c, err.status === 409 ? 409 : 502, err.message);
@@ -731,13 +859,23 @@ app.post("/api/content/publish", async (c) => {
   }
 
   try {
-    const { content, source } = await loadWorking(c);
-    if (source !== "draft") return fail(c, 400, "Es gibt keine ungespeicherten Änderungen zum Veröffentlichen.");
-
-    assertValid(content);
+    const working = await loadWorking(c);
+    if (working.source !== "draft") return fail(c, 400, "Es gibt keine ungespeicherten Änderungen zum Veröffentlichen.");
 
     const body = await c.req.json().catch(() => ({}));
     const note = String(body.message || "").trim().slice(0, 120);
+
+    /* Der Editor schickt den Kopf mit, den er beim Laden gesehen hat. Hat sich
+       der Branch seitdem bewegt, soll er neu laden — das bleibt so. */
+    const stand = await aufLiveStand(c, working.content, working.base, { erzwingen: body.force === true });
+    if (body.expectedHead && body.expectedHead !== stand.head) {
+      throw new gh.GitHubError(
+        "Das Repository wurde zwischenzeitlich geändert. Bitte die Seite neu laden und erneut veröffentlichen.",
+        409
+      );
+    }
+    const content = stand.content;
+    assertValid(content);
 
     // site.json, das daraus erzeugte index.html und js/config.js sowie die
     // Bilder aus dem Entwurf — alles in einem Commit auf den Live-Branch.
@@ -747,7 +885,8 @@ app.post("/api/content/publish", async (c) => {
     const result = await gh.commitFiles(c.env, files, {
       message: `${summary}\n\nGeändert über den Website-Admin von ${s.email}.`,
       author: authorLine(s),
-      expectedHead: body.expectedHead || undefined,
+      // Genau der Stand, gegen den zusammengefuehrt wurde.
+      expectedHead: stand.head,
     });
 
     /* Die Testseite zieht nach: Sie soll ab jetzt wieder denselben Stand
@@ -763,21 +902,28 @@ app.post("/api/content/publish", async (c) => {
         .catch((err) => ({ branch, error: err.message }));
     }
 
+    await basisTabelle(c.env);
     await c.env.DB.batch([
       c.env.DB.prepare("DELETE FROM draft WHERE id = 1"),
+      c.env.DB.prepare("DELETE FROM draft_base WHERE id = 1"),
       c.env.DB.prepare("DELETE FROM pending_media"),
     ]);
+    const vermerk = [
+      stand.konflikte.length ? `Entwurf gewann bei: ${stand.konflikte.join(", ")}` : "",
+      stand.basisUnbekannt ? "ohne bekannte Basis veröffentlicht" : "",
+    ].filter(Boolean);
     await audit(c.env, {
       userId: s.user_id,
       email: s.email,
       action: "publish",
-      detail: `${result.sha.slice(0, 7)} · ${files.length} Datei(en)`,
+      detail: [`${result.sha.slice(0, 7)} · ${files.length} Datei(en)`, ...vermerk].join(" · "),
       ip: clientIp(c),
       now: t,
     });
 
-    return c.json({ ok: true, commit: result, files: files.length, testing });
+    return c.json({ ok: true, commit: result, files: files.length, testing, merged: !gleichJson(content, working.content) });
   } catch (err) {
+    if (err instanceof MergeStop) return fail(c, 409, err.message, { code: err.code, ...err.extra });
     if (err instanceof ValidationError) return fail(c, 400, "Die Inhalte sind noch nicht in Ordnung.", { errors: err.errors });
     if (err instanceof gh.GitHubError) return fail(c, err.status === 409 ? 409 : 502, err.message);
     return fail(c, 500, `Veröffentlichen fehlgeschlagen: ${err.message}`);
