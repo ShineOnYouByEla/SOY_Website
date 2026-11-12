@@ -615,9 +615,11 @@ class MergeStop extends Error {
  *
  * Mit `erzwingen` gewinnt bei Konflikten der Entwurf, und ein Entwurf ohne
  * bekannte Basis geht unveraendert raus — so wie vor dieser Pruefung.
- * @returns {Promise<{content: object, head: string, konflikte: string[], basisUnbekannt: boolean}>}
+ * `entscheidungen` legt je Konfliktpfad fest, ob Entwurf oder Live-Stand
+ * gilt; nur was danach noch offen ist, haelt den Publish an.
+ * @returns {Promise<{content: object, head: string, konflikte: string[], entschieden: Record<string, string>, basisUnbekannt: boolean}>}
  */
-async function aufLiveStand(c, entwurf, basisSha, { erzwingen = false } = {}) {
+async function aufLiveStand(c, entwurf, basisSha, { erzwingen = false, entscheidungen = {} } = {}) {
   // Erst den Kopf, dann die Datei genau dieses Standes: Committet wird spaeter
   // nur, wenn der Branch sich dazwischen nicht bewegt hat.
   const head = await gh.getBranchHead(c.env);
@@ -647,20 +649,31 @@ async function aufLiveStand(c, entwurf, basisSha, { erzwingen = false } = {}) {
   }
   const basis = JSON.parse(new TextDecoder().decode(basisDatei.bytes));
 
-  const { ergebnis, konflikte } = mergeContent(basis, entwurf, live);
+  const { ergebnis, konflikte, details, entschieden } = mergeContent(basis, entwurf, live, { entscheidungen });
   if (konflikte.length && !erzwingen) {
     throw new MergeStop(
       "konflikt",
       "Seit dieser Entwurf begonnen wurde, hat sich die Live-Seite an denselben Stellen geändert: " +
         konflikte.join(", ") +
-        ". Wer trotzdem veröffentlicht, behält dort den Stand des Entwurfs.",
-      { conflicts: konflikte }
+        ". Bitte für jede Stelle entscheiden, ob dein Entwurf oder die Live-Seite gelten soll.",
+      // Beide Werte je Stelle, damit der Editor sie zur Wahl stellen kann.
+      { conflicts: konflikte, conflictDetails: details }
     );
   }
-  return { content: ergebnis, head, konflikte, basisUnbekannt: false };
+  return { content: ergebnis, head, konflikte, entschieden, basisUnbekannt: false };
 }
 
 const gleichJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/** Entscheidungen aus dem Editor: nur bekannte Werte, sonst zaehlt die Stelle als offen. */
+function leseEntscheidungen(roh) {
+  const out = {};
+  if (!roh || typeof roh !== "object" || Array.isArray(roh)) return out;
+  for (const [pfad, wahl] of Object.entries(roh)) {
+    if (pfad.length <= 300 && (wahl === "entwurf" || wahl === "live")) out[pfad] = wahl;
+  }
+  return out;
+}
 
 /**
  * Die Dateien, die ein Stand der Inhalte im Repository ergibt: site.json plus
@@ -867,7 +880,11 @@ app.post("/api/content/publish", async (c) => {
 
     /* Der Editor schickt den Kopf mit, den er beim Laden gesehen hat. Hat sich
        der Branch seitdem bewegt, soll er neu laden — das bleibt so. */
-    const stand = await aufLiveStand(c, working.content, working.base, { erzwingen: body.force === true });
+    const entscheidungen = leseEntscheidungen(body.resolve);
+    const stand = await aufLiveStand(c, working.content, working.base, {
+      erzwingen: body.force === true,
+      entscheidungen,
+    });
     if (body.expectedHead && body.expectedHead !== stand.head) {
       throw new gh.GitHubError(
         "Das Repository wurde zwischenzeitlich geändert. Bitte die Seite neu laden und erneut veröffentlichen.",
@@ -908,8 +925,11 @@ app.post("/api/content/publish", async (c) => {
       c.env.DB.prepare("DELETE FROM draft_base WHERE id = 1"),
       c.env.DB.prepare("DELETE FROM pending_media"),
     ]);
+    const nachWahl = (w) => Object.keys(stand.entschieden || {}).filter((p) => stand.entschieden[p] === w);
     const vermerk = [
       stand.konflikte.length ? `Entwurf gewann bei: ${stand.konflikte.join(", ")}` : "",
+      nachWahl("entwurf").length ? `Entwurf gewählt: ${nachWahl("entwurf").join(", ")}` : "",
+      nachWahl("live").length ? `Live-Stand gewählt: ${nachWahl("live").join(", ")}` : "",
       stand.basisUnbekannt ? "ohne bekannte Basis veröffentlicht" : "",
     ].filter(Boolean);
     await audit(c.env, {

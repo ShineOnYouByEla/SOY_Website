@@ -17,6 +17,8 @@ export class ApiError extends Error {
     /* Beim Veroeffentlichen: warum zusammenfuehren nicht ohne Rueckfrage ging. */
     this.code = details?.code || null;
     this.conflicts = details?.conflicts || null;
+    /* Zu jedem Konflikt beide Werte ({pfad, entwurf, live}), zur Wahl im Editor. */
+    this.conflictDetails = details?.conflictDetails || null;
   }
 }
 
@@ -88,8 +90,12 @@ export const api = {
   discardDraft: () => request("DELETE", "/api/content"),
   /** Den gespeicherten Entwurf auf den Testing-Branch stellen. */
   toTesting: () => request("POST", "/api/content/testing"),
-  publish: (message, expectedHead, force = false) =>
-    request("POST", "/api/content/publish", { json: { message, expectedHead, force } }),
+  /**
+   * `force`: bei Konflikten gewinnt ueberall der Entwurf (und unbekannte Basis wird hingenommen).
+   * `resolve`: je Konfliktpfad "entwurf" oder "live".
+   */
+  publish: (message, expectedHead, { force = false, resolve = {} } = {}) =>
+    request("POST", "/api/content/publish", { json: { message, expectedHead, force, resolve } }),
   contentStatus: () => request("GET", "/api/content/status"),
 
   /* --- Dateien --- */

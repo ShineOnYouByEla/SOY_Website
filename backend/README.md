@@ -78,9 +78,11 @@ aktueller Live-Stand Feld für Feld zusammengeführt (`src/merge.js`):
 
 - Was nur eine Seite geändert hat, bleibt erhalten. Sektionen werden über
   ihre `id` abgeglichen.
-- Hat **dieselbe Stelle** auf beiden Seiten einen anderen Wert, fragt das Admin
-  vor dem Veröffentlichen nach. Wer bestätigt, behält dort den Entwurf. Die
-  Testseite zeigt in dem Fall schon den Entwurf und meldet den Konflikt.
+- Hat **dieselbe Stelle** auf beiden Seiten einen anderen Wert, zeigt das Admin
+  vor dem Veröffentlichen jede dieser Stellen mit beiden Werten und lässt
+  wählen: Entwurf oder Live-Seite (oder für alle auf einmal). Erst wenn jede
+  Stelle entschieden ist, geht etwas raus; im Protokoll steht, was wo gewählt
+  wurde. Die Testseite zeigt bis dahin den Entwurf und meldet den Konflikt.
 - Entwürfe aus der Zeit vor dieser Prüfung haben keine bekannte Basis. Auch
   sie gehen nur nach Rückfrage raus, dann unverändert wie früher.
 
