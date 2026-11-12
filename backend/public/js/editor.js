@@ -4,6 +4,7 @@
 
 import { api, ApiError } from "./api.js";
 import { renderFields, setIconOptions, setSiteUrl } from "./fields.js";
+import { lesbarerPfad } from "./konfliktpfad.js";
 import { katalogManager } from "./media.js";
 import { SECTION_SCHEMA, SETTINGS_PANELS } from "./schema.js";
 import {
@@ -719,23 +720,45 @@ async function publish() {
   toast("Wird veröffentlicht …");
   try {
     let result;
-    try {
-      result = await api.publish(message, state.head);
-    } catch (err) {
-      // Nur bei Konflikten oder unbekannter Basis gibt es etwas zu entscheiden.
-      if (!(err instanceof ApiError && (err.code === "konflikt" || err.code === "basis_unbekannt"))) throw err;
-      const trotzdem = await confirmDialog({
-        title: "Live-Seite wurde inzwischen geändert",
-        text: err.message,
-        confirmLabel: "Trotzdem veröffentlichen",
-        danger: true,
-      });
-      if (!trotzdem) {
-        $("#btnPublish").disabled = false;
-        toast("Nicht veröffentlicht. Der Entwurf bleibt gespeichert.");
-        return;
+    /* Entscheidungen sammeln sich ueber mehrere Runden: Kommt waehrend des
+       Dialogs noch etwas auf main dazu, fragt der Server nur das Neue nach. */
+    let entscheidungen = {};
+    for (;;) {
+      try {
+        result = await api.publish(message, state.head, { resolve: entscheidungen });
+        break;
+      } catch (err) {
+        // Nur bei Konflikten oder unbekannter Basis gibt es etwas zu entscheiden.
+        if (!(err instanceof ApiError && (err.code === "konflikt" || err.code === "basis_unbekannt"))) throw err;
+
+        if (err.code === "konflikt" && err.conflictDetails?.length) {
+          const wahl = await konfliktDialog(err.conflictDetails, entscheidungen);
+          if (!wahl) {
+            $("#btnPublish").disabled = false;
+            toast("Nicht veröffentlicht. Der Entwurf bleibt gespeichert.");
+            return;
+          }
+          entscheidungen = { ...entscheidungen, ...wahl };
+          toast("Wird veröffentlicht …");
+          continue;
+        }
+
+        // Ohne bekannte Basis laesst sich nicht sagen, wer was geaendert hat —
+        // da bleibt nur die Rueckfrage im Ganzen.
+        const trotzdem = await confirmDialog({
+          title: "Live-Seite wurde inzwischen geändert",
+          text: err.message,
+          confirmLabel: "Trotzdem veröffentlichen",
+          danger: true,
+        });
+        if (!trotzdem) {
+          $("#btnPublish").disabled = false;
+          toast("Nicht veröffentlicht. Der Entwurf bleibt gespeichert.");
+          return;
+        }
+        result = await api.publish(message, state.head, { force: true });
+        break;
       }
-      result = await api.publish(message, state.head, true);
     }
     setDirty(false);
     state.head = result.commit.sha;
@@ -771,6 +794,100 @@ async function publish() {
     }
     $("#btnPublish").disabled = false;
   }
+}
+
+/* ============================================================
+   Konflikte mit der Live-Seite
+   ============================================================ */
+
+/**
+ * Wo der Konflikt liegt, so benannt wie im Admin. Der technische Pfad steht
+ * klein darunter — wer site.json kennt, findet die Stelle so sofort.
+ */
+function konfliktUeberschrift(pfad) {
+  const { text, technisch } = lesbarerPfad(pfad, state.content);
+  return el(
+    "div",
+    { class: "conflict-head" },
+    el("p", { class: "conflict-path", text }),
+    technisch ? null : el("p", { class: "conflict-tech", text: pfad })
+  );
+}
+
+function wertText(v) {
+  if (v === undefined) return "(nicht vorhanden)";
+  if (typeof v === "string") return v || "(leer)";
+  const text = JSON.stringify(v, null, 2);
+  return text.length > 1200 ? `${text.slice(0, 1200)} …` : text;
+}
+
+/**
+ * Je Konfliktstelle die Wahl zwischen Entwurf und Live-Seite. Bereits
+ * getroffene Entscheidungen sind vorausgewaehlt. Gibt {pfad: "entwurf"|"live"}
+ * zurueck oder null beim Abbrechen.
+ */
+function konfliktDialog(details, vorher = {}) {
+  return dialog((body, close) => {
+    const wahl = {};
+    for (const k of details) if (vorher[k.pfad]) wahl[k.pfad] = vorher[k.pfad];
+
+    const los = el("button", { class: "btn btn-primary", type: "button", onClick: () => close(wahl) }, "Übernehmen und veröffentlichen");
+    const pruefe = () => (los.disabled = details.some((k) => !wahl[k.pfad]));
+    pruefe();
+
+    const alle = (wert) => {
+      for (const k of details) wahl[k.pfad] = wert;
+      body.querySelectorAll(`input[type=radio][value="${wert}"]`).forEach((r) => (r.checked = true));
+      pruefe();
+    };
+
+    body.append(
+      el("h2", { text: "Live-Seite wurde inzwischen geändert" }),
+      el("p", {
+        class: "auth-note",
+        text:
+          "Seit Beginn deines Entwurfs wurden diese Stellen auch auf der Live-Seite geändert. " +
+          "Bitte jeweils wählen, was gelten soll. Alles andere wird automatisch zusammengeführt.",
+      }),
+      el(
+        "div",
+        { class: "row" },
+        el("button", { class: "btn btn-sm", type: "button", onClick: () => alle("entwurf") }, "Überall mein Entwurf"),
+        el("button", { class: "btn btn-sm", type: "button", onClick: () => alle("live") }, "Überall die Live-Seite")
+      ),
+      ...details.map((k, i) => {
+        const option = (wert, label, inhalt) =>
+          el(
+            "label",
+            {},
+            el("input", {
+              type: "radio",
+              name: `konflikt-${i}`,
+              value: wert,
+              checked: wahl[k.pfad] === wert,
+              onChange: () => {
+                wahl[k.pfad] = wert;
+                pruefe();
+              },
+            }),
+            el("span", {}, el("strong", { text: label }), el("pre", { text: wertText(inhalt) }))
+          );
+        return el(
+          "div",
+          { class: "conflict" },
+          konfliktUeberschrift(k.pfad),
+          option("entwurf", "Mein Entwurf", k.entwurf),
+          option("live", "Live-Seite", k.live)
+        );
+      }),
+      el(
+        "div",
+        { class: "dialog-actions" },
+        el("button", { class: "btn", type: "button", onClick: () => close(null) }, "Abbrechen"),
+        los
+      )
+    );
+  }).then((r) => r || null);
 }
 
 async function doLogout() {

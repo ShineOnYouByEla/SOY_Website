@@ -43,17 +43,25 @@ const mitKennung = (liste) =>
  * @param {unknown} basis  Stand, auf dem der Entwurf beruht
  * @param {unknown} entwurf
  * @param {unknown} live   aktueller Stand auf dem Live-Branch
- * @returns {{ ergebnis: unknown, konflikte: string[] }}
- *   Bei Konflikten steht im Ergebnis der Wert des Entwurfs — wer trotzdem
- *   veroeffentlicht, hat sich ausdruecklich dafuer entschieden.
+ * @param {{ entscheidungen?: Record<string, "entwurf"|"live"> }} [optionen]
+ *   Was bei einem bereits gemeldeten Konflikt gelten soll, je Pfad. Eine
+ *   entschiedene Stelle ist kein Konflikt mehr.
+ * @returns {{ ergebnis: unknown, konflikte: string[], details: Array<{pfad: string, entwurf: unknown, live: unknown}>, entschieden: Record<string, "entwurf"|"live"> }}
+ *   Bei offenen Konflikten steht im Ergebnis der Wert des Entwurfs — wer
+ *   trotzdem veroeffentlicht, hat sich ausdruecklich dafuer entschieden.
+ *   `details` traegt zu jedem offenen Konflikt beide Werte, damit der Editor
+ *   sie zur Wahl stellen kann (undefined: Feld fehlt auf dieser Seite).
  */
-export function mergeContent(basis, entwurf, live) {
-  const konflikte = [];
-  const ergebnis = mische(basis, entwurf, live, "", konflikte);
-  return { ergebnis, konflikte };
+export function mergeContent(basis, entwurf, live, { entscheidungen = {} } = {}) {
+  const details = [];
+  // Nur Entscheidungen, die tatsaechlich einen Konflikt aufgeloest haben —
+  // eine veraltete Wahl fuer eine Stelle, die gar nicht mehr streitig ist, zaehlt nicht.
+  const entschieden = {};
+  const ergebnis = mische(basis, entwurf, live, "", { details, entscheidungen, entschieden });
+  return { ergebnis, konflikte: details.map((d) => d.pfad), details, entschieden };
 }
 
-function mische(basis, entwurf, live, pfad, konflikte) {
+function mische(basis, entwurf, live, pfad, ctx) {
   if (gleich(entwurf, live)) return entwurf;
   if (gleich(entwurf, basis)) return live;
   if (gleich(live, basis)) return entwurf;
@@ -64,17 +72,24 @@ function mische(basis, entwurf, live, pfad, konflikte) {
     const out = {};
     const schluessel = verzahne(Object.keys(entwurf), Object.keys(live));
     for (const k of schluessel) {
-      const wert = mische(b[k], entwurf[k], live[k], pfad ? `${pfad}.${k}` : k, konflikte);
+      const wert = mische(b[k], entwurf[k], live[k], pfad ? `${pfad}.${k}` : k, ctx);
       if (wert !== undefined) out[k] = wert;
     }
     return out;
   }
 
   if (mitKennung(entwurf) && mitKennung(live) && (basis === undefined || mitKennung(basis))) {
-    return mischeListe(basis || [], entwurf, live, pfad, konflikte);
+    return mischeListe(basis || [], entwurf, live, pfad, ctx);
   }
 
-  konflikte.push(pfad || "(gesamter Inhalt)");
+  const ort = pfad || "(gesamter Inhalt)";
+  // Nur eigene Schluessel: ein Pfad wie "constructor" darf nicht aus dem Prototyp kommen.
+  const wahl = Object.prototype.hasOwnProperty.call(ctx.entscheidungen, ort) ? ctx.entscheidungen[ort] : null;
+  if (wahl === "live" || wahl === "entwurf") {
+    ctx.entschieden[ort] = wahl;
+    return wahl === "live" ? live : entwurf;
+  }
+  ctx.details.push({ pfad: ort, entwurf, live });
   return entwurf;
 }
 
@@ -97,7 +112,7 @@ function verzahne(fuehrend, andere) {
   return out;
 }
 
-function mischeListe(basis, entwurf, live, pfad, konflikte) {
+function mischeListe(basis, entwurf, live, pfad, ctx) {
   const nachId = (liste) => new Map(liste.map((x) => [x.id, x]));
   const b = nachId(basis);
   const e = nachId(entwurf);
@@ -114,7 +129,7 @@ function mischeListe(basis, entwurf, live, pfad, konflikte) {
 
   const out = [];
   for (const id of reihenfolge) {
-    const wert = mische(b.get(id), e.get(id), l.get(id), `${pfad}[${id}]`, konflikte);
+    const wert = mische(b.get(id), e.get(id), l.get(id), `${pfad}[${id}]`, ctx);
     if (wert !== undefined) out.push(wert);
   }
   return out;

@@ -442,6 +442,66 @@ test("Dieselbe Stelle auf beiden Seiten geändert: erst nachfragen, dann gewinnt
   assert.equal(liveInhalt().site.title, "Titel aus dem Entwurf");
 });
 
+test("Konflikte lassen sich je Stelle entscheiden", async () => {
+  await entwurfAblegen("Titel aus dem Entwurf");
+  const geladen = await daten(await anfrage("GET", "/api/content"));
+  const content = geladen.content;
+  content.site.description = "Beschreibung aus dem Entwurf";
+  await daten(await anfrage("PUT", "/api/content", { json: { content, base: geladen.base } }));
+  liveAendern((live) => {
+    live.site.title = "Titel aus dem Pull Request";
+    live.site.description = "Beschreibung aus dem Pull Request";
+    live.business.shopUrl = "https://shop.example.test/";
+  });
+  const vorher = hub.head("main");
+
+  // Der Server nennt beide Stellen mit beiden Werten …
+  const stopp = await daten(await anfrage("POST", "/api/content/publish", { json: {} }), 409);
+  assert.deepEqual(
+    stopp.conflictDetails.map((k) => [k.pfad, k.entwurf, k.live]),
+    [
+      ["site.title", "Titel aus dem Entwurf", "Titel aus dem Pull Request"],
+      ["site.description", "Beschreibung aus dem Entwurf", "Beschreibung aus dem Pull Request"],
+    ]
+  );
+
+  // … eine Entscheidung allein reicht nicht, es geht nichts live …
+  const halb = await daten(
+    await anfrage("POST", "/api/content/publish", { json: { resolve: { "site.title": "live" } } }),
+    409
+  );
+  assert.deepEqual(halb.conflicts, ["site.description"]);
+  assert.equal(hub.head("main"), vorher);
+
+  // … beide entschieden: je Stelle gilt die Wahl, der Rest wird gemischt.
+  await daten(
+    await anfrage("POST", "/api/content/publish", {
+      json: { resolve: { "site.title": "live", "site.description": "entwurf", "gibt.es.nicht": "live" } },
+    })
+  );
+  const live = liveInhalt();
+  assert.equal(live.site.title, "Titel aus dem Pull Request");
+  assert.equal(live.site.description, "Beschreibung aus dem Entwurf");
+  assert.equal(live.business.shopUrl, "https://shop.example.test/");
+
+  // Im Protokoll steht, wer wo gewonnen hat — nur echte Konfliktstellen.
+  const eintrag = await db.prepare("SELECT detail FROM audit_log WHERE action = 'publish' ORDER BY id DESC LIMIT 1").first();
+  assert.match(eintrag.detail, /Entwurf gewählt: site\.description/);
+  assert.match(eintrag.detail, /Live-Stand gewählt: site\.title(?! *,)/);
+  assert.doesNotMatch(eintrag.detail, /gibt\.es\.nicht/);
+});
+
+test("Unbrauchbare Entscheidungen zählen als offen", async () => {
+  await entwurfAblegen("Titel aus dem Entwurf");
+  liveAendern((live) => (live.site.title = "Titel aus dem Pull Request"));
+  await daten(
+    await anfrage("POST", "/api/content/publish", { json: { resolve: { "site.title": "beides" } } }),
+    409
+  );
+  await daten(await anfrage("POST", "/api/content/publish", { json: { resolve: ["site.title"] } }), 409);
+  assert.equal(liveInhalt().site.title, "Titel aus dem Pull Request");
+});
+
 test("Die Testseite zeigt schon den zusammengeführten Stand", async () => {
   await entwurfAblegen("Titel aus dem Entwurf");
   liveAendern((live) => (live.chat = { ...live.chat, teaser: "Neu per Pull Request" }));

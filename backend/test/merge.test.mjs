@@ -73,3 +73,56 @@ test("Listen ohne Kennung sind ein Ganzes: beidseitig geändert ist ein Konflikt
   // Bei Konflikten steht der Entwurf im Ergebnis.
   assert.deepEqual(ergebnis.l, [1, 2, 3]);
 });
+
+/* ---------- Entscheidung je Konfliktstelle ---------- */
+
+test("Konflikte kommen mit beiden Werten zurück", () => {
+  const { details } = mergeContent({ a: 1, chat: { x: 1 } }, { a: 2, chat: { x: 1 } }, { a: 3 });
+  assert.deepEqual(details, [{ pfad: "a", entwurf: 2, live: 3 }]);
+
+  // Gelöscht gegen geändert: die fehlende Seite ist undefined.
+  const geloescht = mergeContent({ chat: { x: 1 } }, {}, { chat: { x: 2 } });
+  assert.deepEqual(geloescht.details, [{ pfad: "chat", entwurf: undefined, live: { x: 2 } }]);
+});
+
+test("Je Stelle entschieden: Live-Stand oder Entwurf, alles andere wird gemischt", () => {
+  const basis = { a: 1, b: 1, c: 1 };
+  const entwurf = { a: 2, b: 2, c: 1 };
+  const live = { a: 3, b: 3, c: 9 };
+
+  const { ergebnis, konflikte, entschieden } = mergeContent(basis, entwurf, live, {
+    entscheidungen: { a: "live", b: "entwurf" },
+  });
+  assert.deepEqual(konflikte, []);
+  assert.deepEqual(ergebnis, { a: 3, b: 2, c: 9 });
+  assert.deepEqual(entschieden, { a: "live", b: "entwurf" });
+});
+
+test("Eine offene Stelle bleibt Konflikt, auch wenn andere entschieden sind", () => {
+  const { konflikte } = mergeContent({ a: 1, b: 1 }, { a: 2, b: 2 }, { a: 3, b: 3 }, { entscheidungen: { a: "live" } });
+  assert.deepEqual(konflikte, ["b"]);
+});
+
+test("Live gewählt, wo live gelöscht wurde: das Feld fällt weg", () => {
+  const { ergebnis, konflikte } = mergeContent({ chat: { x: 1 } }, { chat: { x: 2 } }, {}, { entscheidungen: { chat: "live" } });
+  assert.deepEqual(konflikte, []);
+  assert.deepEqual(ergebnis, {});
+});
+
+test("Entscheidungen greifen auch in Sektionen", () => {
+  const basis = { sections: [{ id: "hero", t: "a" }] };
+  const { ergebnis, konflikte } = mergeContent(
+    basis,
+    { sections: [{ id: "hero", t: "Entwurf" }] },
+    { sections: [{ id: "hero", t: "Live" }] },
+    { entscheidungen: { "sections[hero].t": "live" } }
+  );
+  assert.deepEqual(konflikte, []);
+  assert.deepEqual(ergebnis.sections, [{ id: "hero", t: "Live" }]);
+});
+
+test("Entscheidungen für Stellen ohne Konflikt ändern nichts und zählen nicht", () => {
+  const { ergebnis, entschieden } = mergeContent({ a: 1 }, { a: 2 }, { a: 1 }, { entscheidungen: { a: "live", constructor: "live" } });
+  assert.deepEqual(ergebnis, { a: 2 });
+  assert.deepEqual(entschieden, {});
+});
