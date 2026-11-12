@@ -67,6 +67,9 @@ Lighthouse läuft in der CI mit Mindestwerten (Performance, Accessibility,
 Best Practices ≥ 0.9, SEO ≥ 0.95). Große Bilder, blockierende Skripte und
 fehlende `alt`-Texte reißen die Schwelle.
 
+Die Backend-Tests (`npm test` unter `backend/`) laufen in der CI ebenfalls mit —
+sie prüfen auch die Renderer unter `shared/`.
+
 Das Backend unter `backend/` ist ein Cloudflare Worker (Admin-Oberfläche zum
 Pflegen der Inhalte). Es teilt sich die Renderer unter `shared/` mit dem
 Build-Script — deshalb dürfen die dort **keine Node-APIs** benutzen. Wer einen
