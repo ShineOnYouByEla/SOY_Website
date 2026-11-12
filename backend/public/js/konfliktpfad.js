@@ -28,7 +28,8 @@ const BEREICH_RAHMEN = {
 };
 
 /* Felder ohne Eingabemaske — sie kommen per Pull Request in die Inhalte,
-   koennen also genau dort mit einem Entwurf zusammenstossen. */
+   koennen also genau dort mit einem Entwurf zusammenstossen. Ein Eintrag ist
+   entweder nur die Beschriftung oder { label, felder } fuer ein Objekt. */
 const OHNE_MASKE = {
   site: { lang: "Sprache", baseUrl: "Adresse der Seite", ogImage: "Teilen-Bild", contentUpdated: "Datum der letzten Änderung" },
   business: {
@@ -36,12 +37,64 @@ const OHNE_MASKE = {
     inLanguage: "Sprache",
     shopUrl: "Adresse des Onlineshops",
     partnerUrl: "Adresse der Partnerseite",
-    address: "Anschrift",
-    offer: "Angebot",
+    address: {
+      label: "Anschrift",
+      felder: { locality: "Ort", postalCode: "Postleitzahl", region: "Bundesland", country: "Land" },
+    },
+    offer: { label: "Angebot", felder: { name: "Bezeichnung", description: "Beschreibung" } },
     webPageName: "Name der Webseite",
-    person: "Angaben zur Person",
+    person: {
+      label: "Angaben zur Person",
+      felder: {
+        id: "Kennung",
+        name: "Name",
+        alternateName: "Rufname",
+        jobTitle: "Berufsbezeichnung",
+        description: "Beschreibung",
+        sameAs: "Weitere Profile",
+      },
+    },
   },
 };
+
+/* Ein Bild ist im Inhalt ein Objekt. Beschriftet wie im Bildwaehler
+   (fields.js); Breite und Hoehe setzt er beim Auswaehlen selbst. */
+const BILD_TEILE = { src: "Bilddatei", alt: "Alternativtext", width: "Breite", height: "Höhe" };
+
+/**
+ * Beschriftungen fuer alles unterhalb eines bekannten Feldes. Folgt der
+ * Maske (Unterfelder einer Liste, Teile eines Bildes) bzw. der Liste fuer
+ * Felder ohne Maske, so weit sie reicht; danach bleibt es technisch.
+ * @param {object|string|undefined} def  Felddefinition aus schema.js oder Eintrag aus OHNE_MASKE
+ */
+function unterfelder(def, teile) {
+  const out = [];
+  let aktuell = def;
+  let i = 0;
+  for (; i < teile.length; i++) {
+    const key = teile[i].key;
+    if (key === undefined || !aktuell || typeof aktuell !== "object") break;
+    let naechstes;
+    let label;
+    if (aktuell.type === "image" && BILD_TEILE[key]) {
+      label = BILD_TEILE[key];
+    } else if (Array.isArray(aktuell.item)) {
+      // Liste in der Maske, im Inhalt ein einzelnes Objekt (etwa header.cta).
+      naechstes = aktuell.item.find((f) => f.k === key);
+      label = naechstes?.label;
+    } else if (aktuell.felder) {
+      naechstes = aktuell.felder[key];
+      label = typeof naechstes === "string" ? naechstes : naechstes?.label;
+    }
+    if (!label) break;
+    out.push(label);
+    aktuell = naechstes;
+  }
+  return [...out, ...rest(teile.slice(i))];
+}
+
+/** Beschriftung eines Eintrags aus OHNE_MASKE, ob Text oder Objekt. */
+const ohneMaskeLabel = (eintrag) => (typeof eintrag === "string" ? eintrag : eintrag?.label);
 
 /** "a.b[c].d" → [{key:"a"},{key:"b"},{id:"c"},{key:"d"}] */
 function zerlege(pfad) {
@@ -97,7 +150,8 @@ export function lesbarerPfad(pfad, content = {}) {
 
     const [inhalt, ...ganzTief] = tiefer;
     const def = SECTION_SCHEMA[s?.type]?.fields?.find((f) => f.k === inhalt.key);
-    return { text: [...vorn, name, def?.label || inhalt.key, ...rest(ganzTief)].join(" › "), technisch: false };
+    if (!def) return { text: [...vorn, name, inhalt.key, ...rest(ganzTief)].join(" › "), technisch: false };
+    return { text: [...vorn, name, def.label, ...unterfelder(def, ganzTief)].join(" › "), technisch: false };
   }
 
   /* --- Einstellungen --- */
@@ -105,8 +159,11 @@ export function lesbarerPfad(pfad, content = {}) {
   if (panel) {
     if (!danach.length) return { text: [...vorn, `${panel.title} (gesamt)`].join(" › "), technisch: false };
     const [feld, ...tiefer] = danach;
-    const label = panel.fields.find((f) => f.k === feld.key)?.label || OHNE_MASKE[panel.path]?.[feld.key];
-    return { text: [...vorn, panel.title, label || feld.key, ...rest(tiefer)].join(" › "), technisch: false };
+    // Die Maske hat Vorrang; die Liste ohne Maske ist nur der Rest.
+    const def = panel.fields.find((f) => f.k === feld.key) || OHNE_MASKE[panel.path]?.[feld.key];
+    const label = def?.label || ohneMaskeLabel(def);
+    if (!label) return { text: [...vorn, panel.title, feld.key, ...rest(tiefer)].join(" › "), technisch: false };
+    return { text: [...vorn, panel.title, label, ...unterfelder(def, tiefer)].join(" › "), technisch: false };
   }
 
   /* --- Unbekannt: lieber technisch als falsch --- */
