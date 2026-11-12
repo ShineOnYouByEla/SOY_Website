@@ -64,7 +64,8 @@ function fakeGitHub(startDateien, { mergeKonflikt = false } = {}) {
     return sha;
   };
 
-  const baumVon = (branch) => baeume.get(commits.get(branches.get(branch)));
+  // Wie bei GitHub darf `ref` ein Branch oder eine Commit-Kennung sein.
+  const baumVon = (ref) => baeume.get(commits.get(branches.has(ref) ? branches.get(ref) : ref));
   branches.set("main", neuerCommit(neuerBaum(Object.entries(startDateien).map(([p, i]) => [p, neuerBlob(i)]))));
 
   const json = (data, status = 200) =>
@@ -112,6 +113,14 @@ function fakeGitHub(startDateien, { mergeKonflikt = false } = {}) {
       });
     }
 
+    /* --- Einzelner Blob --- */
+    const blobLesen = pfad.match(/\/git\/blobs\/([^/]+)$/);
+    if (blobLesen && method === "GET") {
+      const inhalt = blobs.get(blobLesen[1]);
+      if (inhalt === undefined) return json({ message: "Not Found" }, 404);
+      return json({ sha: blobLesen[1], encoding: "base64", content: Buffer.from(inhalt, "utf8").toString("base64") });
+    }
+
     /* --- Commit bauen --- */
     const commitLesen = pfad.match(/\/git\/commits\/(commit\d+)$/);
     if (commitLesen && method === "GET") return json({ tree: { sha: commits.get(commitLesen[1]) } });
@@ -150,6 +159,12 @@ function fakeGitHub(startDateien, { mergeKonflikt = false } = {}) {
     fetchImpl,
     branches: () => [...branches.keys()].sort(),
     head: (branch) => branches.get(branch) || null,
+    /** Ein Commit, der am Admin vorbei auf den Branch geht — wie ein gemergter PR. */
+    commitDirekt: (branch, pfad, inhalt) => {
+      const eintraege = new Map(baumVon(branch));
+      eintraege.set(pfad, neuerBlob(inhalt));
+      branches.set(branch, neuerCommit(neuerBaum(eintraege)));
+    },
     dateien: (branch) => [...(baumVon(branch)?.keys() || [])].sort(),
     inhalt: (branch, pfad) => {
       const sha = baumVon(branch)?.get(pfad);
@@ -209,7 +224,7 @@ function starte(optionen) {
 }
 
 beforeEach(() => {
-  db.exec("DELETE FROM draft; DELETE FROM pending_media");
+  db.exec("DELETE FROM draft; DELETE FROM draft_base; DELETE FROM pending_media");
   starte();
 });
 
@@ -235,13 +250,26 @@ async function daten(res, erwartet = 200) {
   return text ? JSON.parse(text) : null;
 }
 
-/** Entwurf mit geändertem Seitentitel ablegen — wie das Speichern im Admin. */
+/**
+ * Entwurf mit geändertem Seitentitel ablegen — wie das Speichern im Admin:
+ * erst laden, dann mit der Basis zurückschicken, die das Laden geliefert hat.
+ */
 async function entwurfAblegen(titel = "Neuer Titel") {
-  const content = JSON.parse(JSON.stringify(inhalte));
+  const geladen = await daten(await anfrage("GET", "/api/content"));
+  const content = JSON.parse(JSON.stringify(geladen.content));
   content.site.title = titel;
-  await daten(await anfrage("PUT", "/api/content", { json: { content } }));
+  await daten(await anfrage("PUT", "/api/content", { json: { content, base: geladen.base } }));
   return content;
 }
+
+/** Live-Inhalte auf main ändern, ohne den Admin — wie ein gemergter Pull Request. */
+function liveAendern(aendern) {
+  const live = JSON.parse(hub.inhalt("main", "content/site.json"));
+  aendern(live);
+  hub.commitDirekt("main", "content/site.json", JSON.stringify(live, null, 2) + "\n");
+}
+
+const liveInhalt = () => JSON.parse(hub.inhalt("main", "content/site.json"));
 
 /* ---------- Speichern ---------- */
 
@@ -360,6 +388,101 @@ test("Ohne Testing-Branch veröffentlicht der Admin wie bisher", async () => {
   assert.equal(data.testing, null);
   assert.deepEqual(hub.branches(), ["main"]);
   assert.ok(hub.inhalt("main", "content/site.json").includes("Ohne Testseite"));
+});
+
+/* ---------- Alter Entwurf gegen neueren Live-Stand ---------- */
+
+test("Ein alter Entwurf löscht nicht, was inzwischen live dazugekommen ist", async () => {
+  // Nachgestellt: Entwurf begonnen, dann kommt per PR der Chat-Block auf main …
+  await entwurfAblegen("Titel aus dem Entwurf");
+  liveAendern((live) => {
+    live.chat = { ...live.chat, teaser: "Neu per Pull Request" };
+    live.business.shopUrl = "https://shop.example.test/";
+  });
+
+  // … und erst danach wird der alte Entwurf veröffentlicht.
+  const geladen = await daten(await anfrage("GET", "/api/content"));
+  const data = await daten(
+    await anfrage("POST", "/api/content/publish", { json: { expectedHead: geladen.head } })
+  );
+
+  const live = liveInhalt();
+  assert.equal(live.site.title, "Titel aus dem Entwurf");
+  assert.equal(live.chat.teaser, "Neu per Pull Request");
+  assert.equal(live.business.shopUrl, "https://shop.example.test/");
+  assert.equal(data.merged, true);
+  // Die erzeugte Seite beruht auf dem zusammengeführten Stand, nicht auf dem Entwurf.
+  assert.ok(hub.inhalt("main", "index.html").includes("Neu per Pull Request"));
+});
+
+test("Ein entfernter Block bleibt weg, wenn nur der Entwurf ihn entfernt hat", async () => {
+  const geladen = await daten(await anfrage("GET", "/api/content"));
+  const content = JSON.parse(JSON.stringify(geladen.content));
+  delete content.chat;
+  await daten(await anfrage("PUT", "/api/content", { json: { content, base: geladen.base } }));
+  liveAendern((live) => (live.site.title = "Anderswo geändert"));
+
+  await daten(await anfrage("POST", "/api/content/publish", { json: {} }));
+  const live = liveInhalt();
+  assert.equal(live.chat, undefined);
+  assert.equal(live.site.title, "Anderswo geändert");
+});
+
+test("Dieselbe Stelle auf beiden Seiten geändert: erst nachfragen, dann gewinnt der Entwurf", async () => {
+  await entwurfAblegen("Titel aus dem Entwurf");
+  liveAendern((live) => (live.site.title = "Titel aus dem Pull Request"));
+  const vorher = hub.head("main");
+
+  const stopp = await daten(await anfrage("POST", "/api/content/publish", { json: {} }), 409);
+  assert.equal(stopp.code, "konflikt");
+  assert.deepEqual(stopp.conflicts, ["site.title"]);
+  assert.equal(hub.head("main"), vorher, "bei einem Konflikt darf nichts live gehen");
+
+  await daten(await anfrage("POST", "/api/content/publish", { json: { force: true } }));
+  assert.equal(liveInhalt().site.title, "Titel aus dem Entwurf");
+});
+
+test("Die Testseite zeigt schon den zusammengeführten Stand", async () => {
+  await entwurfAblegen("Titel aus dem Entwurf");
+  liveAendern((live) => (live.chat = { ...live.chat, teaser: "Neu per Pull Request" }));
+
+  const data = await daten(await anfrage("POST", "/api/content/testing"));
+  assert.deepEqual(data.conflicts, []);
+  const testing = JSON.parse(hub.inhalt("Testing", "content/site.json"));
+  assert.equal(testing.site.title, "Titel aus dem Entwurf");
+  assert.equal(testing.chat.teaser, "Neu per Pull Request");
+});
+
+test("Ein Entwurf ohne bekannte Basis geht nur nach Rückfrage raus", async () => {
+  // So liegen Entwürfe aus der Zeit vor dieser Prüfung in der Datenbank.
+  const content = JSON.parse(JSON.stringify(inhalte));
+  content.site.title = "Uralter Entwurf";
+  await daten(await anfrage("PUT", "/api/content", { json: { content } }));
+
+  const stopp = await daten(await anfrage("POST", "/api/content/publish", { json: {} }), 409);
+  assert.equal(stopp.code, "basis_unbekannt");
+
+  await daten(await anfrage("POST", "/api/content/publish", { json: { force: true } }));
+  assert.equal(liveInhalt().site.title, "Uralter Entwurf");
+});
+
+test("Ohne neue Live-Änderungen bleibt es beim Entwurf, wie er ist", async () => {
+  await entwurfAblegen("Nichts dazwischen");
+  const data = await daten(await anfrage("POST", "/api/content/publish", { json: {} }));
+  assert.equal(data.merged, false);
+  assert.equal(liveInhalt().site.title, "Nichts dazwischen");
+});
+
+test("Weiter speichern ohne Basis behält die bisherige", async () => {
+  await entwurfAblegen("Erster Stand");
+  // Ein Tab mit dem alten Editor schickt keine Basis mit.
+  const content = JSON.parse(JSON.stringify(inhalte));
+  content.site.title = "Zweiter Stand";
+  await daten(await anfrage("PUT", "/api/content", { json: { content } }));
+  liveAendern((live) => (live.business.shopUrl = "https://shop.example.test/"));
+
+  await daten(await anfrage("POST", "/api/content/publish", { json: {} }));
+  assert.equal(liveInhalt().business.shopUrl, "https://shop.example.test/");
 });
 
 /* ---------- Kataloge ---------- */

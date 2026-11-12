@@ -64,6 +64,29 @@ Nebenbei:
   wie `GITHUB_BRANCH`), entfällt die Zwischenstufe: „Speichern" bleibt dann
   reiner Entwurf, alles andere läuft wie zuvor.
 
+### Wenn auf `main` inzwischen etwas anderes passiert ist
+
+Ein Entwurf ist eine vollständige Kopie von `content/site.json`. Liegt er
+länger in der Datenbank, während per Pull Request an den Inhalten
+weitergearbeitet wird, darf das Veröffentlichen diese Änderungen nicht
+überschreiben. So ist am 22.09.2026 der WhatsApp-Chat verschwunden.
+
+Deshalb merkt sich das Admin, auf welchem Stand von `site.json` ein Entwurf
+beruht (Tabelle `draft_base`, legt das Backend bei Bedarf selbst an). Beim
+Speichern auf die Testseite und beim Veröffentlichen werden Entwurf und
+aktueller Live-Stand Feld für Feld zusammengeführt (`src/merge.js`):
+
+- Was nur eine Seite geändert hat, bleibt erhalten. Sektionen werden über
+  ihre `id` abgeglichen.
+- Hat **dieselbe Stelle** auf beiden Seiten einen anderen Wert, fragt das Admin
+  vor dem Veröffentlichen nach. Wer bestätigt, behält dort den Entwurf. Die
+  Testseite zeigt in dem Fall schon den Entwurf und meldet den Konflikt.
+- Entwürfe aus der Zeit vor dieser Prüfung haben keine bekannte Basis. Auch
+  sie gehen nur nach Rückfrage raus, dann unverändert wie früher.
+
+Die Vorschau im Admin zeigt weiterhin den reinen Entwurf. Erst die Testseite
+zeigt den zusammengeführten Stand.
+
 **Live wird die Seite nur aus `main`.** Zeigt `GITHUB_BRANCH` auf einen anderen
 Branch, endet das Veröffentlichen dort als Commit – bis dieser Branch nach
 `main` gemergt ist, ändert sich an der Live-Seite nichts.

@@ -64,6 +64,16 @@ CREATE TABLE IF NOT EXISTS draft (
   updated_by  TEXT
 );
 
+-- Auf welchem Stand von content/site.json (Blob-Kennung) der Entwurf beruht.
+-- Ohne diese Angabe ueberschreibt ein alter Entwurf beim Veroeffentlichen
+-- alles, was seitdem auf dem Live-Branch dazugekommen ist. Eigene Tabelle,
+-- damit bestehende Datenbanken ohne ALTER TABLE auskommen: das Backend legt
+-- sie bei Bedarf selbst an.
+CREATE TABLE IF NOT EXISTS draft_base (
+  id   INTEGER PRIMARY KEY CHECK (id = 1),
+  sha  TEXT NOT NULL
+);
+
 -- Bilder, die zum Entwurf gehoeren, aber noch nicht im Repository liegen.
 -- Werden beim Veroeffentlichen mit committet.
 CREATE TABLE IF NOT EXISTS pending_media (

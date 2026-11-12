@@ -25,6 +25,8 @@ import {
 const state = {
   content: null,
   head: null,
+  /** Stand von site.json, auf dem der Entwurf beruht — geht mit jedem Speichern mit. */
+  base: null,
   dirty: false,
   saving: false,
   /** Kennung des offenen Bereichs, z. B. "section:ueber" oder "settings:seo". */
@@ -60,6 +62,7 @@ export async function startEditor(user) {
 
   state.content = content.content;
   state.head = content.head;
+  state.base = content.base || null;
   state.siteUrl = content.siteUrl || "";
   setSiteUrl(state.siteUrl);
 
@@ -158,7 +161,7 @@ async function saveDraft({ silent = false } = {}) {
   $("#btnSave").disabled = true;
 
   try {
-    await api.saveDraft(state.content);
+    await api.saveDraft(state.content, state.base);
     setDirty(true);
     showErrors(null);
     if (!silent) await stelleAufTestseite();
@@ -191,6 +194,13 @@ async function stelleAufTestseite() {
   toast("Gespeichert. Die Testseite wird aktualisiert …");
   try {
     const result = await api.toTesting();
+    if (result.conflicts?.length) {
+      toast(
+        `Auf der Testseite steht der Entwurf. Achtung: Die Live-Seite wurde inzwischen an denselben Stellen geändert (${result.conflicts.join(", ")}).`,
+        "error"
+      );
+      return;
+    }
     // Ohne Änderung gegenüber dem Testing-Branch entsteht kein Commit.
     const schonDa = result.unchanged || result.commit?.unchanged;
     toast(
@@ -608,6 +618,7 @@ function bindToolbar() {
       const fresh = await api.getContent();
       state.content = fresh.content;
       state.head = fresh.head;
+      state.base = fresh.base || null;
       setDirty(false);
       renderSidebar();
       openPanel(`section:${state.content.sections[0]?.id}`);
@@ -707,9 +718,39 @@ async function publish() {
   $("#btnPublish").disabled = true;
   toast("Wird veröffentlicht …");
   try {
-    const result = await api.publish(message, state.head);
+    let result;
+    try {
+      result = await api.publish(message, state.head);
+    } catch (err) {
+      // Nur bei Konflikten oder unbekannter Basis gibt es etwas zu entscheiden.
+      if (!(err instanceof ApiError && (err.code === "konflikt" || err.code === "basis_unbekannt"))) throw err;
+      const trotzdem = await confirmDialog({
+        title: "Live-Seite wurde inzwischen geändert",
+        text: err.message,
+        confirmLabel: "Trotzdem veröffentlichen",
+        danger: true,
+      });
+      if (!trotzdem) {
+        $("#btnPublish").disabled = false;
+        toast("Nicht veröffentlicht. Der Entwurf bleibt gespeichert.");
+        return;
+      }
+      result = await api.publish(message, state.head, true);
+    }
     setDirty(false);
     state.head = result.commit.sha;
+    /* Neu laden statt den alten Stand im Editor weiterzubearbeiten: Was beim
+       Zusammenfuehren vom Live-Branch dazukam, fehlt dort sonst — und das
+       naechste Speichern wuerde es wieder herausnehmen. */
+    const fresh = await api.getContent().catch(() => null);
+    if (fresh) {
+      state.content = fresh.content;
+      state.head = fresh.head;
+      state.base = fresh.base || null;
+      renderSidebar();
+      openPanel(state.panel || `section:${state.content.sections[0]?.id}`);
+      refreshPreview();
+    }
     // Der Sync der Testseite ist Beiwerk – gescheitert ist er nur einen
     // Hinweis wert, veroeffentlicht wurde trotzdem.
     if (result.testing?.error) {
