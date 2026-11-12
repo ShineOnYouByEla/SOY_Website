@@ -6,6 +6,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/" />
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -14,11 +15,13 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/" />
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://shineonyou.de/katalog.html</loc>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -27,6 +30,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/impressum.html" />
     <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/impressum.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/impressum.html" />
+    <lastmod>2026-11-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -35,6 +39,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/impressum.html" />
     <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/impressum.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/impressum.html" />
+    <lastmod>2026-11-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -43,6 +48,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/datenschutz.html" />
     <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/datenschutz.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/datenschutz.html" />
+    <lastmod>2026-11-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -51,6 +57,7 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://shineonyou.de/datenschutz.html" />
     <xhtml:link rel="alternate" hreflang="en" href="https://shineonyou.de/en/datenschutz.html" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shineonyou.de/datenschutz.html" />
+    <lastmod>2026-11-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

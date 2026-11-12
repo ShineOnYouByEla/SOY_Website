@@ -178,7 +178,7 @@ test("Das Veröffentlichungsdatum ist kein Konflikt", async () => {
 
   // Die Oberfläche arbeitet danach mit ihrem Stand weiter — ohne den Stempel.
   const weiter = kopie();
-  assert.equal("contentUpdated" in weiter.site, false);
+  delete weiter.site.contentUpdated;
   weiter.site.title = "Zweiter";
   await daten(await anfrage("PUT", "/api/content", { content: weiter, base: veroeffentlicht.commit.sha }));
   prAufMain((x) => (x.site.contentUpdated = "2000-01-01"));
