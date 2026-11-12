@@ -376,7 +376,9 @@ a.btn { text-decoration: none; }
 
 /* Konfliktdialog beim Veroeffentlichen: je Stelle Entwurf oder Live-Seite. */
 .conflict { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 10px 0; }
-.conflict-path { font-weight: 600; margin: 0 0 6px; word-break: break-word; }
+.conflict-head { margin: 0 0 6px; }
+.conflict-path { font-weight: 600; margin: 0; word-break: break-word; }
+.conflict-tech { margin: 2px 0 0; font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--cream-dim); word-break: break-all; }
 .conflict label { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; cursor: pointer; }
 .conflict pre {
   margin: 2px 0 0; white-space: pre-wrap; word-break: break-word;

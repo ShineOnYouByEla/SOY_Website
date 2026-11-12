@@ -4,6 +4,7 @@
 
 import { api, ApiError } from "./api.js";
 import { renderFields, setIconOptions, setSiteUrl } from "./fields.js";
+import { lesbarerPfad } from "./konfliktpfad.js";
 import { katalogManager } from "./media.js";
 import { SECTION_SCHEMA, SETTINGS_PANELS } from "./schema.js";
 import {
@@ -799,12 +800,18 @@ async function publish() {
    Konflikte mit der Live-Seite
    ============================================================ */
 
-/** Pfad aus merge.js lesbar machen: Sektions-ids durch ihren Namen ersetzen. */
-function konfliktOrt(pfad) {
-  return pfad.replace(/^((?:translations\.en\.)?)sections\[([^\]]+)\]/, (_, en, id) => {
-    const s = state.content.sections.find((x) => x.id === id);
-    return `${en ? "Englisch › " : ""}Bereich „${s?.title || id}“`;
-  });
+/**
+ * Wo der Konflikt liegt, so benannt wie im Admin. Der technische Pfad steht
+ * klein darunter — wer site.json kennt, findet die Stelle so sofort.
+ */
+function konfliktUeberschrift(pfad) {
+  const { text, technisch } = lesbarerPfad(pfad, state.content);
+  return el(
+    "div",
+    { class: "conflict-head" },
+    el("p", { class: "conflict-path", text }),
+    technisch ? null : el("p", { class: "conflict-tech", text: pfad })
+  );
 }
 
 function wertText(v) {
@@ -868,7 +875,7 @@ function konfliktDialog(details, vorher = {}) {
         return el(
           "div",
           { class: "conflict" },
-          el("p", { class: "conflict-path", text: konfliktOrt(k.pfad) }),
+          konfliktUeberschrift(k.pfad),
           option("entwurf", "Mein Entwurf", k.entwurf),
           option("live", "Live-Seite", k.live)
         );
