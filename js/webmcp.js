@@ -126,35 +126,6 @@
       },
     },
     {
-      name: "get_catalogs",
-      description: "Liste der verfügbaren proWIN-Kataloge als PDF.",
-      inputSchema: EMPTY_INPUT,
-      annotations: READ_ONLY,
-      execute: function () {
-        return fetch("kataloge/manifest.json", { headers: { Accept: "application/json" } })
-          .then(function (res) {
-            if (!res.ok) throw new Error(String(res.status));
-            return res.json();
-          })
-          .then(function (data) {
-            var list = (data && data.kataloge) || [];
-            return json({
-              page: cfg.url + "katalog.html",
-              catalogs: list.map(function (k) {
-                return {
-                  title: k.titel,
-                  pages: k.seiten,
-                  pdf: k.datei ? cfg.url + encodeURI(k.datei) : undefined,
-                };
-              }),
-            });
-          })
-          .catch(function () {
-            return text("Katalogliste nicht abrufbar. Die Übersicht steht auf " + cfg.url + "katalog.html.");
-          });
-      },
-    },
-    {
       name: "prefill_contact_form",
       description:
         "Füllt das Kontaktformular auf dieser Seite vor und springt dorthin. Schickt nichts ab – " +

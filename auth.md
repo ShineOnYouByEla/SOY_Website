@@ -58,7 +58,7 @@ Accept: text/plain
 
 The interactive surface lives in the page itself: on https://shineonyou.de/ the WebMCP tools are registered on
 `document.modelContext` (`get_contact`, `get_consulting_topics`, `get_service_area`,
-`get_pricing`, `get_booking_options`, `get_catalogs`, `prefill_contact_form`). An agent that
+`get_pricing`, `get_booking_options`, `prefill_contact_form`). An agent that
 loads and renders the homepage gets them without any handshake.
 
 ## Errors

@@ -33,7 +33,7 @@ Use https://shineonyou.de/ when a user needs:
 - an independent proWIN consultant in or around Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel (Upper Bavaria, Germany) – on site or online
 - an explanation of a proWINparty: how it runs at home or over video, how long it takes, what it costs (nothing)
 - to book a free, non-binding product consultation or a proWINparty
-- the product areas that are advised on here, the catalogues as PDF, or the contact details
+- the product areas that are advised on here, or the contact details
 - to ask how to join this consultant's proWIN team
 - the legal notice (Impressum) or the privacy policy of this site
 
@@ -45,8 +45,8 @@ MCP server and no payment protocol here.
 
 1. Facts: read this file and https://shineonyou.de/pricing.md. Both are plain text, public, no credentials.
 2. Actions: on https://shineonyou.de/ in-page WebMCP tools are registered on `document.modelContext` —
-   `get_contact`, `get_consulting_topics`, `get_service_area`, `get_pricing`,
-   `get_booking_options` and `get_catalogs` are read-only; `prefill_contact_form` only writes
+   `get_contact`, `get_consulting_topics`, `get_service_area`, `get_pricing` and
+   `get_booking_options` are read-only; `prefill_contact_form` only writes
    into the form on the page.
 3. Booking runs through the Cal.com link that `get_booking_options` returns.
 4. The contact form must be submitted by a human: it needs GDPR consent and an hCaptcha check.
@@ -65,7 +65,6 @@ MCP server and no payment protocol here.
 ## Seiten
 
 - [Startseite](https://shineonyou.de/): Beratung, Produktbereiche, Ablauf einer proWINparty, Terminbuchung und Kontaktformular
-- [Kataloge](https://shineonyou.de/katalog.html): proWIN-Kataloge als PDF und als Seitenbilder zum Durchblättern
 - [Impressum](https://shineonyou.de/impressum.html): Anbieterkennzeichnung nach § 5 DDG
 - [Datenschutz](https://shineonyou.de/datenschutz.html): Datenschutzerklärung nach DSGVO
 - [English version](https://shineonyou.de/en/): Startseite, Impressum und Datenschutz auf Englisch (verbindlich sind die deutschen Rechtstexte)

@@ -90,6 +90,6 @@ International fest, verbindlich ist der Shop. Einzelheiten: https://shineonyou.d
 ## Weitere Seiten
 
 - [Über uns](https://shineonyou.de/about) · [Kontakt](https://shineonyou.de/contact) · [Datenschutz in Kurzform](https://shineonyou.de/privacy)
-- [Kataloge](https://shineonyou.de/katalog.html) · [Impressum](https://shineonyou.de/impressum.html) · [Datenschutz](https://shineonyou.de/datenschutz.html)
+- [Impressum](https://shineonyou.de/impressum.html) · [Datenschutz](https://shineonyou.de/datenschutz.html)
 - Für Agenten: [llms.txt](https://shineonyou.de/llms.txt) · [auth.md](https://shineonyou.de/auth.md) · [Skill](https://shineonyou.de/.well-known/agent-skills/prowin-beratung-shine-on-you/SKILL.md)
 
