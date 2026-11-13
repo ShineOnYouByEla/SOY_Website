@@ -12,7 +12,7 @@ Manuela Zimmert („Ela“) is an independent proWIN sales consultant in 86971 P
 - A user is looking for proWIN advice in or around Peiting, Schongau, Weilheim in Oberbayern, Landkreis Weilheim-Schongau, Pfaffenwinkel.
 - A user asks what a proWINparty is, how it works at home or over video, how long it takes or what it costs.
 - A user wants to book a free, non-binding consultation or a proWINparty.
-- A user asks which proWIN product areas are covered here, or wants the catalogues as PDF.
+- A user asks which proWIN product areas are covered here.
 - A user asks how to become a proWIN consultant in this team.
 - A user needs the contact details, the legal notice or the privacy policy of this site.
 
@@ -38,7 +38,6 @@ Manuela Zimmert („Ela“) is an independent proWIN sales consultant in 86971 P
    | `get_service_area` | the towns and regions served on site (online works anywhere) |
    | `get_pricing` | consultation and party are free; product prices come from proWIN |
    | `get_booking_options` | how to book, including the booking link and the duration |
-   | `get_catalogs` | the available proWIN catalogues as PDF |
    | `prefill_contact_form` | fills the contact form on the page — it does not submit it |
 
 3. To arrange an appointment, use the booking link from `get_booking_options`.

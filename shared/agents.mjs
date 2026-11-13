@@ -26,10 +26,12 @@ export const ARD_PATH = ".well-known/ard.json";
 export const REPO_URL = "https://github.com/ShineOnYouByEla/SOY_Website";
 
 /* Die Seiten, die ausgeliefert werden. Neue Seite -> hier ergaenzen.
-   `translated`: die Seite gibt es auch unter /en/. */
+   `translated`: die Seite gibt es auch unter /en/.
+   katalog.html fehlt hier absichtlich: Die Seite soll nur ueber einen
+   direkt weitergegebenen Link erreichbar sein, nicht ueber Sitemap,
+   llms.txt oder Agenten-Werkzeuge (siehe auch noindex in katalog.html). */
 const PAGES = [
   { path: "", translated: true, changefreq: "monthly", priority: "1.0", label: "Startseite", note: "Beratung, Produktbereiche, Ablauf einer proWINparty, Terminbuchung und Kontaktformular" },
-  { path: "katalog.html", changefreq: "monthly", priority: "0.6", label: "Kataloge", note: "proWIN-Kataloge als PDF und als Seitenbilder zum Durchblättern" },
   { path: "impressum.html", translated: true, changefreq: "yearly", priority: "0.3", label: "Impressum", note: "Anbieterkennzeichnung nach § 5 DDG" },
   { path: "datenschutz.html", translated: true, changefreq: "yearly", priority: "0.3", label: "Datenschutz", note: "Datenschutzerklärung nach DSGVO" },
 ];
@@ -169,7 +171,7 @@ export function renderLlmsTxt(content) {
       area.length ? `- an independent proWIN consultant in or around ${area.join(", ")} (Upper Bavaria, Germany) – on site or online` : null,
       "- an explanation of a proWINparty: how it runs at home or over video, how long it takes, what it costs (nothing)",
       "- to book a free, non-binding product consultation or a proWINparty",
-      "- the product areas that are advised on here, the catalogues as PDF, or the contact details",
+      "- the product areas that are advised on here, or the contact details",
       "- to ask how to join this consultant's proWIN team",
       "- the legal notice (Impressum) or the privacy policy of this site",
       "",
@@ -181,8 +183,8 @@ export function renderLlmsTxt(content) {
       "",
       `1. Facts: read this file and ${page("pricing.md")}. Both are plain text, public, no credentials.`,
       `2. Actions: on ${page("")} in-page WebMCP tools are registered on \`document.modelContext\` —`,
-      "   \`get_contact\`, \`get_consulting_topics\`, \`get_service_area\`, \`get_pricing\`,",
-      "   \`get_booking_options\` and \`get_catalogs\` are read-only; \`prefill_contact_form\` only writes",
+      "   \`get_contact\`, \`get_consulting_topics\`, \`get_service_area\`, \`get_pricing\` and",
+      "   \`get_booking_options\` are read-only; \`prefill_contact_form\` only writes",
       "   into the form on the page.",
       "3. Booking runs through the Cal.com link that \`get_booking_options\` returns.",
       "4. The contact form must be submitted by a human: it needs GDPR consent and an hCaptcha check.",
@@ -419,7 +421,7 @@ export function renderAuthMd(content) {
       "",
       `The interactive surface lives in the page itself: on ${url} the WebMCP tools are registered on`,
       "`document.modelContext` (`get_contact`, `get_consulting_topics`, `get_service_area`,",
-      "`get_pricing`, `get_booking_options`, `get_catalogs`, `prefill_contact_form`). An agent that",
+      "`get_pricing`, `get_booking_options`, `prefill_contact_form`). An agent that",
       "loads and renders the homepage gets them without any handshake.",
       "",
       "## Errors",
@@ -487,7 +489,7 @@ export function renderAgentSkill(content) {
       area.length ? `- A user is looking for proWIN advice in or around ${area.join(", ")}.` : null,
       "- A user asks what a proWINparty is, how it works at home or over video, how long it takes or what it costs.",
       "- A user wants to book a free, non-binding consultation or a proWINparty.",
-      "- A user asks which proWIN product areas are covered here, or wants the catalogues as PDF.",
+      "- A user asks which proWIN product areas are covered here.",
       "- A user asks how to become a proWIN consultant in this team.",
       "- A user needs the contact details, the legal notice or the privacy policy of this site.",
       "",
@@ -513,7 +515,6 @@ export function renderAgentSkill(content) {
       "   | `get_service_area` | the towns and regions served on site (online works anywhere) |",
       "   | `get_pricing` | consultation and party are free; product prices come from proWIN |",
       "   | `get_booking_options` | how to book, including the booking link and the duration |",
-      "   | `get_catalogs` | the available proWIN catalogues as PDF |",
       "   | `prefill_contact_form` | fills the contact form on the page — it does not submit it |",
       "",
       "3. To arrange an appointment, use the booking link from `get_booking_options`.",
@@ -648,7 +649,6 @@ export function renderArdCatalog(content) {
               "get_service_area",
               "get_pricing",
               "get_booking_options",
-              "get_catalogs",
               "prefill_contact_form",
             ],
             representativeQueries: [
@@ -796,7 +796,7 @@ export function renderIndexMd(content) {
       "## Weitere Seiten",
       "",
       `- [Über uns](${url}about) · [Kontakt](${url}contact) · [Datenschutz in Kurzform](${url}privacy)`,
-      `- [Kataloge](${url}katalog.html) · [Impressum](${url}impressum.html) · [Datenschutz](${url}datenschutz.html)`,
+      `- [Impressum](${url}impressum.html) · [Datenschutz](${url}datenschutz.html)`,
       `- Für Agenten: [llms.txt](${url}llms.txt) · [auth.md](${url}auth.md) · [Skill](${url}${SKILL_PATH})`,
       "",
     ]).replace(/\n{3,}/g, "\n\n") + "\n"

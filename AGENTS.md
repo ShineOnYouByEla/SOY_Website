@@ -96,6 +96,11 @@ Was es **nicht** gibt und was deshalb auch nicht behauptet werden darf:
 Prüfwerkzeuge vergeben für solche Dateien Punkte. Das ist kein Grund, sie
 anzulegen. `auth.md` erklärt stattdessen, warum sie fehlen.
 
+`katalog.html` ist absichtlich versteckt: `noindex`, kein Eintrag in Sitemap,
+`llms.txt`, Skill oder ARD, kein WebMCP-Werkzeug, kein Link von der Startseite
+oder der 404-Seite. Sie soll nur über einen direkt weitergegebenen Link
+erreichbar sein — nicht wieder einhängen.
+
 Eine harte Grenze im Produktverhalten: **das Kontaktformular darf nicht
 automatisiert abgeschickt werden.** Es verlangt eine Einwilligung nach DSGVO und
 eine hCaptcha-Prüfung. Das WebMCP-Werkzeug `prefill_contact_form` füllt es aus

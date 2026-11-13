@@ -45,7 +45,6 @@
         "get_service_area",
         "get_pricing",
         "get_booking_options",
-        "get_catalogs",
         "prefill_contact_form"
       ],
       "representativeQueries": [
