@@ -103,7 +103,7 @@ Dafür liegen neben der Seite selbst ein paar Dateien, die genau diese Systeme l
 | --- | --- |
 | `llms.txt` | Kurzprofil: wer das ist, wofür die Seite die richtige Quelle ist und wofür nicht |
 | `pricing.md` | Preisauskunft in Klartext – Beratung kostenlos, Produktpreise laut proWIN-Shop |
-| `sitemap.xml` | alle vier Seiten, nicht nur die Startseite |
+| `sitemap.xml` | alle öffentlichen Seiten (Start, Impressum, Datenschutz, je deutsch und englisch) – nicht `katalog.html`, die bleibt nur per Direktlink erreichbar |
 | `auth.md` | nach der [auth.md-Spezifikation](https://github.com/workos/auth.md): hier gibt es nichts anzumelden, und warum |
 | `.well-known/ard.json` | Katalog der agentischen Ressourcen nach [ARD](https://agenticresourcediscovery.org/) |
 | `.well-known/agent-skills/` | Kurzanleitung als Skill plus `index.json` nach Agent Skills Discovery |
@@ -126,8 +126,8 @@ Veröffentlichen aus dem Admin wird er auf das Tagesdatum gesetzt.
 
 **WebMCP** ist ein W3C-Entwurf: Browser mit Agentenfunktion (Chrome-Origin-Trial,
 ChatGPT-Desktop) fragen die Seite nach ihren Werkzeugen, statt sie abzutippen.
-Registriert sind sieben – sechs reine Auskünfte (Kontakt, Beratungsbereiche,
-Einsatzgebiet, Preise, Terminoptionen, Kataloge) und `prefill_contact_form`, das
+Registriert sind sechs – fünf reine Auskünfte (Kontakt, Beratungsbereiche,
+Einsatzgebiet, Preise, Terminoptionen) und `prefill_contact_form`, das
 das Kontaktformular **vorbefüllt, aber nicht abschickt**: Einwilligung und
 hCaptcha bleiben Sache eines Menschen. Kennt ein Browser WebMCP nicht, passiert
 schlicht nichts.

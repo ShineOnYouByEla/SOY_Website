@@ -419,7 +419,7 @@ und neu deployen.
 | Änderungen sichern | „Speichern" (passiert auch automatisch) |
 | Änderungen zurücknehmen | „Verwerfen" – setzt auf den veröffentlichten Stand zurück |
 | Live schalten | „Veröffentlichen" |
-| Rückfrage „Live-Seite wurde inzwischen geändert" | Jemand hat seit dem Öffnen des Entwurfs dieselbe Stelle anders geändert. „Abbrechen" lässt alles, wie es ist – der Entwurf bleibt gespeichert. „Trotzdem veröffentlichen" behält an diesen Stellen den Entwurf, alles andere bleibt erhalten (siehe [oben](#wenn-auf-main-inzwischen-etwas-anderes-passiert-ist)) |
+| Dialog „Live-Seite wurde inzwischen geändert" | Jemand hat seit dem Öffnen des Entwurfs dieselbe Stelle anders geändert. Der Dialog zeigt jede dieser Stellen mit beiden Werten, benannt wie im Admin (z. B. „Titel & Suchmaschinen › Seitentitel"). Je Stelle „Mein Entwurf" oder „Live-Seite" wählen – oder „Überall mein Entwurf" / „Überall die Live-Seite". Veröffentlicht wird erst, wenn jede Stelle entschieden ist; alles andere bleibt erhalten. Kommt währenddessen noch etwas auf `main` dazu, fragt der Dialog nur das Neue nach. „Abbrechen" lässt alles, wie es ist – der Entwurf bleibt gespeichert (siehe [oben](#wenn-auf-main-inzwischen-etwas-anderes-passiert-ist)) |
 
 Bei Texten sind `<strong>fett</strong>`, `<em>kursiv</em>`, `<br />` und
 `<a href="datenschutz.html">Link</a>` erlaubt. Alles andere wird beim Rendern
@@ -538,7 +538,7 @@ die Vorschau im Worker und `index.html` im Build.
 | „Diese Oberfläche kennt den Typ … noch nicht" bei einem Bereich | Das laufende Backend ist älter als die Inhalte: die Sektionen kommen live aus GitHub, die Eingabemasken stecken im Image. Neu bauen und den Container ersetzen – siehe A, „Aktualisieren" |
 | Einladungslink funktioniert nicht | Er gilt sieben Tage und genau einmal. Unter „Benutzer & Zugänge" eine neue Einladung erstellen |
 | Alle Zugänge gesperrt/verloren | Das letzte aktive Konto lässt sich nicht sperren. Hilft das nicht: `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` bzw. direkt in der SQLite-Datei löschen, `npm run setup` |
-| „Live-Seite wurde inzwischen geändert" beim Veröffentlichen | Kein Fehler, sondern eine Rückfrage: Entwurf und Live-Stand widersprechen sich an derselben Stelle, oder der Entwurf stammt aus der Zeit vor der Prüfung. Die Meldung nennt die Stellen. Im Zweifel abbrechen, Seite neu laden und die Stelle neu bearbeiten |
+| „Live-Seite wurde inzwischen geändert" beim Veröffentlichen | Kein Fehler, sondern eine Rückfrage: Entwurf und Live-Stand widersprechen sich an derselben Stelle. Je Stelle entscheiden, welcher Wert gilt; der technische Pfad steht klein unter dem Namen. Stammt der Entwurf aus der Zeit vor der Prüfung (keine bekannte Basis), gibt es nur die Rückfrage im Ganzen: „Trotzdem veröffentlichen" übernimmt den Entwurf unverändert. Im Zweifel abbrechen, Seite neu laden und die Stelle neu bearbeiten |
 | „Das Repository wurde zwischenzeitlich geändert" | Jemand hat parallel committet: Seite neu laden, erneut veröffentlichen |
 | Handy verloren | Mit einem Wiederherstellungscode anmelden, im Menü unter „Konto & Sicherheit" neu einrichten |
 | Alle Zugänge verloren | `SETUP_ENABLED` kurz auf `true`, Benutzer per `wrangler d1 execute` löschen, `npm run setup` |
