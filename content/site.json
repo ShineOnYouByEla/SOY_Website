@@ -3,24 +3,23 @@
   "site": {
     "lang": "de",
     "baseUrl": "https://shineonyou.de/",
-    "contentUpdated": "2026-11-11",
+    "contentUpdated": "2026-11-19",
     "brandName": "Shine On You",
     "tagline": "Natürlich sauber. Natürlich du.",
-    "title": "proWIN Beratung in Peiting – Manuela Zimmert | Shine On You",
-    "description": "proWIN Beratung in Peiting & Umgebung – Manuela Zimmert. Natürliche Produkte für Haushalt, Reinigung, Kosmetik & Wellness. proWINparty zuhause oder online.",
-    "ogDescription": "proWIN Beratung in Peiting & Umgebung – natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online erleben.",
+    "title": "Shine On You – Manuela Zimmert in Peiting | Kontakt",
+    "description": "Kontakt zu Manuela Zimmert („Ela“) in Peiting: persönliche Beratung per Telefon, Video oder vor Ort. Termin online buchen oder einfach schreiben.",
+    "ogDescription": "Kontakt zu Manuela Zimmert in Peiting – Termin online buchen, anrufen oder einfach schreiben.",
     "author": "Manuela Zimmert",
     "themeColor": "#041f24",
     "ogImage": "assets/img/og-image.jpg",
     "ogImageAlt": "Shine On You – Sonne und Welle Logo"
   },
   "contact": {
-    "email": "prowin.ela@web.de",
+    "email": "manuela@shineonyou.de",
     "phone": "+49 1551 0279357",
     "phoneHref": "+4915510279357",
     "landline": "+49 8861 7138897",
-    "landlineHref": "+4988617138897",
-    "whatsappChannel": "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F"
+    "landlineHref": "+4988617138897"
   },
   "services": {
     "web3formsKey": "ee15661a-109f-4c28-aac7-bcb24f223a98",
@@ -30,13 +29,11 @@
     "calEmbedJs": "https://app.cal.eu/embed/embed.js"
   },
   "business": {
-    "name": "Shine On You – proWIN Beratung Manuela Zimmert",
-    "description": "Unabhängige proWIN-Beratung in Peiting und Umgebung: natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online.",
+    "name": "Shine On You – Manuela Zimmert",
+    "description": "Shine On You – Manuela Zimmert in Peiting: persönliche Beratung und Termine nach Absprache, telefonisch, per Video oder vor Ort.",
     "logo": "assets/img/logo-stacked-dark.png",
     "priceRange": "€€",
     "inLanguage": "de-DE",
-    "shopUrl": "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
-    "partnerUrl": "https://prowin.net/de/vertrieb/m.zimmert",
     "address": {
       "locality": "Peiting",
       "postalCode": "86971",
@@ -66,33 +63,27 @@
       }
     ],
     "offer": {
-      "name": "proWINparty & Produktberatung",
-      "description": "Produktberatung und proWINparty – zuhause oder online per Video."
+      "name": "Persönliche Beratung",
+      "description": "Persönliche Beratung nach Terminabsprache – telefonisch, per Video oder vor Ort."
     },
-    "webPageName": "Shine On You – proWIN Beratung Manuela Zimmert",
+    "webPageName": "Shine On You – Manuela Zimmert",
     "person": {
       "id": "manuela",
       "name": "Manuela Zimmert",
       "alternateName": "Ela",
-      "jobTitle": "Unabhängige proWIN-Vertriebsberaterin",
-      "description": "Manuela Zimmert („Ela“) ist unabhängige proWIN-Vertriebsberaterin in Peiting. Sie berät persönlich zu Produkten für Haushalt, Reinigung, Kosmetik und Wellness und veranstaltet proWINpartys zuhause oder online per Video.",
+      "jobTitle": "Selbstständige Beraterin",
+      "description": "Manuela Zimmert („Ela“) ist selbstständige Beraterin in Peiting. Sie berät persönlich – telefonisch, per Video oder vor Ort.",
       "sameAs": [
-        "https://prowin.net/de/vertrieb/m.zimmert",
         "https://kontakt.shineonyou.de"
       ]
     },
     "sameAs": [
-      "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F",
       "https://kontakt.shineonyou.de",
-      "https://prowin.net/de/vertrieb/m.zimmert",
-      "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
       "https://github.com/ShineOnYouByEla"
     ]
   },
   "header": {
     "brandLabel": "Shine On You – Startseite",
-    "channelLabel": "WhatsApp-Kanal folgen – aktuellste Angebote",
-    "channelCta": "WhatsApp-Kanal folgen",
     "logo": {
       "src": "assets/img/wordmark.webp",
       "alt": "Shine On You",
@@ -113,7 +104,7 @@
     "autoOpen": true,
     "autoOpenDelay": 12,
     "name": "Ela",
-    "role": "proWIN-Beratung · Peiting",
+    "role": "Shine On You · Peiting",
     "avatar": {
       "src": "assets/img/manuela.webp",
       "width": 760,
@@ -121,30 +112,21 @@
     },
     "messages": [
       "Hallo, ich bin Ela 👋",
-      "Frag mich einfach – zu Produkten, einer proWINparty oder einer Bestellung. Ich antworte persönlich, ganz ohne Formular."
+      "Schreib mir einfach – ich antworte persönlich, ganz ohne Formular."
     ],
     "status": "Antwort meist noch am selben Tag",
     "quickReplies": [
       {
-        "label": "Produktfrage",
-        "message": "Hallo Ela, ich habe eine Frage zu einem proWIN Produkt: "
+        "label": "Frage stellen",
+        "message": "Hallo Ela, ich habe eine Frage: "
       },
       {
-        "label": "Produkte bestellen",
-        "message": "Hallo Ela, ich möchte proWIN Produkte bestellen: "
-      },
-      {
-        "label": "proWINparty planen",
-        "message": "Hallo Ela, ich interessiere mich für eine proWINparty. "
-      },
-      {
-        "label": "Im Team mitmachen",
-        "message": "Hallo Ela, ich würde gerne wissen, wie das Mitmachen in deinem Team funktioniert. "
+        "label": "Termin vereinbaren",
+        "message": "Hallo Ela, ich würde gerne einen Termin vereinbaren. "
       }
     ],
     "ctaLabel": "Chat starten",
     "prefill": "Hallo Ela, ich habe eine Frage: ",
-    "channelLabel": "Oder folge meinem WhatsApp-Kanal",
     "note": "Öffnet WhatsApp mit meiner Nummer. Erst dann werden Daten an WhatsApp übertragen."
   },
   "sections": [
@@ -154,24 +136,22 @@
       "title": "Startbereich",
       "enabled": true,
       "data": {
-        "partnerText": "Selbstständige Beraterin von",
-        "partnerName": "proWIN",
-        "partnerHref": "https://prowin.net/de/vertrieb/m.zimmert",
         "headline": [
           "Natürlich sauber.",
           "Natürlich du."
         ],
-        "lead": "Hochwertige Produkte für Haushalt, Reinigung, Kosmetik und Wellness –\nnachhaltig, alltagstauglich und persönlich beraten.\n<br />\nLass uns gemeinsam dein\nZuhause zum Strahlen bringen.",
+        "lead": "Persönlich, ehrlich und auf Augenhöhe.\n<br />\nBuch dir einen Termin oder schreib mir einfach.",
         "actions": [
           {
             "href": "#termin",
-            "label": "Beratungstermin buchen",
+            "label": "Termin buchen",
             "style": "sun"
           },
           {
-            "href": "#produkte",
-            "label": "Produkte entdecken",
-            "style": "ghost"
+            "href": "#kontakt",
+            "label": "Nachricht schreiben",
+            "style": "ghost",
+            "contactReason": "Ich habe eine allgemeine Frage oder Mitteilung"
           }
         ]
       }
@@ -194,220 +174,19 @@
         "heading": "Hallo, schön dass du da bist!",
         "image": {
           "src": "assets/img/manuela.webp",
-          "alt": "Manuela Zimmert – deine proWIN-Beraterin aus Peiting",
+          "alt": "Manuela Zimmert aus Peiting",
           "width": 760,
           "height": 1013
         },
         "paragraphs": [
-          "Ich bin <strong>Manuela</strong> oder auch <strong>Ela</strong>, deine unabhängige proWIN‑Beraterin\naus Peiting und begleite\ndich auf dem Weg zu einem natürlich sauberen Zuhause und mehr Wohlbefinden.\n<br />Bei <em>Shine On You</em> dreht sich alles um Produkte, die wirken – dabei\nMensch, Tier und Umwelt schonen.",
-          "Ob persönliche Produktberatung, eine entspannte Produktparty bei dir zuhause\noder eine schnelle Empfehlung per Telefon: Ich nehme mir Zeit für dich und\nfinde gemeinsam mit dir die passende Lösung."
+          "Ich bin <strong>Manuela</strong> oder auch <strong>Ela</strong> aus Peiting.\n<br />Bei <em>Shine On You</em> nehme ich mir Zeit für dich – telefonisch, per Video oder\npersönlich vor Ort.",
+          "Du hast eine Frage oder möchtest dich beraten lassen? Buch dir einfach einen Termin\noder schreib mir – ich melde mich persönlich bei dir."
         ],
         "checklist": [
           "Persönliche, ehrliche Beratung",
-          "Nachhaltige Produkte – Made in Germany",
-          "Hautverträglich & umweltschonend",
+          "Telefonisch, per Video oder vor Ort",
           "Unverbindlich und auf Augenhöhe"
         ]
-      }
-    },
-    {
-      "id": "produkte",
-      "type": "cards",
-      "title": "Produkte",
-      "navLabel": "Produkte",
-      "enabled": true,
-      "glows": [
-        {
-          "kind": "wave",
-          "parallax": 0.08,
-          "style": "top:-12%; right:-10%;"
-        },
-        {
-          "kind": "sun",
-          "parallax": 0.06,
-          "style": "bottom:-16%; left:-12%;"
-        }
-      ],
-      "data": {
-        "kicker": "Produkte",
-        "heading": "Bereiche, in denen ich dich berate",
-        "sub": "Eine Auswahl der proWIN‑Produktwelten – frag mich gern zu allen Bereichen.",
-        "cards": [
-          {
-            "icon": "spray",
-            "title": "Haushalt & Reinigung",
-            "text": "Kraftvolle, ergiebige Reiniger für Küche, Bad und Boden – sparsam dosiert und materialschonend."
-          },
-          {
-            "icon": "drop",
-            "title": "Kosmetik & Pflege",
-            "text": "Pflegeprodukte für Gesicht, Körper und Haare – hautfreundlich und mit hochwertigen Inhaltsstoffen."
-          },
-          {
-            "icon": "wellness",
-            "title": "Wellness & Gesundheit",
-            "text": "Produkte für mehr Wohlbefinden im Alltag – von Nahrungsergänzung bis Entspannung."
-          },
-          {
-            "icon": "wind",
-            "title": "Luft & Duft",
-            "text": "Frische Raumluft und angenehme Düfte – für ein gutes Gefühl und Wohlfühlatmosphäre in jedem Raum."
-          },
-          {
-            "icon": "paws",
-            "title": "BEST friends",
-            "text": "Pflege und Sauberkeit für deine Lieblinge."
-          },
-          {
-            "icon": "star",
-            "title": "proWINparty & Beratung",
-            "text": "Lerne die Produkte in einem live Event zuhause oder Online kennen."
-          }
-        ],
-        "actions": [
-          {
-            "href": "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
-            "label": "Oder gleich online bestellen",
-            "style": "sun",
-            "external": true
-          }
-        ]
-      }
-    },
-    {
-      "id": "kanal",
-      "type": "channel",
-      "title": "WhatsApp-Kanal",
-      "enabled": true,
-      "glows": [
-        {
-          "kind": "sun",
-          "parallax": 0.06,
-          "style": "top:-40%; right:-8%;"
-        }
-      ],
-      "data": {
-        "kicker": "WhatsApp-Kanal",
-        "heading": "Alle News an einem Ort",
-        "text": "Aktionen und Neuheiten schicke ich dort gebündelt raus –\nein Klick oder Scan und du bist dabei.",
-        "points": [
-          "Angebote als Erste:r erfahren",
-          "Wenige Nachrichten im Monat",
-          "Niemand sieht deine Nummer",
-          "Jederzeit abbestellbar"
-        ],
-        "ctaLabel": "Kanal jetzt folgen",
-        "note": "Kostenlos · öffnet WhatsApp",
-        "qr": true,
-        "qrLabel": "Oder mit der Handykamera scannen",
-        "qrAlt": "QR-Code zum WhatsApp-Kanal von Shine On You"
-      }
-    },
-    {
-      "id": "ablauf",
-      "type": "flow",
-      "title": "Ablauf einer proWINparty",
-      "navLabel": "Ablauf",
-      "enabled": true,
-      "glows": [
-        {
-          "kind": "sun",
-          "parallax": 0.07,
-          "style": "top:6%; left:-14%;"
-        },
-        {
-          "kind": "wave",
-          "parallax": 0.09,
-          "style": "bottom:-10%; right:-12%;"
-        }
-      ],
-      "data": {
-        "kicker": "So läuft's ab",
-        "heading": "Deine proWINparty – ganz entspannt",
-        "sub": "Produkte erlebt man am besten live. Ob gemütlich bei dir zuhause oder\nbequem online per Video – beides ist kostenlos, unverbindlich und kinderleicht.\nSo einfach geht's:",
-        "blocks": [
-          {
-            "variant": "sun",
-            "icon": "home",
-            "title": "Party bei dir zuhause",
-            "text": "Du lädst ein, ich bringe die Produkte mit – ganz gemütlich.",
-            "steps": [
-              {
-                "icon": "calendar",
-                "title": "Termin finden",
-                "text": "Wunschtermin gemeinsam abstimmen."
-              },
-              {
-                "icon": "people",
-                "title": "Gäste einladen",
-                "text": "Freunde, Familie oder Nachbarn dazu holen."
-              },
-              {
-                "icon": "products",
-                "title": "Gemütlich erleben",
-                "text": "Zusammensitzen und die proWIN-Produkte live kennenlernen."
-              },
-              {
-                "icon": "gift",
-                "title": "Bestellen & Prämie",
-                "text": "Bestellen was dir zusagt – als Gastgeber:in Prämien sichern."
-              }
-            ]
-          },
-          {
-            "variant": "wave",
-            "icon": "monitor",
-            "title": "Party Online",
-            "text": "Bequem von überall dabei – einfach per Link einwählen.",
-            "steps": [
-              {
-                "icon": "calendar",
-                "title": "Termin finden",
-                "text": "Wunschtermin gemeinsam abstimmen."
-              },
-              {
-                "icon": "devices",
-                "title": "Einwählen",
-                "text": "Per Handy, Tablet oder PC mit einem Klick dazu."
-              },
-              {
-                "icon": "play-screen",
-                "title": "Live erleben",
-                "text": "Bequem von überall die proWIN-Produkte live erleben."
-              },
-              {
-                "icon": "chat",
-                "title": "Austausch & bestellen",
-                "text": "Direkten Austausch genießen und bestellen."
-              }
-            ]
-          }
-        ],
-        "perks": {
-          "icon": "gift-big",
-          "title": "Prämien sichern – auf zwei Wegen",
-          "text": "Wer andere mitnimmt, bekommt bei proWIN etwas zurück.",
-          "items": [
-            {
-              "title": "Als Gastgeber:in",
-              "text": "Du lädst ein, ich bringe die Produkte mit – zuhause oder online.\nFür deine proWINparty sicherst du dir Gastgeber‑Prämien."
-            },
-            {
-              "title": "Als Mitbesteller:in",
-              "text": "Du möchtest einfach nur etwas bestellen? Dann such dir Mitbesteller:innen –\nFamilie, Freunde, Nachbarn oder Kolleg:innen. Gemeinsam kommt ihr auf mehr\nund du staubst ebenso Prämien ab."
-            }
-          ],
-          "cta": {
-            "href": "#kontakt",
-            "label": "Prämien mit mir besprechen",
-            "style": "sun",
-            "contactReason": "Ich möchte proWIN Produkte erwerben"
-          }
-        },
-        "downLink": {
-          "href": "#termin",
-          "label": "Weiter zur Terminbuchung"
-        }
       }
     },
     {
@@ -431,74 +210,23 @@
         ],
         "blocks": [
           {
-            "title": "Telefonberatung",
+            "title": "Telefon- oder Videoberatung",
             "items": [
               "Dauer: ca. 30 Minuten",
-              "Persönlich, per Telefon oder Video",
+              "Per Telefon oder Video",
               "100 % unverbindlich"
             ]
           },
           {
-            "title": "proWINparty",
+            "title": "Termin vor Ort",
             "items": [
               "Dauer: ca. 60 Minuten",
-              "Persönlich oder Video"
+              "Persönlich nach Absprache"
             ]
           }
         ],
         "consentButton": "Termin online buchen",
         "consentNote": "Öffnet den Kalender von Cal.com (EU-Region) – dabei wird eine Verbindung\nhergestellt. <a href=\"datenschutz.html\" external>Datenschutz</a>"
-      }
-    },
-    {
-      "id": "mitmachen",
-      "type": "cards",
-      "title": "Mitmachen",
-      "navLabel": "Mitmachen",
-      "enabled": true,
-      "glows": [
-        {
-          "kind": "wave",
-          "parallax": 0.07,
-          "style": "top:-8%; left:-12%;"
-        }
-      ],
-      "data": {
-        "kicker": "Mitmachen",
-        "heading": "Lust, selbst durchzustarten?",
-        "sub": "Du magst die Produkte und könntest dir vorstellen, sie selbst weiterzugeben?\nDann steig als Beraterin oder Berater ein und arbeite mit mir im Team –\nich zeige dir alles, was du dafür brauchst.",
-        "cards": [
-          {
-            "icon": "clock",
-            "title": "Deine Zeit, dein Tempo",
-            "text": "Ob nebenbei oder mit größeren Zielen – du entscheidest, wie viel du machst und wann."
-          },
-          {
-            "icon": "person-plus",
-            "title": "Du startest nicht allein",
-            "text": "Von der ersten Frage bis zur ersten eigenen Party begleite ich dich persönlich."
-          },
-          {
-            "icon": "heart",
-            "title": "Aus Überzeugung",
-            "text": "Produkte, hinter denen du stehen kannst – das macht das Weitergeben leicht."
-          }
-        ],
-        "actions": [
-          {
-            "href": "#kontakt",
-            "label": "Erzähl mir mehr davon",
-            "style": "sun",
-            "contactReason": "Ich möchte mit dir in einem Team arbeiten"
-          },
-          {
-            "href": "https://prowin.net/de/erfolgreich?name=m.zimmert",
-            "label": "Mit mir durchstarten",
-            "style": "ghost",
-            "external": true
-          }
-        ],
-        "actionsNote": "Unverbindlich – wir schauen einfach, ob es zu dir passt."
       }
     },
     {
@@ -517,7 +245,7 @@
       "data": {
         "kicker": "Kontakt",
         "heading": "Schreib mir – ich freue mich auf dich",
-        "intro": "Du hast eine Frage oder möchtest direkt loslegen? Erreiche mich am besten so:",
+        "intro": "Du hast eine Frage oder möchtest einen Termin? Erreiche mich am besten so:",
         "links": [
           {
             "kind": "email",
@@ -532,13 +260,6 @@
             "kind": "landline",
             "icon": "phone",
             "label": "Festnetz"
-          },
-          {
-            "kind": "url",
-            "icon": "whatsapp",
-            "text": "WhatsApp-Kanal für aktuelle Angebote",
-            "href": "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F",
-            "external": true
           },
           {
             "kind": "url",
@@ -557,34 +278,29 @@
           "submit": "Nachricht senden",
           "consent": "Ich habe die <a href=\"datenschutz.html\" external>Datenschutzerklärung</a> gelesen und bin mit der Verarbeitung meiner Daten zur Bearbeitung meiner Anfrage einverstanden.",
           "reasons": [
-            "Ich habe eine Frage zu einem proWIN Produkt",
-            "Ich möchte proWIN Produkte erwerben",
-            "Ich habe eine allgemeine Frage oder Mitteilung",
-            "Ich möchte mit dir in einem Team arbeiten"
+            "Ich möchte einen Termin vereinbaren",
+            "Ich habe eine allgemeine Frage oder Mitteilung"
           ]
         }
       }
     }
   ],
   "footer": {
-    "partnerText": "Offizielle Beraterin von",
-    "partnerName": "proWIN",
-    "partnerHref": "https://prowin.net/de/vertrieb/m.zimmert",
-    "legal": "Manuela Zimmert · unabhängige proWIN‑Vertriebsberaterin · 86971 Peiting · <a href=\"impressum.html\">Impressum</a> · <a href=\"datenschutz.html\">Datenschutz</a>",
+    "legal": "Manuela Zimmert · 86971 Peiting · <a href=\"impressum.html\">Impressum</a> · <a href=\"datenschutz.html\">Datenschutz</a>",
     "review": "Texte und Grafiken dieser Website wurden von Manuela Zimmert redaktionell geprüft.",
-    "fine": "Shine On You · Seit 2026 <br />„proWIN“ ist eine Marke der proWIN International. Diese Seite ist ein unabhängiges Angebot."
+    "fine": "Shine On You · Seit 2026"
   },
   "translations": {
     "en": {
       "site": {
         "tagline": "Naturally clean. Naturally you.",
-        "title": "proWIN Consultant in Peiting – Manuela Zimmert | Shine On You",
-        "description": "proWIN consultation in Peiting & the surrounding area – Manuela Zimmert. Natural products for household, cleaning, cosmetics & wellness. proWINparty at home or online.",
-        "ogDescription": "proWIN consultation in Peiting & the surrounding area – natural products for household, cleaning, cosmetics and wellness. Experience a proWINparty at home or online.",
+        "title": "Shine On You – Manuela Zimmert in Peiting | Contact",
+        "description": "Contact Manuela Zimmert (“Ela”) in Peiting: personal consultation by phone, video or in person. Book an appointment online or simply get in touch.",
+        "ogDescription": "Contact Manuela Zimmert in Peiting – book an appointment online, call or simply write.",
         "ogImageAlt": "Shine On You – sun and wave logo"
       },
       "business": {
-        "description": "Independent proWIN consultation in Peiting and the surrounding area: natural products for household, cleaning, cosmetics and wellness. proWINparty at home or online.",
+        "description": "Shine On You – Manuela Zimmert in Peiting: personal consultation and appointments by arrangement, by phone, video or in person.",
         "areaServed": [
           {},
           {},
@@ -595,19 +311,17 @@
           {}
         ],
         "offer": {
-          "name": "proWINparty & product consultation",
-          "description": "Product consultation and proWINparty – at home or online by video."
+          "name": "Personal consultation",
+          "description": "Personal consultation by appointment – by phone, video or in person."
         },
-        "webPageName": "Shine On You – proWIN consultation Manuela Zimmert",
+        "webPageName": "Shine On You – Manuela Zimmert",
         "person": {
-          "jobTitle": "Independent proWIN sales consultant",
-          "description": "Manuela Zimmert (“Ela”) is an independent proWIN sales consultant in Peiting. She gives personal advice on products for household, cleaning, cosmetics and wellness and hosts proWINparties at home or online by video."
+          "jobTitle": "Self-employed consultant",
+          "description": "Manuela Zimmert (“Ela”) is a self-employed consultant in Peiting. She gives personal advice – by phone, video or in person."
         }
       },
       "header": {
         "brandLabel": "Shine On You – Home",
-        "channelLabel": "Follow the WhatsApp channel – latest offers",
-        "channelCta": "Follow the WhatsApp channel",
         "cta": {
           "label": "Book now"
         }
@@ -615,51 +329,42 @@
       "chat": {
         "label": "Open WhatsApp chat with Ela",
         "teaser": "Questions? Drop me a line 👋",
-        "role": "proWIN consultation · Peiting",
+        "role": "Shine On You · Peiting",
         "messages": [
           "Hi, I'm Ela 👋",
-          "Just ask – about products, a proWINparty or an order. I reply personally, no form needed."
+          "Just write to me – I reply personally, no form needed."
         ],
         "status": "Usually replies the same day",
         "quickReplies": [
           {
-            "label": "Product question",
-            "message": "Hi Ela, I have a question about a proWIN product: "
+            "label": "Ask a question",
+            "message": "Hi Ela, I have a question: "
           },
           {
-            "label": "Order products",
-            "message": "Hi Ela, I'd like to order proWIN products: "
-          },
-          {
-            "label": "Plan a proWINparty",
-            "message": "Hi Ela, I'm interested in a proWINparty. "
-          },
-          {
-            "label": "Join the team",
-            "message": "Hi Ela, I'd like to know how joining your team works. "
+            "label": "Arrange an appointment",
+            "message": "Hi Ela, I'd like to arrange an appointment. "
           }
         ],
         "ctaLabel": "Start chat",
         "prefill": "Hi Ela, I have a question: ",
-        "channelLabel": "Or follow my WhatsApp channel",
         "note": "Opens WhatsApp with my number. Only then is data sent to WhatsApp."
       },
       "sections": [
         {
           "id": "hero",
           "data": {
-            "partnerText": "Independent consultant for",
             "headline": [
               "Naturally clean.",
               "Naturally you."
             ],
-            "lead": "High-quality products for household, cleaning, cosmetics and wellness –\nsustainable, practical for everyday life and with personal advice.\n<br />\nLet's make your home – and you – shine together.",
+            "lead": "Personal, honest and on equal terms.\n<br />\nBook an appointment or simply write to me.",
             "actions": [
               {
-                "label": "Book a consultation"
+                "label": "Book an appointment"
               },
               {
-                "label": "Discover the products"
+                "label": "Write a message",
+                "contactReason": "I have a general question or message"
               }
             ]
           }
@@ -671,152 +376,17 @@
             "kicker": "About me",
             "heading": "Hello, lovely to have you here!",
             "image": {
-              "alt": "Manuela Zimmert – your proWIN consultant from Peiting"
+              "alt": "Manuela Zimmert from Peiting"
             },
             "paragraphs": [
-              "I'm <strong>Manuela</strong>, or <strong>Ela</strong> for short – your independent proWIN consultant\nfrom Peiting. I'll accompany\nyou on the way to a naturally clean home and more well-being.\n<br />At <em>Shine On You</em>, everything revolves around products that work – while\nbeing gentle on people, animals and the environment.",
-              "Whether it's a personal product consultation, a relaxed product party at your home\nor a quick recommendation over the phone: I take my time for you and\nwe'll find the right solution together."
+              "I'm <strong>Manuela</strong>, or <strong>Ela</strong> for short, from Peiting.\n<br />At <em>Shine On You</em> I take my time for you – by phone, by video or\nin person.",
+              "Got a question or would like some advice? Simply book an appointment\nor write to me – I'll get back to you personally."
             ],
             "checklist": [
               "Personal, honest advice",
-              "Sustainable products – made in Germany",
-              "Kind to skin & the environment",
+              "By phone, video or in person",
               "No obligation and on equal terms"
             ]
-          }
-        },
-        {
-          "id": "produkte",
-          "navLabel": "Products",
-          "data": {
-            "kicker": "Products",
-            "heading": "Areas I can advise you on",
-            "sub": "A selection of the proWIN product worlds – feel free to ask me about any of them.",
-            "cards": [
-              {
-                "title": "Household & cleaning",
-                "text": "Powerful, economical cleaners for kitchen, bathroom and floors – a little goes a long way, and they're gentle on surfaces."
-              },
-              {
-                "title": "Cosmetics & care",
-                "text": "Care products for face, body and hair – kind to skin and made with high-quality ingredients."
-              },
-              {
-                "title": "Wellness & health",
-                "text": "Products for more well-being in everyday life – from food supplements to relaxation."
-              },
-              {
-                "title": "Air & fragrance",
-                "text": "Fresh room air and pleasant scents – for a good feeling and a cosy atmosphere in every room."
-              },
-              {
-                "title": "BEST friends",
-                "text": "Care and cleanliness for your pets."
-              },
-              {
-                "title": "proWINparty & consultation",
-                "text": "Get to know the products at a live event – at home or online."
-              }
-            ],
-            "actions": [
-              {
-                "label": "Or order online right away"
-              }
-            ]
-          }
-        },
-        {
-          "id": "kanal",
-          "data": {
-            "kicker": "WhatsApp channel",
-            "heading": "All the news in one place",
-            "text": "I send out offers and new products there in one go –\none click or scan and you're in.",
-            "points": [
-              "Be the first to hear about offers",
-              "Only a few messages a month",
-              "Nobody sees your number",
-              "Unsubscribe at any time"
-            ],
-            "ctaLabel": "Follow the channel now",
-            "note": "Free · opens WhatsApp",
-            "qrLabel": "Or scan with your phone camera",
-            "qrAlt": "QR code for the Shine On You WhatsApp channel"
-          }
-        },
-        {
-          "id": "ablauf",
-          "navLabel": "How it works",
-          "data": {
-            "kicker": "How it works",
-            "heading": "Your proWINparty – nice and relaxed",
-            "sub": "Products are best experienced live. Cosily at your home or\nconveniently online by video – both are free, without obligation and dead easy.\nHere's how:",
-            "blocks": [
-              {
-                "title": "Party at your home",
-                "text": "You invite, I bring the products – nice and cosy.",
-                "steps": [
-                  {
-                    "title": "Pick a date",
-                    "text": "We agree on a date that suits you."
-                  },
-                  {
-                    "title": "Invite guests",
-                    "text": "Bring along friends, family or neighbours."
-                  },
-                  {
-                    "title": "Enjoy together",
-                    "text": "Sit together and get to know the proWIN products live."
-                  },
-                  {
-                    "title": "Order & reward",
-                    "text": "Order what you like – as the host, collect rewards."
-                  }
-                ]
-              },
-              {
-                "title": "Online party",
-                "text": "Join comfortably from anywhere – just dial in via a link.",
-                "steps": [
-                  {
-                    "title": "Pick a date",
-                    "text": "We agree on a date that suits you."
-                  },
-                  {
-                    "title": "Dial in",
-                    "text": "Join with one click on your phone, tablet or PC."
-                  },
-                  {
-                    "title": "Experience it live",
-                    "text": "Experience the proWIN products live, comfortably from anywhere."
-                  },
-                  {
-                    "title": "Chat & order",
-                    "text": "Enjoy a direct exchange and place your order."
-                  }
-                ]
-              }
-            ],
-            "perks": {
-              "title": "Collect rewards – in two ways",
-              "text": "If you bring others along, proWIN gives something back.",
-              "items": [
-                {
-                  "title": "As a host",
-                  "text": "You invite, I bring the products – at home or online.\nFor your proWINparty you collect host rewards."
-                },
-                {
-                  "title": "As a group orderer",
-                  "text": "You just want to order something? Then find others to order with you –\nfamily, friends, neighbours or colleagues. Together you reach more\nand you collect rewards too."
-                }
-              ],
-              "cta": {
-                "label": "Talk to me about rewards",
-                "contactReason": "I would like to buy proWIN products"
-              }
-            },
-            "downLink": {
-              "label": "On to booking an appointment"
-            }
           }
         },
         {
@@ -826,22 +396,22 @@
             "kicker": "Appointment",
             "heading": "Book a consultation",
             "paragraphs": [
-              "Choose the date that suits you. You'll immediately receive a calendar file\n(<strong>.ics</strong>) to add to your Apple, Google or\nOutlook calendar – and I get your request straight away by email.\n<br /><strong>Please note:</strong> consultations and proWINparties are held in German."
+              "Choose the date that suits you. You'll immediately receive a calendar file\n(<strong>.ics</strong>) to add to your Apple, Google or\nOutlook calendar – and I get your request straight away by email.\n<br /><strong>Please note:</strong> consultations are held in German."
             ],
             "blocks": [
               {
-                "title": "Phone consultation",
+                "title": "Phone or video consultation",
                 "items": [
                   "Duration: approx. 30 minutes",
-                  "In person, by phone or video",
+                  "By phone or video",
                   "100% without obligation"
                 ]
               },
               {
-                "title": "proWINparty",
+                "title": "Appointment in person",
                 "items": [
                   "Duration: approx. 60 minutes",
-                  "In person or by video"
+                  "In person by arrangement"
                 ]
               }
             ],
@@ -850,45 +420,12 @@
           }
         },
         {
-          "id": "mitmachen",
-          "navLabel": "Join in",
-          "data": {
-            "kicker": "Join in",
-            "heading": "Fancy getting started yourself?",
-            "sub": "You like the products and could imagine passing them on yourself?\nThen join as a consultant and work with me in a team –\nI'll show you everything you need.",
-            "cards": [
-              {
-                "title": "Your time, your pace",
-                "text": "Whether on the side or with bigger goals – you decide how much you do and when."
-              },
-              {
-                "title": "You won't start alone",
-                "text": "From the first question to your first own party, I'll support you personally."
-              },
-              {
-                "title": "Out of conviction",
-                "text": "Products you can stand behind – that makes passing them on easy."
-              }
-            ],
-            "actions": [
-              {
-                "label": "Tell me more",
-                "contactReason": "I would like to join your team"
-              },
-              {
-                "label": "Get started with me"
-              }
-            ],
-            "actionsNote": "No obligation – we'll simply see whether it suits you."
-          }
-        },
-        {
           "id": "kontakt",
           "navLabel": "Contact",
           "data": {
             "kicker": "Contact",
             "heading": "Write to me – I look forward to hearing from you",
-            "intro": "Got a question or want to get started right away? Consultations are held in German. The best ways to reach me:",
+            "intro": "Got a question or would like an appointment? Consultations are held in German. The best ways to reach me:",
             "links": [
               {},
               {
@@ -896,9 +433,6 @@
               },
               {
                 "label": "Landline"
-              },
-              {
-                "text": "WhatsApp channel for current offers"
               },
               {
                 "text": "Digital business card"
@@ -913,20 +447,17 @@
               "submit": "Send message",
               "consent": "I have read the <a href=\"datenschutz.html\" external>privacy policy</a> and agree to my data being processed to handle my enquiry.",
               "reasons": [
-                "I have a question about a proWIN product",
-                "I would like to buy proWIN products",
-                "I have a general question or message",
-                "I would like to join your team"
+                "I would like to arrange an appointment",
+                "I have a general question or message"
               ]
             }
           }
         }
       ],
       "footer": {
-        "partnerText": "Official consultant for",
-        "legal": "Manuela Zimmert · independent proWIN sales consultant · 86971 Peiting · <a href=\"impressum.html\">Legal notice</a> · <a href=\"datenschutz.html\">Privacy policy</a>",
+        "legal": "Manuela Zimmert · 86971 Peiting · <a href=\"impressum.html\">Legal notice</a> · <a href=\"datenschutz.html\">Privacy policy</a>",
         "review": "The texts and graphics on this website have been editorially reviewed by Manuela Zimmert.",
-        "fine": "Shine On You · Since 2026 <br />“proWIN” is a trademark of proWIN International. This site is an independent offering."
+        "fine": "Shine On You · Since 2026"
       }
     }
   }

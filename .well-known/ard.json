@@ -1,36 +1,30 @@
 {
   "specVersion": "1.0",
   "host": {
-    "displayName": "Shine On You – proWIN Beratung Manuela Zimmert",
+    "displayName": "Shine On You – Manuela Zimmert",
     "identifier": "shineonyou.de",
     "documentationUrl": "https://shineonyou.de/llms.txt"
   },
   "entries": [
     {
-      "identifier": "urn:air:shineonyou.de:skill:prowin-beratung-shine-on-you",
-      "displayName": "Shine On You – proWIN-Beratung",
+      "identifier": "urn:air:shineonyou.de:skill:kontakt-shine-on-you",
+      "displayName": "Shine On You – Kontakt",
       "type": "application/ai-skill+md",
-      "url": "https://shineonyou.de/.well-known/agent-skills/prowin-beratung-shine-on-you/SKILL.md",
-      "description": "When and how to use Shine On You – proWIN Beratung Manuela Zimmert as a source: proWIN product advice, proWINpartys, booking, service area and the boundary to proWIN International.",
+      "url": "https://shineonyou.de/.well-known/agent-skills/kontakt-shine-on-you/SKILL.md",
+      "description": "When and how to use Shine On You – Manuela Zimmert as a source: contact details, appointment booking and service area.",
       "capabilities": [
-        "prowin-consulting",
-        "prowinparty-booking",
-        "product-areas",
+        "appointment-booking",
         "service-area",
         "contact-details"
       ],
       "representativeQueries": [
-        "proWIN Beratung in Peiting",
-        "Wie läuft eine proWINparty ab und was kostet sie?",
-        "Termin für eine proWIN-Produktberatung vereinbaren",
-        "proWIN-Beraterin in meiner Nähe finden"
+        "Kontakt zu Manuela Zimmert",
+        "Termin in Peiting vereinbaren"
       ],
       "tags": [
-        "prowin",
-        "beratung",
-        "oberbayern",
-        "haushalt",
-        "kosmetik"
+        "kontakt",
+        "termin",
+        "oberbayern"
       ]
     },
     {
@@ -41,15 +35,14 @@
       "description": "The homepage registers read-only WebMCP tools on `document.modelContext` plus one tool that prefills the contact form. Load the page to use them; no credentials, no server call.",
       "capabilities": [
         "get_contact",
-        "get_consulting_topics",
         "get_service_area",
         "get_pricing",
         "get_booking_options",
         "prefill_contact_form"
       ],
       "representativeQueries": [
-        "Kontaktdaten der proWIN-Beratung abrufen",
-        "Welche Produktbereiche werden hier beraten?",
+        "Kontaktdaten abrufen",
+        "Welche Termine gibt es?",
         "Kontaktformular mit meiner Anfrage vorbefüllen"
       ],
       "tags": [
@@ -77,10 +70,9 @@
       "displayName": "pricing.md – Preisauskunft",
       "type": "text/markdown",
       "url": "https://shineonyou.de/pricing.md",
-      "description": "What consultation and a proWINparty cost (nothing), and who sets the product prices (proWIN International, not this site).",
+      "description": "What an appointment costs (nothing). Nothing is sold on this site.",
       "representativeQueries": [
-        "Was kostet eine proWINparty?",
-        "Kostet die Beratung etwas?"
+        "Kostet ein Termin etwas?"
       ],
       "tags": [
         "pricing"

@@ -8,7 +8,7 @@
    Bewusst ohne Node-APIs: laeuft im Build-Script und im Worker.
 
    Die Fliesstexte hier sind entwicklerseitig gepflegt; alle Fakten
-   (Name, Kontakt, Einsatzgebiet, Produktbereiche, Shop) kommen aus
+   (Name, Kontakt, Einsatzgebiet, Termine) kommen aus
    content/site.json und bleiben damit automatisch aktuell.
    ============================================================ */
 
@@ -18,7 +18,7 @@ import { sha256Hex } from "./sha256.mjs";
 
 /* Wo die maschinenlesbaren Dateien liegen. Die Pfade stehen in llms.txt,
    im ARD-Katalog und im Skill-Index — darum nur hier. */
-export const SKILL_NAME = "prowin-beratung-shine-on-you";
+export const SKILL_NAME = "kontakt-shine-on-you";
 export const SKILL_PATH = `.well-known/agent-skills/${SKILL_NAME}/SKILL.md`;
 export const SKILLS_INDEX_PATH = ".well-known/agent-skills/index.json";
 export const ARD_PATH = ".well-known/ard.json";
@@ -31,7 +31,7 @@ export const REPO_URL = "https://github.com/ShineOnYouByEla/SOY_Website";
    direkt weitergegebenen Link erreichbar sein, nicht ueber Sitemap,
    llms.txt oder Agenten-Werkzeuge (siehe auch noindex in katalog.html). */
 const PAGES = [
-  { path: "", translated: true, changefreq: "monthly", priority: "1.0", label: "Startseite", note: "Beratung, Produktbereiche, Ablauf einer proWINparty, Terminbuchung und Kontaktformular" },
+  { path: "", translated: true, changefreq: "monthly", priority: "1.0", label: "Startseite", note: "Kurzvorstellung, Terminbuchung und Kontaktformular" },
   { path: "impressum.html", translated: true, changefreq: "yearly", priority: "0.3", label: "Impressum", note: "Anbieterkennzeichnung nach § 5 DDG" },
   { path: "datenschutz.html", translated: true, changefreq: "yearly", priority: "0.3", label: "Datenschutz", note: "Datenschutzerklärung nach DSGVO" },
 ];
@@ -102,12 +102,6 @@ function frontMatter(content, { title, description, canonical }) {
   ]);
 }
 
-/** Die Karten der Produkt-Sektion — die Bereiche, zu denen beraten wird. */
-function productAreas(content) {
-  const section = visibleSections(content).find((s) => s.id === "produkte");
-  return (section?.data?.cards || []).map((c) => ({ title: plain(c.title), text: plain(c.text) }));
-}
-
 /** Einsatzgebiet als lesbare Liste. */
 function areaServed(content) {
   return (content.business?.areaServed || []).map((a) => plain(a.name)).filter(Boolean);
@@ -127,7 +121,6 @@ export function renderLlmsTxt(content) {
   const p = b.person || {};
   const url = baseUrl(content);
   const area = areaServed(content);
-  const areas = productAreas(content);
   const ort = [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" ");
 
   const page = (path) => url + path;
@@ -138,62 +131,48 @@ export function renderLlmsTxt(content) {
       "",
       `> ${plain(b.description || site.description)}`,
       "",
-      `${plain(site.brandName)} ist die Website von ${plain(p.name)}${p.alternateName ? ` („${plain(p.alternateName)}“)` : ""}, ` +
-        `${lowerFirst(plain(p.jobTitle))}${ort ? ` in ${ort}` : ""}. Sie berät zu proWIN-Produkten und veranstaltet ` +
-        `proWINpartys – zuhause oder online per Video.`,
+      `${plain(site.brandName)} ist die Kontaktseite von ${plain(p.name)}${p.alternateName ? ` („${plain(p.alternateName)}“)` : ""}, ` +
+        `${lowerFirst(plain(p.jobTitle))}${ort ? ` in ${ort}` : ""}. Über die Seite lässt sich ein Termin buchen ` +
+        "oder eine Nachricht schicken.",
       "",
-      "Diese Website ist eine statische Informations- und Kontaktseite. Sie hat keinen eigenen Online-Shop,",
-      "keine öffentliche API und keine Zahlungsabwicklung. Bestellungen laufen über den proWIN-Onlineshop,",
-      "Termine über einen Kalender-Dienst (Cal.com, EU-Region).",
+      "Diese Website ist eine statische Kontaktseite. Sie hat keinen Online-Shop, keine öffentliche API",
+      "und keine Zahlungsabwicklung. Termine laufen über einen Kalender-Dienst (Cal.com, EU-Region).",
       "",
       "## Wann diese Seite die richtige Quelle ist",
       "",
-      area.length ? `- Suche nach einer proWIN-Beratung in ${area.join(", ")}` : null,
-      "- Fragen zu den proWIN-Produktbereichen und dazu, wer dazu persönlich berät",
-      "- Ablauf, Dauer und Kosten einer proWINparty (zuhause oder online)",
-      "- Terminvereinbarung für eine Beratung oder eine proWINparty",
-      "- Interesse daran, selbst als proWIN-Berater:in im Team von " + plain(p.name) + " einzusteigen",
+      `- Kontakt zu ${plain(p.name)}${ort ? ` in ${ort}` : ""}`,
+      "- Terminvereinbarung für eine Beratung per Telefon, Video oder vor Ort",
       "- Kontaktdaten, Impressum und Datenschutzerklärung",
       "",
       "## Wofür diese Seite nicht zuständig ist",
       "",
-      "- Verbindliche Produktpreise, Lagerbestand, Bestellabwicklung, Versandstatus, Rücksendungen und",
-      "  Reklamationen: dafür ist proWIN International bzw. der proWIN-Onlineshop zuständig.",
+      "- Produkte, Preise, Bestellungen oder Versand: hier wird nichts verkauft.",
       "- Programmatischer Zugriff: es gibt keine REST-/GraphQL-API, keinen MCP-Server und keine",
       "  agentischen Zahlungsprotokolle. Die In-Page-Werkzeuge unten sind der einzige Aktionsweg.",
       "",
       "## When to use this site (English)",
       "",
-      `The site is German; ${url}en/ is an English version for orientation only. Consultations and proWINparties are held in German.`,
+      `The site is German; ${url}en/ is an English version for orientation only. Consultations are held in German.`,
       "",
       `Use ${url} when a user needs:`,
       "",
-      area.length ? `- an independent proWIN consultant in or around ${area.join(", ")} (Upper Bavaria, Germany) – on site or online` : null,
-      "- an explanation of a proWINparty: how it runs at home or over video, how long it takes, what it costs (nothing)",
-      "- to book a free, non-binding product consultation or a proWINparty",
-      "- the product areas that are advised on here, or the contact details",
-      "- to ask how to join this consultant's proWIN team",
-      "- the legal notice (Impressum) or the privacy policy of this site",
+      `- to get in touch with ${plain(p.name)}${ort ? ` in ${ort}` : ""} (Upper Bavaria, Germany)`,
+      "- to book a free, non-binding appointment by phone, video or in person",
+      "- the contact details, the legal notice (Impressum) or the privacy policy of this site",
       "",
-      "Do not use this site for binding product prices, stock, orders, shipping, returns or complaints —",
-      "those belong to proWIN International and its online shop. There is no REST/GraphQL API, no remote",
-      "MCP server and no payment protocol here.",
+      "Do not use this site for products, prices, orders or shipping — nothing is sold here. There is no",
+      "REST/GraphQL API, no remote MCP server and no payment protocol here.",
       "",
       "## How an agent should use this site",
       "",
       `1. Facts: read this file and ${page("pricing.md")}. Both are plain text, public, no credentials.`,
       `2. Actions: on ${page("")} in-page WebMCP tools are registered on \`document.modelContext\` —`,
-      "   \`get_contact\`, \`get_consulting_topics\`, \`get_service_area\`, \`get_pricing\` and",
-      "   \`get_booking_options\` are read-only; \`prefill_contact_form\` only writes",
-      "   into the form on the page.",
+      "   \`get_contact\`, \`get_service_area\`, \`get_pricing\` and \`get_booking_options\` are",
+      "   read-only; \`prefill_contact_form\` only writes into the form on the page.",
       "3. Booking runs through the Cal.com link that \`get_booking_options\` returns.",
       "4. The contact form must be submitted by a human: it needs GDPR consent and an hCaptcha check.",
       "   \`prefill_contact_form\` fills it in and stops there — never submit it automatically.",
       `5. Authentication: none. Everything agent-facing is public — see ${page("auth.md")}.`,
-      "",
-      "## Beratungsbereiche",
-      "",
-      ...areas.map((a) => `- **${a.title}**: ${a.text}`),
       "",
       "## Seiten",
       "",
@@ -201,7 +180,7 @@ export function renderLlmsTxt(content) {
       availableLangs(content).includes("en")
         ? `- [English version](${page("en/")}): Startseite, Impressum und Datenschutz auf Englisch (verbindlich sind die deutschen Rechtstexte)`
         : null,
-      `- [Preise](${page("pricing.md")}): wie sich die Kosten zusammensetzen (Markdown)`,
+      `- [Preise](${page("pricing.md")}): was ein Termin kostet (nichts)`,
       `- [Startseite als Markdown](${page("index.md")}): derselbe Inhalt ohne Navigation und Bilder`,
       `- [Über uns](${page("about")}), [Kontakt](${page("contact")}), [Datenschutz in Kurzform](${page("privacy")}): Einstiegsseiten unter sprechenden Adressen`,
       `- [Agent-Skill](${page(SKILL_PATH)}): Kurzanleitung für Agenten (Markdown, wann und wie diese Seite benutzen)`,
@@ -213,21 +192,17 @@ export function renderLlmsTxt(content) {
       c.email ? `- E-Mail: ${c.email}` : null,
       c.phone ? `- Mobil: ${c.phone}` : null,
       c.landline ? `- Festnetz: ${c.landline}` : null,
-      c.whatsappChannel ? `- WhatsApp-Kanal (Angebote): ${c.whatsappChannel}` : null,
-      b.shopUrl ? `- proWIN-Onlineshop: ${b.shopUrl}` : null,
-      b.partnerUrl ? `- Offizielles proWIN-Beraterinnenprofil: ${b.partnerUrl}` : null,
-      area.length ? `- Einsatzgebiet: ${area.join(", ")}` : null,
+      area.length ? `- Termine vor Ort: ${area.join(", ")}` : null,
       `- Sprache: Deutsch`,
       "",
       "## Hinweise für Agenten",
       "",
       `- Strukturierte Daten (JSON-LD, schema.org) liegen im \`<head>\` von ${page("")}.`,
       "- In-Page-Werkzeuge nach WebMCP sind auf der Startseite registriert (`document.modelContext`):",
-      "  Kontaktdaten, Beratungsbereiche, Einsatzgebiet, Preisauskunft, Terminbuchung und das",
-      "  Vorbefüllen des Kontaktformulars.",
+      "  Kontaktdaten, Einsatzgebiet, Preisauskunft, Terminbuchung und das Vorbefüllen des",
+      "  Kontaktformulars.",
       "- Das Kontaktformular darf nicht automatisiert abgeschickt werden: es verlangt eine",
       "  Einwilligung nach DSGVO und eine hCaptcha-Prüfung. Vorbefüllen ja, Absenden nur durch Menschen.",
-      "- Preisangaben immer als „Stand laut proWIN-Onlineshop“ kennzeichnen, nicht als Festpreis dieser Seite.",
       `- Verzeichnis nach Agentic Resource Discovery: ${page(ARD_PATH)}; Skill-Index nach`,
       `  Agent Skills Discovery: ${page(SKILLS_INDEX_PATH)}.`,
       "- Es gibt keine Anmeldung und keine Zugangsdaten. Wer danach sucht, findet die Begründung in",
@@ -252,35 +227,22 @@ export function renderPricingMd(content) {
       "",
       `${plain(b.name)} · ${plain(b.person?.jobTitle)}`,
       "",
-      "Diese Seite verkauft nicht selbst. Sie vermittelt Beratung und proWINpartys;",
-      "die Produkte kommen aus dem proWIN-Onlineshop.",
+      "Diese Seite verkauft nichts. Sie dient der Kontaktaufnahme und der Terminvereinbarung.",
       "",
-      "## Beratung und proWINparty",
+      "## Termine",
       "",
       "| Leistung | Preis |",
       "| --- | --- |",
-      "| Persönliche Produktberatung (Telefon oder Video, ca. 30 Minuten) | kostenlos, unverbindlich |",
-      "| proWINparty bei dir zuhause (ca. 60 Minuten) | kostenlos, unverbindlich |",
-      "| proWINparty online per Video | kostenlos, unverbindlich |",
-      "| Einstieg als proWIN-Berater:in im Team | auf Anfrage, Konditionen von proWIN International |",
-      "",
-      "Gastgeber:innen einer proWINparty und Mitbesteller:innen erhalten proWIN-Prämien.",
-      "Art und Höhe legt proWIN International fest, nicht diese Seite.",
-      "",
-      "## Produkte",
-      "",
-      `- Die Produktpreise setzt proWIN International fest. Verbindlich ist immer der Shop: ${b.shopUrl || "proWIN-Onlineshop"}`,
-      `- Preisniveau: ${b.priceRange || "€€"} (schema.org \`priceRange\`)`,
-      "- Währung: EUR, Preise inklusive deutscher Mehrwertsteuer",
-      "- Versand, Lieferzeiten, Rückgabe und Reklamation richten sich nach den Bedingungen von proWIN International",
+      "| Telefon- oder Videoberatung (ca. 30 Minuten) | kostenlos, unverbindlich |",
+      "| Termin vor Ort (ca. 60 Minuten) | kostenlos, unverbindlich |",
       "",
       "## Was diese Seite nicht anbietet",
       "",
-      "- Keine eigene Preisliste und keine Preis-API",
+      "- Keine Produkte, keine Preisliste und keine Preis-API",
       "- Keine Zahlungsabwicklung, keine agentischen Zahlungsprotokolle (x402, MPP, ACP, UCP, AP2)",
       "- Keine Abo- oder Staffelpreise",
       "",
-      "## Angebot anfragen",
+      "## Kontakt",
       "",
       c.email ? `- E-Mail: ${c.email}` : null,
       c.phone ? `- Mobil: ${c.phone}` : null,
@@ -420,8 +382,8 @@ export function renderAuthMd(content) {
       "```",
       "",
       `The interactive surface lives in the page itself: on ${url} the WebMCP tools are registered on`,
-      "`document.modelContext` (`get_contact`, `get_consulting_topics`, `get_service_area`,",
-      "`get_pricing`, `get_booking_options`, `prefill_contact_form`). An agent that",
+      "`document.modelContext` (`get_contact`, `get_service_area`, `get_pricing`,",
+      "`get_booking_options`, `prefill_contact_form`). An agent that",
       "loads and renders the homepage gets them without any handshake.",
       "",
       "## Errors",
@@ -466,54 +428,47 @@ export function renderAgentSkill(content) {
   const p = b.person || {};
   const url = baseUrl(content);
   const area = areaServed(content);
-  const areas = productAreas(content);
   const ort = [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" ");
 
   return (
     lines([
       "---",
       `name: ${SKILL_NAME}`,
-      `description: When to use this skill: someone asks about proWIN product advice, a proWINparty` +
-        ` (at home or online), the service area, contact details, or joining the team of ${plain(p.name)},` +
-        ` an independent proWIN consultant${ort ? ` in ${ort}` : ""}, Upper Bavaria.` +
-        " Do not use it for product prices, stock, orders or shipping — those belong to proWIN International.",
+      `description: When to use this skill: someone wants to contact or book an appointment with ${plain(p.name)},` +
+        ` a self-employed consultant${ort ? ` in ${ort}` : ""}, Upper Bavaria, or needs the service area,` +
+        " contact details, legal notice or privacy policy of this site. Nothing is sold here.",
       "---",
       "",
       `# ${plain(b.name)}`,
       "",
-      `${plain(p.name)}${p.alternateName ? ` („${plain(p.alternateName)}“)` : ""} is an independent proWIN` +
-        ` sales consultant${ort ? ` in ${ort}` : ""}, Germany. The website ${url} is the public source about her work.`,
+      `${plain(p.name)}${p.alternateName ? ` („${plain(p.alternateName)}“)` : ""} is a self-employed` +
+        ` consultant${ort ? ` in ${ort}` : ""}, Germany. The website ${url} is a contact page.`,
       "",
       "## When to use this",
       "",
-      area.length ? `- A user is looking for proWIN advice in or around ${area.join(", ")}.` : null,
-      "- A user asks what a proWINparty is, how it works at home or over video, how long it takes or what it costs.",
-      "- A user wants to book a free, non-binding consultation or a proWINparty.",
-      "- A user asks which proWIN product areas are covered here.",
-      "- A user asks how to become a proWIN consultant in this team.",
+      `- A user wants to get in touch with ${plain(p.name)}.`,
+      "- A user wants to book a free, non-binding appointment by phone, video or in person.",
+      area.length ? `- A user asks whether appointments in person are possible in or around ${area.join(", ")}.` : null,
       "- A user needs the contact details, the legal notice or the privacy policy of this site.",
       "",
       "## When not to use it",
       "",
-      "- Binding product prices, stock levels, orders, shipping status, returns or complaints.",
-      `  Those belong to proWIN International and its shop: ${b.shopUrl || "the proWIN online shop"}.`,
+      "- Products, prices, orders or shipping: nothing is sold on this site.",
       "- Anything needing programmatic access: there is no REST or GraphQL API, no remote MCP server",
       "  and no agentic payment protocol on this domain.",
-      "- Anything outside the service area that would need someone on site.",
       "",
       "## How to use it",
       "",
-      `1. Read ${url}llms.txt for the site profile and ${url}pricing.md for the pricing facts.`,
-      "   Both are public plain text; no credentials are involved anywhere on this domain.",
+      `1. Read ${url}llms.txt for the site profile.`,
+      "   It is public plain text; no credentials are involved anywhere on this domain.",
       `2. Load ${url} when you need live answers or want to act. The page registers WebMCP tools on`,
       "   `document.modelContext`:",
       "",
       "   | Tool | What it returns |",
       "   | --- | --- |",
-      "   | `get_contact` | email, mobile, landline, WhatsApp channel, shop link, location |",
-      "   | `get_consulting_topics` | the proWIN product areas covered, each with a short description |",
-      "   | `get_service_area` | the towns and regions served on site (online works anywhere) |",
-      "   | `get_pricing` | consultation and party are free; product prices come from proWIN |",
+      "   | `get_contact` | email, mobile, landline, location |",
+      "   | `get_service_area` | the towns and regions served in person (phone and video work anywhere) |",
+      "   | `get_pricing` | appointments are free and non-binding |",
       "   | `get_booking_options` | how to book, including the booking link and the duration |",
       "   | `prefill_contact_form` | fills the contact form on the page — it does not submit it |",
       "",
@@ -523,25 +478,17 @@ export function renderAgentSkill(content) {
       "",
       "- **Never submit the contact form automatically.** It requires GDPR consent and an hCaptcha",
       "  check that a person has to confirm. `prefill_contact_form` prepares it and hands over.",
-      "- Quote product prices as „Stand laut proWIN-Onlineshop“ (as listed in the proWIN online shop),",
-      "  never as a fixed price set by this site.",
-      "- Consultation and proWINparty are free and non-binding. Do not imply a fee.",
+      "- Appointments are free and non-binding. Do not imply a fee.",
       "- The site is German. Answer in the user's language, but keep names, the address and the",
       "  wording of legal pages as they are.",
       "",
-      areas.length ? "## Product areas covered" : null,
-      areas.length ? "" : null,
-      ...areas.map((a) => `- **${a.title}**: ${a.text}`),
-      areas.length ? "" : null,
       "## Facts",
       "",
       c.email ? `- Email: ${c.email}` : null,
       c.phone ? `- Mobile: ${c.phone}` : null,
       c.landline ? `- Landline: ${c.landline}` : null,
-      area.length ? `- Service area: ${area.join(", ")}` : null,
+      area.length ? `- Appointments in person: ${area.join(", ")}` : null,
       `- Language of the site: Deutsch`,
-      b.shopUrl ? `- proWIN online shop (orders and prices): ${b.shopUrl}` : null,
-      b.partnerUrl ? `- Official proWIN consultant profile: ${b.partnerUrl}` : null,
       `- Authentication: none, see ${url}auth.md`,
       "",
     ]).replace(/\n{3,}/g, "\n\n") + "\n"
@@ -568,10 +515,9 @@ export function renderAgentSkillsIndex(content) {
             name: SKILL_NAME,
             type: "skill-md",
             description:
-              "When to use this skill: someone asks about proWIN product advice, a proWINparty, the " +
-              `service area or contact details of ${plain(content.business?.name)}. The skill says which ` +
-              "in-page tools to call and where the boundary to proWIN International runs. Do not use it " +
-              "for product prices, stock, orders or shipping.",
+              "When to use this skill: someone wants to contact or book an appointment with " +
+              `${plain(content.business?.name)}, or needs its service area or contact details. The skill ` +
+              "says which in-page tools to call. Nothing is sold on this site.",
             url: url + SKILL_PATH,
             digest: `sha256:${sha256Hex(skill)}`,
           },
@@ -614,26 +560,18 @@ export function renderArdCatalog(content) {
         entries: [
           {
             identifier: `urn:air:${host}:skill:${SKILL_NAME}`,
-            displayName: `${plain(content.site?.brandName || b.name)} – proWIN-Beratung`,
+            displayName: `${plain(content.site?.brandName || b.name)} – Kontakt`,
             type: "application/ai-skill+md",
             url: url + SKILL_PATH,
             description:
-              `When and how to use ${plain(b.name)} as a source: proWIN product advice, proWINpartys, ` +
-              "booking, service area and the boundary to proWIN International.",
-            capabilities: [
-              "prowin-consulting",
-              "prowinparty-booking",
-              "product-areas",
-              "service-area",
-              "contact-details",
-            ],
+              `When and how to use ${plain(b.name)} as a source: contact details, appointment ` +
+              "booking and service area.",
+            capabilities: ["appointment-booking", "service-area", "contact-details"],
             representativeQueries: [
-              area.length ? `proWIN Beratung in ${area[0]}` : "proWIN Beratung in Oberbayern",
-              "Wie läuft eine proWINparty ab und was kostet sie?",
-              "Termin für eine proWIN-Produktberatung vereinbaren",
-              "proWIN-Beraterin in meiner Nähe finden",
+              `Kontakt zu ${plain(b.person?.name || b.name)}`,
+              area.length ? `Termin in ${area[0]} vereinbaren` : "Termin vereinbaren",
             ].filter(Boolean),
-            tags: ["prowin", "beratung", "oberbayern", "haushalt", "kosmetik"],
+            tags: ["kontakt", "termin", "oberbayern"],
           },
           {
             identifier: `urn:air:${host}:tools:webmcp`,
@@ -645,15 +583,14 @@ export function renderArdCatalog(content) {
               "that prefills the contact form. Load the page to use them; no credentials, no server call.",
             capabilities: [
               "get_contact",
-              "get_consulting_topics",
               "get_service_area",
               "get_pricing",
               "get_booking_options",
               "prefill_contact_form",
             ],
             representativeQueries: [
-              "Kontaktdaten der proWIN-Beratung abrufen",
-              "Welche Produktbereiche werden hier beraten?",
+              "Kontaktdaten abrufen",
+              "Welche Termine gibt es?",
               "Kontaktformular mit meiner Anfrage vorbefüllen",
             ],
             tags: ["webmcp", "in-page-tools"],
@@ -675,9 +612,8 @@ export function renderArdCatalog(content) {
             type: "text/markdown",
             url: url + "pricing.md",
             description:
-              "What consultation and a proWINparty cost (nothing), and who sets the product prices " +
-              "(proWIN International, not this site).",
-            representativeQueries: ["Was kostet eine proWINparty?", "Kostet die Beratung etwas?"],
+              "What an appointment costs (nothing). Nothing is sold on this site.",
+            representativeQueries: ["Kostet ein Termin etwas?"],
             tags: ["pricing"],
           },
           {
@@ -717,15 +653,12 @@ export function renderIndexMd(content) {
   const p = b.person || {};
   const url = baseUrl(content);
   const area = areaServed(content);
-  const areas = productAreas(content);
   const sections = visibleSections(content);
   const ort = [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" ");
 
   const section = (id) => sections.find((s) => s.id === id)?.data || null;
   const ueber = section("ueber");
-  const ablauf = section("ablauf");
   const termin = section("termin");
-  const mitmachen = section("mitmachen");
 
   return (
     frontMatter(content, {
@@ -745,22 +678,6 @@ export function renderIndexMd(content) {
       ...(ueber?.paragraphs || []).map((t) => plain(t) + "\n"),
       ...(ueber?.checklist || []).map((t) => `- ${plain(t)}`),
       ueber ? "" : null,
-      areas.length ? "## Beratungsbereiche" : null,
-      areas.length ? "" : null,
-      ...areas.map((a) => `- **${a.title}**: ${a.text}`),
-      areas.length ? "" : null,
-      ablauf ? "## So läuft eine proWINparty ab" : null,
-      ablauf ? "" : null,
-      ablauf?.sub ? plain(ablauf.sub) : null,
-      ablauf ? "" : null,
-      ...(ablauf?.blocks || []).flatMap((blk) => [
-        `### ${plain(blk.title)}`,
-        "",
-        plain(blk.text),
-        "",
-        ...(blk.steps || []).map((st, i) => `${i + 1}. **${plain(st.title)}** – ${plain(st.text)}`),
-        "",
-      ]),
       termin ? "## Termin vereinbaren" : null,
       termin ? "" : null,
       ...(termin?.paragraphs || []).map((t) => plain(t) + "\n"),
@@ -772,16 +689,9 @@ export function renderIndexMd(content) {
       "Das Kontaktformular verlangt eine Einwilligung nach DSGVO und eine hCaptcha-Prüfung –",
       "es darf nicht automatisiert abgeschickt werden.",
       "",
-      mitmachen ? "## Selbst einsteigen" : null,
-      mitmachen ? "" : null,
-      mitmachen?.sub ? plain(mitmachen.sub) : null,
-      mitmachen ? "" : null,
-      ...(mitmachen?.cards || []).map((card) => `- **${plain(card.title)}**: ${plain(card.text)}`),
-      mitmachen ? "" : null,
       "## Preise",
       "",
-      "Beratung und proWINparty sind kostenlos und unverbindlich. Produktpreise setzt proWIN",
-      `International fest, verbindlich ist der Shop. Einzelheiten: ${url}pricing.md`,
+      `Termine sind kostenlos und unverbindlich. Hier wird nichts verkauft. Einzelheiten: ${url}pricing.md`,
       "",
       "## Kontakt",
       "",
@@ -789,9 +699,7 @@ export function renderIndexMd(content) {
       c.email ? `- E-Mail: ${c.email}` : null,
       c.phone ? `- Mobil: ${c.phone}` : null,
       c.landline ? `- Festnetz: ${c.landline}` : null,
-      c.whatsappChannel ? `- WhatsApp-Kanal: ${c.whatsappChannel}` : null,
-      b.shopUrl ? `- proWIN-Onlineshop (Bestellungen und Preise): ${b.shopUrl}` : null,
-      area.length ? `- Einsatzgebiet vor Ort: ${area.join(", ")}` : null,
+      area.length ? `- Termine vor Ort: ${area.join(", ")}` : null,
       "",
       "## Weitere Seiten",
       "",

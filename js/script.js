@@ -9,7 +9,7 @@
 const CONFIG_DEFAULTS = {
   businessName: "Shine On You",
   ownerName: "Manuela Zimmert",
-  email: "prowin.ela@web.de",    // Kontakt-/Empfangsadresse
+  email: "manuela@shineonyou.de",    // Kontakt-/Empfangsadresse
   phone: "+49 1551 0279357",          // Mobilnummer (Anzeige)
   phoneHref: "+4915510279357",        // Mobilnummer für tel:-Link (ohne Leerzeichen)
   landline: "+49 8861 7138897",       // Festnetznummer (Anzeige)

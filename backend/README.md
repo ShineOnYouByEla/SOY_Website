@@ -430,6 +430,11 @@ zum Seitenentwurf gehören.
 
 ### Kataloge (PDF)
 
+> **Stillgelegt.** Die öffentliche Seite hat keine Katalogseite mehr
+> (`katalog.html`, das Manifest-Skript und der Deploy-Schritt sind entfernt).
+> Die Verwaltung im Admin funktioniert technisch noch, hochgeladene PDFs
+> landen aber ohne Anzeige im Repository. Bitte nicht benutzen.
+
 Unter „Dateien → Kataloge (PDF)" liegt die vollständige Verwaltung:
 
 | Aufgabe | Wirkung |
@@ -445,7 +450,7 @@ Die Liste selbst (`kataloge/manifest.json`) schreibt das Admin bewusst
 `kataloge/titel.json` (`scripts/build-katalog-manifest.mjs`). Das Admin
 pflegt also nur diese beiden Dinge und benutzt für die Anzeige dieselbe
 Logik wie der Build (`shared/kataloge.mjs`) – was im Admin steht, steht
-danach auch auf der Seite. Mehr dazu in [`kataloge/README.md`](../kataloge/README.md).
+danach auch auf der Seite.
 
 Der Anzeigename hängt am Dateinamen, die `id` für Direktlinks
 (`katalog.html?katalog=<id>`) ebenfalls. Anzeigename und Reihenfolge zu

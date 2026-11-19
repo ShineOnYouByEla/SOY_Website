@@ -24,12 +24,6 @@ const lines = (parts) => parts.filter((p) => p !== null && p !== undefined && p 
    am Zeilenende um (und html-validate meldet es zu Recht als Fehler). */
 const tel = (nr) => esc(nr).replace(/ /g, "&nbsp;");
 
-/** Die Karten der Produkt-Sektion. */
-function productAreas(content) {
-  const section = visibleSections(content).find((s) => s.id === "produkte");
-  return (section?.data?.cards || []).map((c) => ({ title: plainText(c.title), text: plainText(c.text) }));
-}
-
 function areaServed(content) {
   return (content.business?.areaServed || []).map((a) => plainText(a.name)).filter(Boolean);
 }
@@ -126,7 +120,6 @@ function aboutBody(content) {
   const b = content.business || {};
   const p = b.person || {};
   const area = areaServed(content);
-  const areas = productAreas(content);
   const ueber = visibleSections(content).find((s) => s.id === "ueber")?.data || {};
   const ort = [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" ");
 
@@ -139,32 +132,23 @@ function aboutBody(content) {
     (ueber.checklist || []).length ? "      <ul>" : null,
     ...(ueber.checklist || []).map((t) => `        <li>${esc(plainText(t))}</li>`),
     (ueber.checklist || []).length ? "      </ul>" : null,
-    areas.length ? "      <h2>Beratungsbereiche</h2>" : null,
-    areas.length ? "      <ul>" : null,
-    ...areas.map((a) => `        <li><strong>${esc(a.title)}</strong> – ${esc(a.text)}</li>`),
-    areas.length ? "      </ul>" : null,
     "      <h2>Wo beraten wird</h2>",
     `      <p>`,
     area.length
       ? `        Vor Ort in ${esc(area.join(", "))}${ort ? ` – der Sitz ist ${esc(ort)}` : ""}.`
       : "        Vor Ort nach Absprache.",
-    "        Eine proWINparty oder eine Produktberatung geht auch online per Video, dafür spielt der Wohnort keine Rolle.",
+    "        Per Telefon oder Video spielt der Wohnort keine Rolle.",
     "      </p>",
     "      <h2>Was hier nicht passiert</h2>",
     "      <p>",
-    "        Diese Website verkauft nicht selbst. Bestellungen, Preise, Versand und Reklamationen laufen über",
-    b.shopUrl
-      ? `        den <a href="${esc(b.shopUrl)}" target="_blank" rel="noopener">proWIN-Onlineshop</a> bzw. über proWIN International.`
-      : "        proWIN International.",
-    "        Beratung und proWINparty sind kostenlos und unverbindlich.",
+    "        Diese Website verkauft nichts. Sie dient der Kontaktaufnahme und der Terminvereinbarung;",
+    "        Termine sind kostenlos und unverbindlich.",
     "      </p>",
     "      <h2>About (English)</h2>",
     "      <p>",
-    `        ${esc(plainText(b.name))} is the site of ${esc(plainText(p.name))}, an independent proWIN sales consultant`,
+    `        ${esc(plainText(b.name))} is the contact page of ${esc(plainText(p.name))}, a self-employed consultant`,
     ort ? `        in ${esc(ort)}, Upper Bavaria, Germany.` : "        in Germany.",
-    "        She advises on proWIN products for household, cleaning, cosmetics and wellness, and hosts proWINpartys",
-    "        at people's homes or online over video. Consultation and party are free and non-binding; product orders,",
-    "        prices and shipping are handled by proWIN International.",
+    "        Appointments by phone, video or in person are free and non-binding; nothing is sold on this site.",
     `        ${NOTE_EN}`,
     "      </p>",
     '      <p><a href="contact.html">Kontakt</a> · <a href="impressum.html">Impressum</a> · <a href="privacy.html">Datenschutz in Kurzform</a></p>',
@@ -190,34 +174,24 @@ function contactBody(content) {
     c.email ? `        <li>E-Mail: <a href="mailto:${esc(c.email)}">${esc(c.email)}</a></li>` : null,
     c.phone ? `        <li>Mobil: <a href="tel:${esc(c.phoneHref || c.phone)}">${tel(c.phone)}</a></li>` : null,
     c.landline ? `        <li>Festnetz: <a href="tel:${esc(c.landlineHref || c.landline)}">${tel(c.landline)}</a></li>` : null,
-    c.whatsappChannel
-      ? `        <li>WhatsApp-Kanal (Angebote und Neuigkeiten): <a href="${esc(c.whatsappChannel)}" target="_blank" rel="noopener">folgen</a></li>`
-      : null,
     "      </ul>",
     "      <h2>Termin oder Nachricht</h2>",
     "      <ul>",
-    '        <li><a href="index.html#termin">Beratungstermin buchen</a> – Telefon- oder Videoberatung (ca. 30 Minuten) oder eine proWINparty (ca. 60 Minuten), beides kostenlos und unverbindlich.</li>',
+    '        <li><a href="index.html#termin">Termin buchen</a> – Telefon- oder Videoberatung (ca. 30 Minuten) oder ein Termin vor Ort (ca. 60 Minuten), beides kostenlos und unverbindlich.</li>',
     '        <li><a href="index.html#kontakt">Kontaktformular</a> – für alles, was schriftlich einfacher ist. Das Formular verlangt eine Einwilligung nach DSGVO und eine hCaptcha-Prüfung; abschicken muss es ein Mensch.</li>',
     "      </ul>",
     "      <h2>Wo</h2>",
     "      <p>",
     ort ? `        Sitz: ${esc(ort)}. ` : "",
-    area.length ? `        Vor Ort beraten wird in ${esc(area.join(", "))}.` : "",
-    "        Online geht es überall – eine proWINparty per Video braucht nur einen Link.",
+    area.length ? `        Termine vor Ort gibt es in ${esc(area.join(", "))}.` : "",
+    "        Per Telefon oder Video geht es überall.",
     "        Die vollständige Anbieterkennzeichnung steht im <a href=\"impressum.html\">Impressum</a>.",
-    "      </p>",
-    "      <h2>Wofür proWIN International zuständig ist</h2>",
-    "      <p>",
-    "        Bestellungen, Produktpreise, Lieferstatus, Rücksendungen und Reklamationen laufen nicht über diese Seite, sondern über",
-    b.shopUrl
-      ? `        den <a href="${esc(b.shopUrl)}" target="_blank" rel="noopener">proWIN-Onlineshop</a>.`
-      : "        proWIN International.",
     "      </p>",
     "      <h2>Contact (English)</h2>",
     "      <p>",
     `        Written enquiries in English are fine. ${NOTE_EN}`,
     c.email ? `        Email <a href="mailto:${esc(c.email)}">${esc(c.email)}</a> is the most reliable route.` : "",
-    "        Consultation and proWINparty bookings are free and non-binding. Product orders and prices are handled by proWIN International, not by this site.",
+    "        Appointments are free and non-binding.",
     "      </p>",
     '      <p><a href="about.html">Über Shine On You</a> · <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p>',
   ]);
@@ -239,12 +213,12 @@ function privacyBody(content) {
     "      <h2>Das Wichtigste</h2>",
     "      <ul>",
     "        <li><strong>Keine Cookies.</strong> Die Seite setzt keine Cookies und misst kein Nutzungsverhalten – keine Webanalyse, keine Werbe- oder Tracking-Technologie, keine Profilbildung.</li>",
-    "        <li><strong>Ein paar lokale Einstellungen.</strong> Im <code>localStorage</code> des Browsers liegen nur <code>soy-theme</code> (helles oder dunkles Design), <code>soy-lang</code> (die Sprache, falls du sie selbst umgestellt hast), <code>soy-channel-tip</code> (der einmalige Hinweis auf den WhatsApp-Kanal) und <code>soy-chat-teaser</code> (der einmalige Hinweis des Chats). Das bleibt auf dem Gerät und wird nicht übertragen.</li>",
+    "        <li><strong>Ein paar lokale Einstellungen.</strong> Im <code>localStorage</code> des Browsers liegen nur <code>soy-theme</code> (helles oder dunkles Design), <code>soy-lang</code> (die Sprache, falls du sie selbst umgestellt hast) und <code>soy-chat-teaser</code> (der einmalige Hinweis des Chats). Das bleibt auf dem Gerät und wird nicht übertragen.</li>",
     "        <li><strong>Schriftarten lokal.</strong> Die Schriften liegen auf dem Server dieser Seite, es wird keine fremde Schriftbibliothek aufgerufen.</li>",
     "        <li><strong>Server-Logfiles.</strong> Der Hoster protokolliert technische Zugriffsdaten – das lässt sich beim Betrieb einer Website nicht vermeiden.</li>",
     "        <li><strong>Kontaktformular.</strong> Was du einträgst, wird zur Beantwortung deiner Anfrage verarbeitet. Vor dem Absenden brauchen wir deine Einwilligung; gegen Spam läuft eine hCaptcha-Prüfung.</li>",
     "        <li><strong>Terminbuchung.</strong> Die Online-Buchung läuft über Cal.com. Erst wenn du sie aufrufst, wird eine Verbindung dorthin hergestellt.</li>",
-    "        <li><strong>Externe Links.</strong> Für den proWIN-Onlineshop, den WhatsApp-Kanal und andere fremde Seiten gilt deren eigene Datenschutzerklärung.</li>",
+    "        <li><strong>Externe Links.</strong> Für WhatsApp und andere fremde Seiten gilt deren eigene Datenschutzerklärung.</li>",
     "      </ul>",
     "      <h2>Deine Rechte</h2>",
     "      <p>",
@@ -258,7 +232,7 @@ function privacyBody(content) {
     "      <h2>Privacy (English)</h2>",
     "      <p>",
     "        No cookies, no analytics, no tracking, no profiling. A few non-personal settings are kept in the browser's",
-    "        local storage (theme, language if you switched it yourself, dismissed one-off notices). The host writes standard server logs.",
+    "        local storage (theme, language if you switched it yourself, a dismissed one-off notice). The host writes standard server logs.",
     "        The contact form needs explicit consent plus an hCaptcha check; appointment booking is handed to Cal.com",
     "        only when you open it. The binding text is the German",
     '        <a href="datenschutz.html">Datenschutzerklärung</a>.',
@@ -269,18 +243,17 @@ function privacyBody(content) {
 
 /* Die englische Fassung erklaert nur – beraten wird auf Deutsch. Das muss
    dort stehen, wo jemand bucht oder Kontakt aufnimmt. */
-const NOTE_EN = "Please note: consultations and proWINparties are held in German.";
+const NOTE_EN = "Please note: consultations are held in German.";
 
 /* ---------- English ----------
    Dieselben drei Seiten fuer die englische Fassung unter /en/. Die Fakten
-   kommen weiterhin aus site.json, die Produkt- und Ueber-mich-Texte aus
+   kommen weiterhin aus site.json, die Ueber-mich-Texte aus
    der Uebersetzung dort. Verbindlich bleiben die deutschen Rechtstexte. */
 
 function aboutBodyEn(content) {
   const b = content.business || {};
   const p = b.person || {};
   const area = areaServed(content);
-  const areas = productAreas(content);
   const ueber = visibleSections(content).find((s) => s.id === "ueber")?.data || {};
   const ort = [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" ");
 
@@ -293,25 +266,18 @@ function aboutBodyEn(content) {
     (ueber.checklist || []).length ? "      <ul>" : null,
     ...(ueber.checklist || []).map((t) => `        <li>${esc(plainText(t))}</li>`),
     (ueber.checklist || []).length ? "      </ul>" : null,
-    areas.length ? "      <h2>Product areas</h2>" : null,
-    areas.length ? "      <ul>" : null,
-    ...areas.map((a) => `        <li><strong>${esc(a.title)}</strong> – ${esc(a.text)}</li>`),
-    areas.length ? "      </ul>" : null,
     "      <h2>Where</h2>",
     `      <p>`,
     area.length
       ? `        In person in ${esc(area.join(", "))}${ort ? ` – based in ${esc(ort)}, Upper Bavaria, Germany` : ""}.`
       : "        In person by arrangement.",
-    "        A proWINparty or a product consultation also works online over video, wherever you live.",
+    "        By phone or video it works wherever you live.",
     `        ${NOTE_EN}`,
     "      </p>",
     "      <h2>What does not happen here</h2>",
     "      <p>",
-    "        This website does not sell anything itself. Orders, prices, shipping and complaints are handled by",
-    b.shopUrl
-      ? `        the <a href="${esc(b.shopUrl)}" target="_blank" rel="noopener">proWIN online shop</a> or proWIN International.`
-      : "        proWIN International.",
-    "        Consultation and proWINparty are free and non-binding.",
+    "        This website does not sell anything. It is there to get in touch and arrange appointments;",
+    "        appointments are free and non-binding.",
     "      </p>",
     '      <p><a href="contact.html">Contact</a> · <a href="impressum.html">Legal notice</a> · <a href="privacy.html">Privacy in brief</a></p>',
   ]);
@@ -335,28 +301,18 @@ function contactBodyEn(content) {
     c.email ? `        <li>Email: <a href="mailto:${esc(c.email)}">${esc(c.email)}</a></li>` : null,
     c.phone ? `        <li>Mobile: <a href="tel:${esc(c.phoneHref || c.phone)}">${tel(c.phone)}</a></li>` : null,
     c.landline ? `        <li>Landline: <a href="tel:${esc(c.landlineHref || c.landline)}">${tel(c.landline)}</a></li>` : null,
-    c.whatsappChannel
-      ? `        <li>WhatsApp channel (offers and news): <a href="${esc(c.whatsappChannel)}" target="_blank" rel="noopener">follow</a></li>`
-      : null,
     "      </ul>",
     "      <h2>Appointment or message</h2>",
     "      <ul>",
-    '        <li><a href="index.html#termin">Book a consultation</a> – by phone or video (about 30 minutes) or a proWINparty (about 60 minutes), both free and non-binding.</li>',
+    '        <li><a href="index.html#termin">Book an appointment</a> – by phone or video (about 30 minutes) or in person (about 60 minutes), both free and non-binding.</li>',
     '        <li><a href="index.html#kontakt">Contact form</a> – for anything that is easier in writing. The form asks for consent under the GDPR and an hCaptcha check; a person has to send it.</li>',
     "      </ul>",
     "      <h2>Where</h2>",
     "      <p>",
     ort ? `        Based in ${esc(ort)}, Germany. ` : "",
-    area.length ? `        In-person consultations in ${esc(area.join(", "))}.` : "",
-    "        Online works anywhere – a proWINparty over video only needs a link.",
+    area.length ? `        Appointments in person in ${esc(area.join(", "))}.` : "",
+    "        By phone or video it works anywhere.",
     '        The full provider details are in the <a href="impressum.html">legal notice</a>.',
-    "      </p>",
-    "      <h2>What proWIN International handles</h2>",
-    "      <p>",
-    "        Orders, product prices, delivery status, returns and complaints are not handled on this site but through",
-    b.shopUrl
-      ? `        the <a href="${esc(b.shopUrl)}" target="_blank" rel="noopener">proWIN online shop</a>.`
-      : "        proWIN International.",
     "      </p>",
     '      <p><a href="about.html">About Shine On You</a> · <a href="impressum.html">Legal notice</a> · <a href="datenschutz.html">Privacy policy</a></p>',
   ]);
@@ -376,12 +332,12 @@ function privacyBodyEn(content) {
     "      <h2>The essentials</h2>",
     "      <ul>",
     "        <li><strong>No cookies.</strong> The site sets no cookies and does not measure usage – no web analytics, no advertising or tracking technology, no profiling.</li>",
-    "        <li><strong>A few local settings.</strong> The browser's <code>localStorage</code> only holds <code>soy-theme</code> (light or dark design), <code>soy-lang</code> (the language, if you switched it yourself), <code>soy-channel-tip</code> (the one-off notice about the WhatsApp channel) and <code>soy-chat-teaser</code> (the chat's one-off notice). It stays on your device and is not transmitted.</li>",
+    "        <li><strong>A few local settings.</strong> The browser's <code>localStorage</code> only holds <code>soy-theme</code> (light or dark design), <code>soy-lang</code> (the language, if you switched it yourself) and <code>soy-chat-teaser</code> (the chat's one-off notice). It stays on your device and is not transmitted.</li>",
     "        <li><strong>Local fonts.</strong> The fonts are served from this site's server; no third-party font library is called.</li>",
     "        <li><strong>Server log files.</strong> The host records technical access data – this cannot be avoided when running a website.</li>",
     "        <li><strong>Contact form.</strong> What you enter is processed to answer your enquiry. We need your consent before sending; an hCaptcha check protects against spam.</li>",
     "        <li><strong>Appointment booking.</strong> Online booking runs through Cal.com. A connection is only made once you open it.</li>",
-    "        <li><strong>External links.</strong> The proWIN online shop, the WhatsApp channel and other third-party sites have their own privacy policies.</li>",
+    "        <li><strong>External links.</strong> WhatsApp and other third-party sites have their own privacy policies.</li>",
     "      </ul>",
     "      <h2>Your rights</h2>",
     "      <p>",
@@ -402,13 +358,13 @@ const PAGE_BUILDERS = {
   about: {
     title: (content) => `Über uns – ${plainText(content.site?.brandName)}`,
     description: () =>
-      "Wer hinter Shine On You steckt: unabhängige proWIN-Beratung in Peiting und Umgebung, Beratungsbereiche und Einsatzgebiet.",
+      "Wer hinter Shine On You steckt: Manuela Zimmert in Peiting – Beratung per Telefon, Video oder vor Ort.",
     body: aboutBody,
   },
   contact: {
     title: (content) => `Kontakt – ${plainText(content.site?.brandName)}`,
     description: () =>
-      "Kontaktwege zu Shine On You: E-Mail, Telefon, WhatsApp-Kanal, Kontaktformular und Terminbuchung.",
+      "Kontaktwege zu Shine On You: E-Mail, Telefon, Kontaktformular und Terminbuchung.",
     body: contactBody,
   },
   privacy: {
@@ -423,13 +379,13 @@ const PAGE_BUILDERS_EN = {
   about: {
     title: (content) => `About – ${plainText(content.site?.brandName)}`,
     description: () =>
-      "Who is behind Shine On You: independent proWIN consultation in Peiting and the surrounding area, product areas and where consultations take place.",
+      "Who is behind Shine On You: Manuela Zimmert in Peiting – consultation by phone, video or in person.",
     body: aboutBodyEn,
   },
   contact: {
     title: (content) => `Contact – ${plainText(content.site?.brandName)}`,
     description: () =>
-      "Ways to reach Shine On You: email, phone, WhatsApp channel, contact form and appointment booking.",
+      "Ways to reach Shine On You: email, phone, contact form and appointment booking.",
     body: contactBodyEn,
   },
   privacy: {

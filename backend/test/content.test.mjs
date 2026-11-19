@@ -91,9 +91,26 @@ test("Doppelte Sektionskennungen fallen auf", () => {
   assert.ok(validateContent(content).some((e) => e.includes("mehrfach")));
 });
 
+/* Die Live-Seite hat keine Karten- und keine Kanal-Sektion mehr; der Admin
+   kann sie aber weiterhin anlegen. Darum hier eigens dazugeben. */
+const cardsSection = (icon = "star") => ({
+  id: "karten",
+  type: "cards",
+  title: "Karten",
+  enabled: true,
+  data: { heading: "Karten", cards: [{ icon, title: "Eins", text: "Text" }] },
+});
+const channelSection = (href) => ({
+  id: "kanal",
+  type: "channel",
+  title: "Kanal",
+  enabled: true,
+  data: { heading: "Kanal", href },
+});
+
 test("Unbekannte Symbole fallen auf", () => {
   const content = live();
-  content.sections.find((s) => s.type === "cards").data.cards[0].icon = "gibt-es-nicht";
+  content.sections.push(cardsSection("gibt-es-nicht"));
   assert.ok(validateContent(content).some((e) => e.includes("Symbol")));
 });
 
@@ -129,7 +146,7 @@ test("Ohne Chat-Block bleibt der Knopf weg", () => {
 
 test("Ein Kanal-Link ohne http(s) fällt auf", () => {
   const content = live();
-  content.sections.find((s) => s.type === "channel").data.href = "whatsapp.com/channel/abc";
+  content.sections.push(channelSection("whatsapp.com/channel/abc"));
   assert.ok(validateContent(content).some((e) => e.includes("http")));
 });
 
@@ -147,8 +164,12 @@ test("renderOrThrow erzeugt eine vollständige Seite", () => {
   assert.ok(html.includes("</html>"));
   assert.ok(html.includes("Natürlich sauber."));
   assert.ok(configJs.includes("window.SOY_CONFIG"));
-  /* Der QR-Code des Kanals steckt als Inline-SVG in der Seite. */
-  assert.ok(html.includes('class="channel-qr-code"'));
+});
+
+test("Der QR-Code einer Kanal-Sektion steckt als Inline-SVG in der Seite", () => {
+  const content = live();
+  content.sections.push(channelSection("https://whatsapp.com/channel/abc"));
+  assert.ok(renderOrThrow(content).html.includes('class="channel-qr-code"'));
 });
 
 test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
@@ -205,14 +226,14 @@ test("Veröffentlichen nimmt die gebauten Dateien mit", () => {
 
 test("Ausgeblendete Bereiche verschwinden samt Navigationspunkt", () => {
   const content = live();
-  const target = content.sections.find((s) => s.id === "mitmachen");
+  const target = content.sections.find((s) => s.id === "ueber");
   target.enabled = false;
 
   const { html } = renderOrThrow(content);
-  assert.ok(!html.includes('id="mitmachen"'));
-  assert.ok(!html.includes('href="#mitmachen"'));
+  assert.ok(!html.includes('id="ueber"'));
+  assert.ok(!html.includes('href="#ueber"'));
   // Die übrigen Bereiche bleiben unangetastet.
-  assert.ok(html.includes('id="produkte"'));
+  assert.ok(html.includes('id="termin"'));
 });
 
 test("Die Vorschau lädt Vorlagen von der Live-Seite und schaltet Formulare ab", () => {

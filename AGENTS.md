@@ -28,7 +28,7 @@ Die CI prüft, dass ein erneuter Build nichts verändert und keine unversioniert
 Datei zurücklässt. Ein Handgriff an `index.html` fliegt dort sofort auf.
 
 Hand gepflegt und **nicht** erzeugt sind: `impressum.html`, `datenschutz.html`,
-`en/impressum.html`, `en/datenschutz.html`, `katalog.html`, `404.html`,
+`en/impressum.html`, `en/datenschutz.html`, `404.html`,
 `robots.txt`, alles unter `css/`, `js/` und `assets/`. Einzige Ausnahme: den
 Block `<script id="soy-lang-detect">` in den vier Rechtsseiten setzt der Build
 (siehe unten) — den nicht von Hand ändern.
@@ -96,10 +96,11 @@ Was es **nicht** gibt und was deshalb auch nicht behauptet werden darf:
 Prüfwerkzeuge vergeben für solche Dateien Punkte. Das ist kein Grund, sie
 anzulegen. `auth.md` erklärt stattdessen, warum sie fehlen.
 
-`katalog.html` ist absichtlich versteckt: `noindex`, kein Eintrag in Sitemap,
-`llms.txt`, Skill oder ARD, kein WebMCP-Werkzeug, kein Link von der Startseite
-oder der 404-Seite. Sie soll nur über einen direkt weitergegebenen Link
-erreichbar sein — nicht wieder einhängen.
+Die Seite ist bewusst eine reine Kontaktseite: Vorstellung, Terminbuchung,
+Kontaktformular. Kein Markenname eines Herstellers, keine Shop- oder
+Partnerlinks, keine Produktkataloge, keine Produkt- oder Prämienaussagen —
+weder in `content/site.json` noch in den Renderern, Rechtstexten oder
+Agentendateien. Nicht wieder einbauen, ohne die Betreiberin zu fragen.
 
 Eine harte Grenze im Produktverhalten: **das Kontaktformular darf nicht
 automatisiert abgeschickt werden.** Es verlangt eine Einwilligung nach DSGVO und
@@ -110,6 +111,5 @@ und hört dort auf — dabei bleibt es.
 
 - Kommentare und Commit-Nachrichten auf Deutsch, so wie der Bestand.
 - Kommentare erklären das **Warum**, nicht das Was.
-- Inhaltliche Angaben (Preise, Prämien, Produktaussagen) kommen von proWIN
-  International. Diese Seite ist ein unabhängiges Angebot einer selbstständigen
-  Vertriebspartnerin — nichts erfinden, im Zweifel die Betreiberin fragen.
+- Inhaltliche Angaben kommen von der Betreiberin — nichts erfinden, im Zweifel
+  die Betreiberin fragen.
