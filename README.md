@@ -1,6 +1,6 @@
 # Shine On You – Website
 
-Statische Landing- & Kontaktseite für den Direktvertrieb von proWIN-Produkten.
+Statische Kontaktseite von Shine On You – Manuela Zimmert, Peiting.
 Gebaut mit reinem HTML, CSS und JavaScript.
 
 Die Inhalte stehen in **`content/site.json`**; daraus entsteht `index.html`.
@@ -39,7 +39,7 @@ python3 -m http.server 8000
 ├── shared/render.mjs # erzeugt daraus das HTML (läuft in Node und im Worker)
 ├── shared/icons.mjs  # die Inline-SVGs unter sprechenden Namen
 ├── shared/qrcode.mjs # erzeugt den QR-Code zum WhatsApp-Kanal (ohne fremden Dienst)
-├── shared/kataloge.mjs # Katalogliste aus den PDFs + kataloge/titel.json
+├── shared/kataloge.mjs # Katalogliste (nur noch vom Admin-Backend benutzt, auf der Seite stillgelegt)
 ├── scripts/          # Build-Skripte und Qualitätsprüfungen
 ├── backend/          # Admin-Backend (Cloudflare Worker) – siehe backend/README.md
 ├── index.html        # ERZEUGT aus content/site.json – nicht von Hand ändern
@@ -60,8 +60,7 @@ python3 -m http.server 8000
 ├── robots.txt        # welche Crawler dürfen, welche nicht
 ├── css/styles.css    # Styles & Markenfarben
 ├── js/script.js      # Mobile-Menü, Terminbuchung (.ics), Formulare
-├── assets/img/       # aus dem Iconset abgeleitete Logos & Favicons
-└── kataloge/         # PDF-Kataloge (+ seiten/: daraus erzeugte Seitenbilder)
+└── assets/img/       # aus dem Iconset abgeleitete Logos & Favicons
 ```
 
 ## Anpassen
@@ -77,7 +76,7 @@ Wer lieber direkt in der Datei arbeitet, findet alles in `content/site.json`:
 ```jsonc
 {
   "contact": {
-    "email": "prowin.ela@web.de",     // Empfangsadresse
+    "email": "manuela@shineonyou.de",     // Empfangsadresse
     "phone": "+49 1551 0279357",      // Mobil (Anzeige)
     "phoneHref": "+4915510279357"     // Mobil für tel:-Link
   },
@@ -102,8 +101,8 @@ Dafür liegen neben der Seite selbst ein paar Dateien, die genau diese Systeme l
 | Datei | Wozu |
 | --- | --- |
 | `llms.txt` | Kurzprofil: wer das ist, wofür die Seite die richtige Quelle ist und wofür nicht |
-| `pricing.md` | Preisauskunft in Klartext – Beratung kostenlos, Produktpreise laut proWIN-Shop |
-| `sitemap.xml` | alle öffentlichen Seiten (Start, Impressum, Datenschutz, je deutsch und englisch) – nicht `katalog.html`, die bleibt nur per Direktlink erreichbar |
+| `pricing.md` | Preisauskunft in Klartext – Termine kostenlos, verkauft wird nichts |
+| `sitemap.xml` | alle öffentlichen Seiten (Start, Impressum, Datenschutz, je deutsch und englisch) |
 | `auth.md` | nach der [auth.md-Spezifikation](https://github.com/workos/auth.md): hier gibt es nichts anzumelden, und warum |
 | `.well-known/ard.json` | Katalog der agentischen Ressourcen nach [ARD](https://agenticresourcediscovery.org/) |
 | `.well-known/agent-skills/` | Kurzanleitung als Skill plus `index.json` nach Agent Skills Discovery |
@@ -171,7 +170,7 @@ Die Stufen schalten sich **automatisch** frei, sobald die jeweiligen Schlüssel 
 Funktioniert auf jedem Hosting, großzügiges Gratis-Kontingent, kein Konto-Login nötig.
 
 1. Auf [web3forms.com](https://web3forms.com) die Empfänger-E-Mail
-   (`prowin.ela@web.de`) eintragen.
+   (`manuela@shineonyou.de`) eintragen.
 2. Den **Access Key** aus der Bestätigungs-E-Mail kopieren.
 3. In `js/script.js` eintragen:
 

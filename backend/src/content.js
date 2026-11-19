@@ -104,7 +104,7 @@ function checkAction(a, where, errors) {
   if (!isStr(a?.href) || !a.href.trim()) errors.push(`${where}: Ziel fehlt.`);
 }
 
-/* Links auf fremde Seiten – etwa hinter dem proWIN-Logo – brauchen ein
+/* Links auf fremde Seiten – etwa hinter einem Partner-Logo – brauchen ein
    vollstaendiges Ziel, sonst landen sie relativ auf der eigenen Seite. */
 function checkExternalHref(href, where, errors) {
   if (isStr(href) && href.trim() && !/^https?:\/\//i.test(href)) {

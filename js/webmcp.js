@@ -44,7 +44,7 @@
       description:
         "Kontaktdaten von " +
         (cfg.owner || "Shine On You") +
-        " (proWIN-Beratung): E-Mail, Mobil, Festnetz, WhatsApp-Kanal, proWIN-Onlineshop und Ort.",
+        ": E-Mail, Mobil, Festnetz und Ort.",
       inputSchema: EMPTY_INPUT,
       annotations: READ_ONLY,
       execute: function () {
@@ -55,9 +55,6 @@
           email: contact.email,
           mobile: contact.phone,
           landline: contact.landline,
-          whatsappChannel: cfg.whatsappChannel,
-          shop: cfg.shopUrl,
-          prowinProfile: cfg.partnerUrl,
           location: cfg.locality,
           website: cfg.url,
           language: "de",
@@ -65,57 +62,41 @@
       },
     },
     {
-      name: "get_consulting_topics",
-      description:
-        "Die proWIN-Produktbereiche, zu denen hier beraten wird – jeweils mit kurzer Beschreibung.",
-      inputSchema: EMPTY_INPUT,
-      annotations: READ_ONLY,
-      execute: function () {
-        return json({ summary: cfg.summary, topics: cfg.topics || [] });
-      },
-    },
-    {
       name: "get_service_area",
-      description: "Orte und Regionen, in denen die Beratung vor Ort stattfindet. Online geht überall.",
+      description: "Orte und Regionen, in denen Termine vor Ort stattfinden. Telefon und Video gehen überall.",
       inputSchema: EMPTY_INPUT,
       annotations: READ_ONLY,
       execute: function () {
         return json({
           onSite: cfg.areaServed || [],
           base: cfg.locality,
-          remote: "Beratung und proWINparty auch online per Video – ortsunabhängig.",
+          remote: "Beratung auch per Telefon oder Video – ortsunabhängig.",
         });
       },
     },
     {
       name: "get_pricing",
-      description:
-        "Preisauskunft: Beratung und proWINparty sind kostenlos; Produktpreise setzt proWIN International fest.",
+      description: "Preisauskunft: Beratung und Termin sind kostenlos und unverbindlich.",
       inputSchema: EMPTY_INPUT,
       annotations: READ_ONLY,
       execute: function () {
         return json({
           consulting: "kostenlos und unverbindlich (Telefon, Video oder vor Ort)",
-          party: "proWINparty zuhause oder online – kostenlos und unverbindlich",
-          products: "Preise laut proWIN-Onlineshop, EUR inkl. MwSt.",
-          priceRange: cfg.priceRange,
-          shop: cfg.shopUrl,
           details: cfg.url + "pricing.md",
-          note: "Diese Seite legt keine Produktpreise fest und wickelt keine Zahlungen ab.",
+          note: "Diese Seite verkauft nichts und wickelt keine Zahlungen ab.",
         });
       },
     },
     {
       name: "get_booking_options",
-      description:
-        "Wie ein Beratungstermin oder eine proWINparty vereinbart wird, inklusive Buchungslink und Dauer.",
+      description: "Wie ein Termin vereinbart wird, inklusive Buchungslink und Dauer.",
       inputSchema: EMPTY_INPUT,
       annotations: READ_ONLY,
       execute: function () {
         return json({
           options: [
             { name: "Telefon- oder Videoberatung", duration: "ca. 30 Minuten", price: "kostenlos" },
-            { name: "proWINparty (zuhause oder online)", duration: "ca. 60 Minuten", price: "kostenlos" },
+            { name: "Termin vor Ort", duration: "ca. 60 Minuten", price: "kostenlos" },
           ],
           bookingUrl: cfg.bookingUrl,
           onPage: cfg.url + "#termin",

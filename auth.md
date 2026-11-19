@@ -4,7 +4,7 @@ Kurz auf Deutsch: Diese Seite hat keine Anmeldung. Alles, was ein Agent hier tun
 ist oeffentlich und ohne Zugangsdaten erreichbar. Der Rest dieser Datei sagt das noch
 einmal in der Gliederung der auth.md-Spezifikation, damit Agenten nicht weitersuchen.
 
-**There is nothing to authenticate to.** Shine On You – proWIN Beratung Manuela Zimmert is a static informational website.
+**There is nothing to authenticate to.** Shine On You – Manuela Zimmert is a static informational website.
 It has no REST or GraphQL API, no remote MCP server, no user accounts and no payment flow.
 Every agent-facing surface listed below is public and anonymous.
 
@@ -57,8 +57,8 @@ Accept: text/plain
 ```
 
 The interactive surface lives in the page itself: on https://shineonyou.de/ the WebMCP tools are registered on
-`document.modelContext` (`get_contact`, `get_consulting_topics`, `get_service_area`,
-`get_pricing`, `get_booking_options`, `prefill_contact_form`). An agent that
+`document.modelContext` (`get_contact`, `get_service_area`, `get_pricing`,
+`get_booking_options`, `prefill_contact_form`). An agent that
 loads and renders the homepage gets them without any handshake.
 
 ## Errors
@@ -76,7 +76,7 @@ Nothing is issued, so nothing is revoked. There is no `events_endpoint` and no r
 
 ## Contact
 
-- Email: prowin.ela@web.de
+- Email: manuela@shineonyou.de
 - Phone: +49 1551 0279357
 - Legal notice: https://shineonyou.de/impressum.html · Privacy policy: https://shineonyou.de/datenschutz.html
 

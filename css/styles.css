@@ -16,7 +16,7 @@
   --sun-deep:      #d99a68;  /* Sonne kräftiger (Hover) */
   --wave:          #8ed2d9;  /* Welle / Türkis */
   --wave-deep:     #5fb6c2;  /* Welle kräftiger (Hover) */
-  --prowin-gold:   #c2993d;  /* Goldton aus dem proWIN-Logo */
+  --partner-gold:   #c2993d;  /* Goldton fuer den Partner-Schriftzug */
 
   --maxw: 1120px;
   --radius: 16px;
@@ -65,7 +65,7 @@
   --sun-deep:      #97500f;
   --wave:          #0f7d8a;  /* Welle kräftiger für Kontrast auf hell */
   --wave-deep:     #0a626d;
-  --prowin-gold:   #806014;  /* dunkler, damit der Schriftzug auf hell lesbar bleibt */
+  --partner-gold:   #806014;  /* dunkler, damit der Schriftzug auf hell lesbar bleibt */
 
   --shadow: 0 18px 40px -24px rgba(18, 51, 56, 0.28);
 
@@ -441,7 +441,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
   margin-top: 32px;
 }
-/* proWIN-Beraterin-Badge im Hero (ersetzt den Kicker) */
+/* Partner-Badge im Hero (ersetzt den Kicker) */
 .hero-partner {
   display: inline-flex; align-items: center; justify-content: center;
   flex-wrap: wrap; gap: 4px 12px;
@@ -451,16 +451,16 @@ h3 { font-size: 1.2rem; font-weight: 600; }
   color: var(--wave);
 }
 .hero-partner img { height: 22px; width: auto; opacity: .95; transform: translateY(-1px); }
-/* Partner-Logo als Link auf die proWIN-Seite */
+/* Partner-Logo als Link auf die Partnerseite */
 .partner-link { display: inline-flex; align-items: center; transition: opacity .2s ease; }
 .partner-link:hover { opacity: .75; }
-/* proWIN als Schriftzug statt Bildlogo: Groß-/Kleinschreibung der Marke
+/* Schriftzug statt Bildlogo: Groß-/Kleinschreibung der Marke
    bleibt erhalten, darum die Versalien der umgebenden Zeile aufheben. */
 .partner-wordmark {
   font-family: var(--font-head); font-weight: 700;
   font-size: 1.25rem; line-height: 1;
   text-transform: none; letter-spacing: .01em;
-  color: var(--prowin-gold);
+  color: var(--partner-gold);
 }
 
 /* dezente Wellenkante unten am Hero */
@@ -690,7 +690,7 @@ h3 { font-size: 1.2rem; font-weight: 600; }
 .card-icon svg { width: 28px; height: 28px; }
 .cards .card:nth-child(even) .card-icon { background: rgba(142,210,217,.12); color: var(--wave); }
 
-/* ===== Ablauf / proWINparty Schritte ===== */
+/* ===== Ablauf / Schritte ===== */
 .flow-block + .flow-block { margin-top: clamp(36px, 6vw, 60px); }
 .flow-head {
   display: flex; align-items: center; gap: 14px;
@@ -929,7 +929,7 @@ input[type="date"], input[type="time"], select { color-scheme: var(--field-schem
   font-size: .8rem; text-transform: uppercase; letter-spacing: .18em;
   color: var(--wave);
 }
-.footer-partner .footer-prowin { height: 22px; width: auto; opacity: .95; transform: translateY(-1px); }
+.footer-partner .footer-partner-logo { height: 22px; width: auto; opacity: .95; transform: translateY(-1px); }
 .footer-nav { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
 .footer-nav a { color: var(--cream); font-family: var(--font-head); font-size: .92rem; }
 .footer-nav a:hover { color: var(--sun); }

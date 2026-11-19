@@ -98,11 +98,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # Gleicher Schritt wie beim Deploy, damit katalog.html seine
-      # Katalogliste findet und der Lauf der Live-Seite entspricht.
-      - name: Katalog-Liste aus PDFs erzeugen
-        run: node scripts/build-katalog-manifest.mjs
-
       - name: Seite aus content/site.json bauen
         run: node scripts/build-site.mjs
 

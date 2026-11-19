@@ -2,11 +2,11 @@
   "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
   "skills": [
     {
-      "name": "prowin-beratung-shine-on-you",
+      "name": "kontakt-shine-on-you",
       "type": "skill-md",
-      "description": "When to use this skill: someone asks about proWIN product advice, a proWINparty, the service area or contact details of Shine On You – proWIN Beratung Manuela Zimmert. The skill says which in-page tools to call and where the boundary to proWIN International runs. Do not use it for product prices, stock, orders or shipping.",
-      "url": "https://shineonyou.de/.well-known/agent-skills/prowin-beratung-shine-on-you/SKILL.md",
-      "digest": "sha256:35c144c8e60f267346ea5472f14b41eca48cf1439d7fa236bd4f8d9ad57898fc"
+      "description": "When to use this skill: someone wants to contact or book an appointment with Shine On You – Manuela Zimmert, or needs its service area or contact details. The skill says which in-page tools to call. Nothing is sold on this site.",
+      "url": "https://shineonyou.de/.well-known/agent-skills/kontakt-shine-on-you/SKILL.md",
+      "digest": "sha256:c887e6302a800db6aa5183150cb457d61f2aba7148ce104c58a8b768bee8bbd5"
     }
   ]
 }

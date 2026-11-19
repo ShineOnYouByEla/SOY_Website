@@ -2,7 +2,7 @@
 window.SOY_CONFIG = {
   "businessName": "Shine On You",
   "ownerName": "Manuela Zimmert",
-  "email": "prowin.ela@web.de",
+  "email": "manuela@shineonyou.de",
   "phone": "+49 1551 0279357",
   "phoneHref": "+4915510279357",
   "landline": "+49 8861 7138897",
@@ -14,12 +14,9 @@ window.SOY_CONFIG = {
   "agent": {
     "url": "https://shineonyou.de/",
     "owner": "Manuela Zimmert",
-    "jobTitle": "Unabhängige proWIN-Vertriebsberaterin",
-    "summary": "Unabhängige proWIN-Beratung in Peiting und Umgebung: natürliche Produkte für Haushalt, Reinigung, Kosmetik und Wellness. proWINparty zuhause oder online.",
+    "jobTitle": "Selbstständige Beraterin",
+    "summary": "Shine On You – Manuela Zimmert in Peiting: persönliche Beratung und Termine nach Absprache, telefonisch, per Video oder vor Ort.",
     "priceRange": "€€",
-    "whatsappChannel": "https://whatsapp.com/channel/0029VbClTooIiRp0MGUxjS3F",
-    "shopUrl": "https://vp.prowin-shop.net/?referenceKey=m.zimmert",
-    "partnerUrl": "https://prowin.net/de/vertrieb/m.zimmert",
     "locality": "86971 Peiting",
     "areaServed": [
       "Peiting",
@@ -27,32 +24,6 @@ window.SOY_CONFIG = {
       "Weilheim in Oberbayern",
       "Landkreis Weilheim-Schongau",
       "Pfaffenwinkel"
-    ],
-    "topics": [
-      {
-        "title": "Haushalt & Reinigung",
-        "text": "Kraftvolle, ergiebige Reiniger für Küche, Bad und Boden – sparsam dosiert und materialschonend."
-      },
-      {
-        "title": "Kosmetik & Pflege",
-        "text": "Pflegeprodukte für Gesicht, Körper und Haare – hautfreundlich und mit hochwertigen Inhaltsstoffen."
-      },
-      {
-        "title": "Wellness & Gesundheit",
-        "text": "Produkte für mehr Wohlbefinden im Alltag – von Nahrungsergänzung bis Entspannung."
-      },
-      {
-        "title": "Luft & Duft",
-        "text": "Frische Raumluft und angenehme Düfte – für ein gutes Gefühl und Wohlfühlatmosphäre in jedem Raum."
-      },
-      {
-        "title": "BEST friends",
-        "text": "Pflege und Sauberkeit für deine Lieblinge."
-      },
-      {
-        "title": "proWINparty & Beratung",
-        "text": "Lerne die Produkte in einem live Event zuhause oder Online kennen."
-      }
     ],
     "bookingUrl": "https://cal.eu/manuelazi"
   }

@@ -130,10 +130,9 @@ function columnClass(d) {
   return n >= 2 && n <= 4 ? ` cols-${n}` : "";
 }
 
-/* Partner-Kennzeichnung (proWIN) – als Schriftzug, wenn ein Name gesetzt ist,
-   sonst als Bildlogo; auf Wunsch als Link auf die Partnerseite. Der Schriftzug
-   hat Vorrang, weil das Bildlogo den Teamnamen „rekoteam creates YOU“ trägt,
-   der hier nicht erscheinen soll. */
+/* Optionale Partner-Kennzeichnung – als Schriftzug, wenn ein Name gesetzt ist,
+   sonst als Bildlogo; auf Wunsch als Link auf die Partnerseite. Zurzeit ist
+   keine gesetzt: Die Seite dient nur noch als Kontaktmöglichkeit. */
 function partnerLogo(content, logo, href, { className = "", lazy = false, name = "" } = {}) {
   let mark;
   if (name) {
@@ -897,7 +896,7 @@ function renderFooter(content) {
       ? join([
           '    <p class="footer-partner">',
           `      <span>${esc(f.partnerText)}</span>`,
-          indent(partnerLogo(content, f.partnerLogo, f.partnerHref, { className: "footer-prowin", lazy: true, name: f.partnerName }), 6),
+          indent(partnerLogo(content, f.partnerLogo, f.partnerHref, { className: "footer-partner-logo", lazy: true, name: f.partnerName }), 6),
           "    </p>",
         ])
       : "",
@@ -1066,7 +1065,6 @@ export function renderConfigJs(content) {
   const b = content.business || {};
   const base = content.site?.baseUrl || "https://shineonyou.de/";
   const url = base.endsWith("/") ? base : base + "/";
-  const cards = visibleSections(content).find((s) => s.id === "produkte")?.data?.cards || [];
   const cfg = {
     businessName: content.site?.brandName,
     ownerName: content.site?.author,
@@ -1087,12 +1085,8 @@ export function renderConfigJs(content) {
       jobTitle: b.person?.jobTitle,
       summary: plainText(b.description || content.site?.description),
       priceRange: b.priceRange || "€€",
-      whatsappChannel: c.whatsappChannel || "",
-      shopUrl: b.shopUrl || "",
-      partnerUrl: b.partnerUrl || "",
       locality: [b.address?.postalCode, b.address?.locality].filter(Boolean).join(" "),
       areaServed: (b.areaServed || []).map((a) => a.name).filter(Boolean),
-      topics: cards.map((card) => ({ title: plainText(card.title), text: plainText(card.text) })),
       bookingUrl: sv.calLink ? `${(sv.calOrigin || "https://cal.com").replace(/\/+$/, "")}/${sv.calLink}` : "",
     },
   };
