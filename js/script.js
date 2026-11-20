@@ -41,10 +41,6 @@ const TEXTS = {
   de: {
     menuOpen: "Menü öffnen",
     menuClose: "Menü schließen",
-    tipTitle: "Folge hier ☝🏼 meinem<br />WhatsApp&#8209;Kanal!",
-    tipSub: "Neue Angebote und Aktionen bekommst du dort als Erste:r – und verpasst garantiert keins mehr.",
-    tipCta: "Jetzt folgen",
-    tipClose: "Hinweis schließen",
     captcha: "Bitte bestätige im Feld oberhalb des Buttons, dass du kein Roboter bist.",
     sending: "Nachricht wird gesendet …",
     sentTitle: "Nachricht gesendet!",
@@ -59,10 +55,6 @@ const TEXTS = {
   en: {
     menuOpen: "Open menu",
     menuClose: "Close menu",
-    tipTitle: "Follow my ☝🏼<br />WhatsApp&#8209;channel here!",
-    tipSub: "Be the first to hear about new offers and promotions – and never miss one again.",
-    tipCta: "Follow now",
-    tipClose: "Close notice",
     captcha: "Please confirm in the field above the button that you are not a robot.",
     sending: "Sending message …",
     sentTitle: "Message sent!",
@@ -109,99 +101,6 @@ if (toggle && mobileNav) {
     })
   );
 }
-
-/* ===== Hinweis auf den WhatsApp-Kanal =====
-   Beim ersten Besuch taucht kurz nach dem Laden eine Sprechblase unter dem
-   Kanal-Symbol im Header auf. Sie bleibt stehen, bis sie jemand schließt
-   (✕, Escape oder Klick auf den Hinweis) – danach kommt sie nicht wieder. */
-(function initChannelTip() {
-  const STORAGE_KEY = "soy-channel-tip";
-  const icon = document.querySelector(".header-channel[href]");
-  if (!icon) return;
-
-  try {
-    if (localStorage.getItem(STORAGE_KEY) === "seen") return;
-  } catch (e) { /* Speicher gesperrt: Hinweis trotzdem zeigen */ }
-
-  const tip = document.createElement("div");
-  tip.className = "channel-tip";
-  tip.setAttribute("role", "status");
-  tip.hidden = true;
-  tip.innerHTML =
-    '<a class="channel-tip-link" target="_blank" rel="noopener">' +
-    '<span class="channel-tip-head">' +
-    '<span class="channel-tip-icon" aria-hidden="true">' +
-    icon.querySelector("svg").outerHTML +
-    "</span>" +
-    `<span class="channel-tip-title">${T.tipTitle}</span>` +
-    "</span>" +
-    `<span class="channel-tip-sub">${T.tipSub}</span>` +
-    `<span class="channel-tip-cta">${T.tipCta}` +
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg></span></a>' +
-    `<button type="button" class="channel-tip-close" aria-label="${T.tipClose}">` +
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-    'stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
-    "</button>";
-  tip.querySelector(".channel-tip-link").href = icon.getAttribute("href");
-  document.body.appendChild(tip);
-
-  /* Blase unter dem Symbol ausrichten, Pfeil auf dessen Mitte zeigen lassen */
-  function place() {
-    const r = icon.getBoundingClientRect();
-    const w = tip.offsetWidth;
-    const margin = 12;
-    const center = r.left + r.width / 2;
-    const max = Math.max(margin, window.innerWidth - w - margin);
-    const left = Math.min(Math.max(center - w + 44, margin), max);
-    tip.style.top = Math.round(r.bottom + 12) + "px";
-    tip.style.left = Math.round(left) + "px";
-    tip.style.setProperty("--tip-arrow", Math.round(center - left) + "px");
-  }
-
-  let hidden = false;
-  /* keep=false: der Hinweis macht nur Platz (z. B. fuer den Chat unten rechts)
-     und darf beim naechsten Besuch wiederkommen. */
-  function hide(keep = true) {
-    if (hidden) return;
-    hidden = true;
-    tip.classList.remove("open");
-    icon.classList.remove("is-hinted");
-    document.documentElement.removeAttribute("data-channel-tip");
-    window.removeEventListener("resize", onReflow);
-    window.removeEventListener("scroll", onReflow);
-    document.removeEventListener("keydown", onKey);
-    setTimeout(() => tip.remove(), 400);
-    if (keep) { try { localStorage.setItem(STORAGE_KEY, "seen"); } catch (e) { /* egal */ } }
-  }
-
-  let ticking = false;
-  function onReflow() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => { ticking = false; place(); });
-  }
-  function onKey(e) { if (e.key === "Escape") hide(); }
-
-  tip.querySelector(".channel-tip-close").addEventListener("click", () => hide());
-  tip.querySelector(".channel-tip-link").addEventListener("click", () => hide());
-  /* Der Chat unten rechts bittet den Hinweis zur Seite, wenn er zu lange steht. */
-  document.addEventListener("soy:channel-tip-hide", () => hide(false));
-
-  setTimeout(() => {
-    if (hidden) return;
-    tip.hidden = false;
-    place();
-    requestAnimationFrame(() => tip.classList.add("open"));
-    icon.classList.add("is-hinted");
-    /* Merkzettel fuer den Chat-Knopf unten rechts: hier ist noch eine Blase offen. */
-    document.documentElement.setAttribute("data-channel-tip", "open");
-    window.addEventListener("resize", onReflow, { passive: true });
-    window.addEventListener("scroll", onReflow, { passive: true });
-    document.addEventListener("keydown", onKey);
-  }, 1400);
-})();
 
 /* ===== Schwebender WhatsApp-Chat =====
    Auf- und Zuklappen erledigt das <details> im HTML von allein — hier kommt
