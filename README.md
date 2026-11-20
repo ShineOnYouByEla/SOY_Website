@@ -38,7 +38,7 @@ python3 -m http.server 8000
 ├── content/site.json # ALLE Inhalte: Texte, Kontaktdaten, Bilder, Sektionen
 ├── shared/render.mjs # erzeugt daraus das HTML (läuft in Node und im Worker)
 ├── shared/icons.mjs  # die Inline-SVGs unter sprechenden Namen
-├── shared/qrcode.mjs # erzeugt den QR-Code zum WhatsApp-Kanal (ohne fremden Dienst)
+├── shared/qrcode.mjs # QR-Code-Erzeuger (ohne fremden Dienst); seit dem Wegfall des WhatsApp-Kanals ungenutzt
 ├── shared/kataloge.mjs # Katalogliste (nur noch vom Admin-Backend benutzt, auf der Seite stillgelegt)
 ├── scripts/          # Build-Skripte und Qualitätsprüfungen
 ├── backend/          # Admin-Backend (Cloudflare Worker) – siehe backend/README.md
@@ -125,8 +125,8 @@ Veröffentlichen aus dem Admin wird er auf das Tagesdatum gesetzt.
 
 **WebMCP** ist ein W3C-Entwurf: Browser mit Agentenfunktion (Chrome-Origin-Trial,
 ChatGPT-Desktop) fragen die Seite nach ihren Werkzeugen, statt sie abzutippen.
-Registriert sind sechs – fünf reine Auskünfte (Kontakt, Beratungsbereiche,
-Einsatzgebiet, Preise, Terminoptionen) und `prefill_contact_form`, das
+Registriert sind fünf – vier reine Auskünfte (Kontakt, Einsatzgebiet, Preise,
+Terminoptionen) und `prefill_contact_form`, das
 das Kontaktformular **vorbefüllt, aber nicht abschickt**: Einwilligung und
 hCaptcha bleiben Sache eines Menschen. Kennt ein Browser WebMCP nicht, passiert
 schlicht nichts.
@@ -161,7 +161,6 @@ Die Stufen schalten sich **automatisch** frei, sobald die jeweiligen Schlüssel 
   sich einmal je Besucher:in von selbst: am Rechner klappt das Fenster nach
   `autoOpenDelay` Sekunden auf (früher, sobald jemand über den Startbereich hinaus
   scrollt), am Handy erscheint nur die Sprechblase nach `teaserDelay` Sekunden.
-  Der Kanal-Hinweis im Kopf hat dabei Vorrang – aber höchstens zehn Sekunden lang.
   Die Texte stehen unter `chat` in `content/site.json` bzw. im Admin unter
   „WhatsApp-Chat unten rechts“; `"enabled": false` blendet den Knopf aus.
 
